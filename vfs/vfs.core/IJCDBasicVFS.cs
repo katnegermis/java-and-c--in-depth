@@ -1,6 +1,6 @@
 namespace vfs.core
 {
-    public interface IBasicVFS
+    public interface IJCDBasicVFS
     {
 
         // Create a new VFS-file.
@@ -110,7 +110,7 @@ namespace vfs.core
         // Exceptions:
         // - no open VFS with given id.
         // - path points to a file (not directory).
-        File[] ListDirectory(int vfsId, string vfsPath);
+        JCDFile[] ListDirectory(int vfsId, string vfsPath);
 
         // Methods that aren't necessarily needed to be implemented here,
         // and could easily be implemented a layer above.
