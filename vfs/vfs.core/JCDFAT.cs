@@ -2,7 +2,7 @@ using System.IO;
 
 namespace vfs.core
 {
-    public class JCDFAT : IBasicVFS
+    public class JCDFAT : IJCDBasicVFS
     {
         private bool initialized = false;
         private bool mounted = false;

@@ -1,6 +1,6 @@
 namespace vfs.core
 {
-    public interface IAdvancedVFS
+    public interface IJCDAdvancedVFS
     {
         // Expand VFS size.
         // Exceptions:
