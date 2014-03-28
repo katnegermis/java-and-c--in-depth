@@ -1,0 +1,84 @@
+virtual file system
+=====================
+
+2^25 bit bitmap (2^22 Bytes, 4MB)
+2^12 byte blocks (4KB)
+=>
+2^25 * 2^12 = 2^37 (128 GB)
+
+
+
+     file system-file
++==========================+
+|   magic number etc.      |
++--------------------------+
+|                          |
++--------------------------+
+|                          |
++--------------------------+
+|                          |
++==========================+
+
+
+      inode
++=================+
+| name, size, time|
++-----------------+
+|      data       | -> 2^12 B data
++-----------------+
+| indirect data   | -> 2^10 pointers -> 2^12 B data
++-----------------+
+| l2 indirect data| -> 2^10 pointers -> 2^10 pointers -> 2^12 B data
++-----------------+
+| l3 indirect data| -> 2^10 pointers -> 2^10 pointers -> 2^10 pointers -> 2^12 B data
++-----------------+
+|                 |
++-----------------+
+
+
+data:
+    32 bit addressing to data block -> 2^12 B data (4KB)
+
+indirect data:
+    32 bit addressing to an indirect data block ->
+    2^12 Bytes * 2^3 = 2^15 bits per block
+    2^15 bits / 2^5 bits = 2^10 blocks can be addressed
+    2^10 blocks * 2^12 Bytes = 2^22 (4MB)
+
+l2 indirect data:
+    32 bit addressing to an indirect data block ->
+    2^10 blocks can be addressed
+    2^10 blocks * 2^22 = 2^32 (4GB)
+
+l3 indirect data:
+    32 bit addressing to an l2 indirect data block ->
+    2^12 Bytes * 2^3 = 2^15 bits per block
+    2^15 / 2^5 b = 2^10 l2 blocks can be addressed
+    2^10 blocks * 2^32 = 2^42 (4TB)
+max size per file: 2^42 + 2^32 + 2^22 + 2^12 ~ 4TB
+
+fully utilized inode (by itself) takes up:
+    headers + 4 * 4 B + 2^12 * (0 + 1 + 2**10 + 2**20) ~ 4GB
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

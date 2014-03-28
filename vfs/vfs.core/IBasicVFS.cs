@@ -110,7 +110,7 @@ namespace vfs.core
         // Exceptions:
         // - no open VFS with given id.
         // - path points to a file (not directory).
-        Files[] ListDirectory(int vfsId, string vfsPath);
+        File[] ListDirectory(int vfsId, string vfsPath);
 
         // Methods that aren't necessarily needed to be implemented here,
         // and could easily be implemented a layer above.
