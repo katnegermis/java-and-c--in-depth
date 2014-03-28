@@ -3,3 +3,4 @@ F:\eth\jcd\git\vfs\vfs.core\bin\Debug\vfs.core.pdb
 F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.csprojResolveAssemblyReference.cache
 F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.dll
 F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.pdb
+F:\eth\jcd\git\vfs\vfs.core\bin\Debug\vfs.core.dll.CodeAnalysisLog.xml

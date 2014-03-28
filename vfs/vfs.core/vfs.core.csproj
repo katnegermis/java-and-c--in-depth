@@ -21,6 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\..\[jcd]csharp.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,10 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="exceptions\FileNotFoundException.cs" />
+    <Compile Include="exceptions\InvalidSizeException.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
     <Compile Include="JCDFile.cs" />
     <Compile Include="JCDFolder.cs" />
+    <Compile Include="exceptions\FileAlreadyExistsException.cs" />
+    <Compile Include="exceptions\FileSystemNotOpenException.cs" />
+    <Compile Include="exceptions\InvalidFileNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

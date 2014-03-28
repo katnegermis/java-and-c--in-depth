@@ -1,4 +1,5 @@
 using System.IO;
+using vfs.exceptions;
 
 namespace vfs.core
 {
@@ -7,16 +8,17 @@ namespace vfs.core
         private bool initialized = false;
 
         // All sizes in this class are given in bytes.
-        private int numMetaDataBlocks = 1; // Number of blocks used for meta data' (doesn't include the FAT)
-        private int blockSize = 1 << 12; // 4KB
-        private int fileEntrySize = 1 << 8; // 256B - should be a power of 2
+        private const uint numMetaDataBlocks = 1; // Number of blocks used for meta data' (doesn't include the FAT)
+        private const uint blockSize = 1 << 12; // 4KB
+        private const uint fileEntrySize = 1 << 8; // 256B - should be a power of 2
+        private const ulong maxFSSize = (1 << 32) * blockSize + (1 << 32) * (1 << 2);
 
         private ulong size;
-        private int numBlocks;
-        private int numDataBlocks;
-        private int filesPerBlock;
-        private int fatSize;
-        private int[] fat;
+        private uint numBlocks;
+        private uint numDataBlocks;
+        private uint filesPerBlock;
+        private uint fatSize;
+        private uint[] fat;
 
         private JCDFolder rootFolder;
         private JCDFolder currentFolder;
@@ -52,9 +54,14 @@ namespace vfs.core
 
         public static JCDFAT Open(string hfsPath)
         {
-            // Throws FileNotFoundException.
-            var fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            // parse meta data
+            FileStream fs;
+            try {
+                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            } catch (FileNotFoundException) {
+                throw new vfs.core.exceptions.FileNotFoundException();
+            }
+
+            // parse meta data to figure out size.
             ulong size = 0L;
             return new JCDFAT(fs, size);
         }
@@ -67,16 +74,15 @@ namespace vfs.core
 
         private void Init(ulong size)
         {
-            if (size >= 1 << 46)
-            {
-                throw new FileTooFuckingBigException();
+            if (size <= maxFSSize) {
+                throw new InvalidSizeException();
             }
             this.size = size;
-            this.filesPerBlock = this.blockSize / this.fileEntrySize;
-            this.numBlocks = this.size / ulong.Parse(this.blockSize); // Should round down.
+            this.filesPerBlock = blockSize / fileEntrySize;
+            this.numBlocks = (uint)(this.size / blockSize); // Should round down.
             this.fatSize = this.numDataBlocks; // Each block takes up 1 byte.
-            this.numDataBlocks = this.numBlocks - this.numMetaDataBlocks;
-            this.fat = new int[this.numDataBlocks];
+            this.numDataBlocks = this.numBlocks - numMetaDataBlocks;
+            this.fat = new uint[this.numDataBlocks];
 
             this.initialized = true;
         }
@@ -86,9 +92,22 @@ namespace vfs.core
         private void InitFSFile(FileStream fs)
         {
             if (!this.initialized) {
-                throw new FileSystemNotMounted();
+                throw new FileSystemNotOpenException();
             }
             // Write meta data and FAT to beginning of fs.
         }
+
+        public ulong Size() { return 0L; }
+        public ulong OccupiedSpace() { return 0L; }
+        public ulong FreeSpace() { return 0L; }
+        public void CreateDirectory(string vfsPath, bool createParents) { return; }
+        public void ImportFile(string hfsPath, string vfsPath) { return; }
+        public void ExportFile(string vfsPath, string hfsPath) { return; }
+        public void DeleteFile(string vfsPath, bool recursive) { return; }
+        public void RenameFile(string vfsPath, string newName) { return; }
+        public void MoveFile(string vfsPath, string newVfsPath) { return; }
+        public JCDFile[] ListDirectory(string vfsPath) { return null; }
+        public void SetCurrentDirectory(string vfsPath) { return; }
+        public string GetCurrentDirectory() { return null; }
     }
 }

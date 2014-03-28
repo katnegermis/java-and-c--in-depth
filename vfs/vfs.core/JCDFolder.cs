@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace vfs.core
 {
-    class JCDFolder
+    class JCDFolder : JCDFile
     {
     }
 }
