@@ -40,10 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="File.cs" />
-    <Compile Include="IAdvancedVFS.cs" />
-    <Compile Include="IBasicVFS.cs" />
+    <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
+    <Compile Include="JCDFile.cs" />
+    <Compile Include="JCDFolder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
