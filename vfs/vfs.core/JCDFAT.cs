@@ -5,6 +5,7 @@ namespace vfs.core
     public class JCDFAT : IBasicVFS
     {
         private bool initialized = false;
+        private bool mounted = false;
 
         // All sizes in this class are given in bytes.
         private int numMetaDataBlocks = 1; // Number of blocks used for meta data' (doesn't include the FAT)
@@ -18,7 +19,12 @@ namespace vfs.core
         private int fatSize;
         private int[] fat;
 
-        public void Create(string hfsPath, ulong size)
+        private JCDFolder rootFolder;
+        private JCDFolder currentFolder;
+
+        private FileStream fs;
+
+        public static void Create(string hfsPath, ulong size)
         {
             // Make sure the directory exists.
             if (File.Exists(Path.GetDirectoryName(hfsPath))) {
@@ -43,11 +49,27 @@ namespace vfs.core
         public void Mount(string hfsPath)
         {
             // Throws FileNotFoundException.
-            var fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            this.fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            Mount(this.fs);
+        }
 
+        private void Mount(FileStream fs)
+        {
             // Parse meta data from fs.
             // Init(size);
+            // Set this.rootDirectory and this.currentDirectory.
             // Initialize this.fat. At least read in root directory block.
+            this.mounted = true;
+        }
+
+        public void Unmount()
+        {
+            if (!this.mounted) {
+                throw new FileSystemNotMounted();
+            }
+
+            this.fs.Flush();
+            this.fs.Dispose();
         }
 
         private void Init(ulong size)

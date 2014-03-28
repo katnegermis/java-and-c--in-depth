@@ -9,8 +9,9 @@
 
 Total size: (1000 + 1) * k + 1
 
+
 Meta data
-===========
+===========               Size
 +-----------------------+
 | Magic number          | 32 bits
 +-----------------------+
@@ -18,9 +19,9 @@ Meta data
 +-----------------------+
 | Free space in blocks  | 32 bits
 +-----------------------+
-| Root directory cluster| 32 bits
+| Root directory block  | 32 bits
 +-----------------------+
-| Search file cluster   | 32 bits
+| Search file block     | 32 bits
 +-----------------------+
 | first free block      | 32 bits
 +-----------------------+
@@ -37,7 +38,7 @@ File
 +---------------+
 | isFolder      | 1 bit
 +---------------+
-| First cluster | 32 bits
+| First block   | 32 bits
 +---------------+
 
 Total size: 256B
@@ -48,4 +49,4 @@ Math
 vfs size = x
 block size = 2^12
 num blocks = 2^x / 2^12
-
+fat size = (num blocks) * 4
