@@ -11,11 +11,11 @@ namespace vfs.core
         private int numMetaDataBlocks = 1; // Number of blocks used for meta data' (doesn't include the FAT)
         private int blockSize = 1 << 12; // 4KB
         private int fileEntrySize = 1 << 8; // 256B - should be a power of 2
-        private int filesPerBlock = blockSize / fileEntrySize;
 
         private ulong size;
         private int numBlocks;
         private int numDataBlocks;
+        private int filesPerBlock;
         private int fatSize;
         private int[] fat;
 
@@ -75,6 +75,7 @@ namespace vfs.core
         private void Init(ulong size)
         {
             this.size = size;
+            this.filesPerBlock = this.blockSize / this.fileEntrySize;
             this.numBlocks = this.size / this.blockSize; // Should round down.
             this.fatSize = this.numDataBlocks; // Each block takes up 1 byte.
             this.numDataBlocks = this.numBlocks - this.numMetaDataBlocks;
@@ -88,7 +89,7 @@ namespace vfs.core
         private void InitFSFile(FileStream fs)
         {
             if (!this.initialized) {
-                throw new Exception("Init not called yet!");
+                throw new FileSystemNotMounted();
             }
             // Write meta data and FAT to beginning of fs.
         }
