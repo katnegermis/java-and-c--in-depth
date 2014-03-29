@@ -41,8 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="exceptions\InvalidFileException.cs" />
     <Compile Include="exceptions\FileNotFoundException.cs" />
+    <Compile Include="exceptions\InvalidFileException.cs" />
     <Compile Include="exceptions\InvalidSizeException.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
