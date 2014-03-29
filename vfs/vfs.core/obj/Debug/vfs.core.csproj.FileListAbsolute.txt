@@ -4,3 +4,8 @@ F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.csprojResolveAssemblyReference.ca
 F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.dll
 F:\eth\jcd\git\vfs\vfs.core\obj\Debug\vfs.core.pdb
 F:\eth\jcd\git\vfs\vfs.core\bin\Debug\vfs.core.dll.CodeAnalysisLog.xml
+C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\obj\Debug\vfs.core.csprojResolveAssemblyReference.cache
+C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\obj\Debug\vfs.core.dll
+C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\obj\Debug\vfs.core.pdb
+C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\bin\Debug\vfs.core.dll
+C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\bin\Debug\vfs.core.pdb

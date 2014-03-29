@@ -3,7 +3,8 @@ namespace vfs.core
     public interface IJCDBasicVFS
     {
 
-        /// <summary>
+        //You can't have static methods in an interface
+        /*/// <summary>
         /// Create a new VFS-file.
         /// </summary>
         /// <param name="hfsPath">The path of the file on the hard file system</param>
@@ -31,7 +32,7 @@ namespace vfs.core
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         // - VFS file already mounted.
         // - file is not VFS type.
-        static IJCDBasicVFS Open(string hfsPath);
+        static IJCDBasicVFS Open(string hfsPath);*/
 
         /// <summary>
         /// Unmount a mounted VFS.
@@ -128,7 +129,7 @@ namespace vfs.core
         /// <returns>List of directories and files contained in vfsPath.</returns>
         // Exceptions:
         // - path points to a file (not directory).
-        JCDFile[] ListDirectory(string vfsPath);
+        JCDDirEntry[] ListDirectory(string vfsPath);
 
         // Methods that aren't necessarily needed to be implemented here,
         // and could easily be implemented a layer above.
