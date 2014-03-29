@@ -1,0 +1,8 @@
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\bin\Debug\vfs.clients.console.exe.config
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\bin\Debug\vfs.clients.console.exe
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\bin\Debug\vfs.clients.console.pdb
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\bin\Debug\vfs.core.dll
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\bin\Debug\vfs.core.pdb
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\obj\Debug\vfs.clients.console.csprojResolveAssemblyReference.cache
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\obj\Debug\vfs.clients.console.exe
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.clients.console\obj\Debug\vfs.clients.console.pdb

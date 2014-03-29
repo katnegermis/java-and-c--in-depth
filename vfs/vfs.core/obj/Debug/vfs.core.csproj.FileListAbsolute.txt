@@ -9,3 +9,7 @@ C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\obj\Debug\vfs.core.dll
 C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\obj\Debug\vfs.core.pdb
 C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\bin\Debug\vfs.core.dll
 C:\Users\Vladimir\Source\Repos\ravioli\vfs\vfs.core\bin\Debug\vfs.core.pdb
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core\bin\Debug\vfs.core.dll
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core\bin\Debug\vfs.core.pdb
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core\obj\Debug\vfs.core.dll
+C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core\obj\Debug\vfs.core.pdb
