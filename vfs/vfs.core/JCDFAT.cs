@@ -1,13 +1,13 @@
 ﻿using System;
-using vfs.exceptions;
 using System.IO;
+using vfs.exceptions;
+using vfs.core.visitor;
 
 namespace vfs.core
 {
-    class JCDFAT : IDisposable
+    public class JCDFAT : IDisposable
     {
         private bool initialized = false;
-        private long currentFileOffset = 0;
 
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
@@ -21,7 +21,7 @@ namespace vfs.core
         // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
-        private const uint blockSize = 1 << 12; // 4KB blocks
+        public const uint blockSize = 1 << 12; // 4KB blocks
         public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
         public const uint fileEntrySize = 1 << 8; // 256B
@@ -94,9 +94,8 @@ namespace vfs.core
             ReadFAT();
 
             initialized = true;
-
-            Console.WriteLine("Root dir spans {0} blocks", FileNumberOfBlocks(rootDirBlock));
-            Console.WriteLine("Search file spans {0} blocks", FileNumberOfBlocks(searchFileBlock));
+            Console.WriteLine("Root dir spans {0} blocks", WalkFATChain(rootDirBlock, new BlockCounterVisitor()).Blocks);
+            Console.WriteLine("Search file spans {0} blocks", WalkFATChain(searchFileBlock, new BlockCounterVisitor()).Blocks);
         }
 
         /// <summary>
@@ -150,6 +149,12 @@ namespace vfs.core
         {
             fs.Seek((long)offset, SeekOrigin.Begin);
             bw.Write(data);
+        }
+
+        public byte[] Read(ulong offset, uint length)
+        {
+            fs.Seek((long)offset, SeekOrigin.Begin);
+            return br.ReadBytes((int)length);
         }
 
         /// <summary>
@@ -383,28 +388,31 @@ namespace vfs.core
         }
 
         /// <summary>
-        /// Traverse the FAT to figure out how many blocks a file spans.
+        /// Walk FAT chain starting from firstEntry, and inform `v` of all blocks.
         /// </summary>
-        /// <param name="firstBlock"></param>
+        /// <typeparam name="T">Instance of IVisitor</typeparam>
+        /// <param name="firstBlock">Index of first FAT entry</param>
+        /// <param name="v">Instance of IVisitor</param>
         /// <returns></returns>
-        private uint FileNumberOfBlocks(uint firstBlock)
+        private T WalkFATChain<T>(uint firstEntry, T v)
         {
-            // File doesn't exist if the first block is free, or if the next block is one of the reserved blocks.
-            if (fat[firstBlock] == freeBlock || fat[firstBlock] <= reservedBlockNumbers)
+            // firstBlock didn't point to a valid starting point of a file.
+            if (fat[firstEntry] == freeBlock || fat[firstEntry] <= reservedBlockNumbers)
             {
-                return 0;
+                return v;
             }
 
-            uint nextBlock = fat[firstBlock];
-            uint count = 1;
-            while (nextBlock != endOfChain && nextBlock != freeBlock &&
-                   nextBlock != rootDirBlock && nextBlock != searchFileBlock)
+            ((IVisitor)(v)).Visit(this, firstEntry);
+            uint nextEntry = fat[firstEntry];
+            while (nextEntry != endOfChain && nextEntry != freeBlock &&
+                   nextEntry != rootDirBlock && nextEntry != searchFileBlock)
             {
-                nextBlock = fat[nextBlock];
-                count += 1;
+                ((IVisitor)(v)).Visit(this, nextEntry);
+                nextEntry = fat[nextEntry];    
             }
-            return count;
+            return v;
         }
+
 
         public void Dispose()
         {
