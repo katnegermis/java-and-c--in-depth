@@ -17,7 +17,7 @@ namespace vfs.core {
 
         public static JCDFolder rootFolder(JCDFAT vfs) {
             JCDDirEntry entry = new JCDDirEntry {
-                name = null, size = 0, isFolder = true, firstBlock = JCDFAT.rootDirBlock
+                Name = null, Size = 0, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
             return new JCDFolder(vfs, entry, null, 0, null);
         }
@@ -30,7 +30,7 @@ namespace vfs.core {
         }
 
         private ulong entryOffset(uint index) {
-            return container.FileGetByteOffset(entry.firstBlock, index / JCDFAT.filesEntriesPerBlock,
+            return container.FileGetByteOffset(entry.FirstBlock, index / JCDFAT.filesEntriesPerBlock,
                 (index % JCDFAT.filesEntriesPerBlock) * JCDFAT.fileEntrySize);
         }
 
