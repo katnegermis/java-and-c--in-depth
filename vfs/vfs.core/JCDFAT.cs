@@ -1,155 +1,13 @@
-using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System;
 using vfs.exceptions;
+using System.IO;
 
 namespace vfs.core
 {
-    public class JCDVFS : IJCDBasicVFS
-    {
-        private JCDFAT fat;
-
-        public static JCDVFS Create(string hfsPath, ulong size)
-        {
-            // Make sure the directory exists.
-            if (File.Exists(Path.GetDirectoryName(hfsPath)))
-            {
-                throw new DirectoryNotFoundException();
-            }
-
-            // Make sure the file doesn't already exist.
-            if (File.Exists(hfsPath))
-            {
-                throw new FileAlreadyExistsException();
-            }
-
-            if (size >= JCDFAT.globalMaxFSSize)
-            {
-                Console.Write("Global Max FS Size {0}", JCDFAT.globalMaxFSSize);
-                throw new InvalidSizeException();
-            }
-
-            // Create fsfile.
-            try
-            {
-                var fs = new FileStream(hfsPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
-                return new JCDVFS(fs, size);
-            }
-            catch (IOException)
-            {
-                // The file possibly already exists or the stream has been unexpectedly closed
-                throw new FileAlreadyExistsException(); //throw not enough space in parent fs
-            }
-        }
-
-        public static JCDVFS Open(string hfsPath)
-        {
-            FileStream fs;
-            try
-            {
-                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            }
-            catch (FileNotFoundException)
-            {
-                throw new FileNotFoundException();
-            }
-
-            return new JCDVFS(fs);
-        }
-
-        public static void Delete(string hfsPath)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Create a new JCDVFS-file.
-        /// </summary>
-        /// <param name="fs">Stream to an empty read/write accessible VFS-file.</param>
-        /// <param name="size">Maximum size of the new VFS file, in bytes.</param>
-        public JCDVFS(FileStream fs, ulong size)
-        {
-            fat = new JCDFAT(fs, size);
-        }
-
-        /// <summary>
-        /// Open an existing JCDVFS-file.
-        /// </summary>
-        /// <param name="fs"></param>
-        public JCDVFS(FileStream fs)
-        {
-            fat = new JCDFAT(fs);
-        }
-
-        public void Close()
-        {
-            fat.Close();
-        }
-
-        //Interface methods
-        public ulong Size()
-        {
-            return 0L;
-        }
-        public ulong OccupiedSpace()
-        {
-            return 0L;
-        }
-        public ulong FreeSpace()
-        {
-            return 0L;
-        }
-        public void CreateDirectory(string vfsPath, bool createParents)
-        {
-            return;
-        }
-        public void ImportFile(string hfsPath, string vfsPath)
-        {
-            return;
-        }
-        public void ExportFile(string vfsPath, string hfsPath)
-        {
-            return;
-        }
-        public void DeleteFile(string vfsPath, bool recursive)
-        {
-            return;
-        }
-        public void RenameFile(string vfsPath, string newName)
-        {
-            return;
-        }
-        public void MoveFile(string vfsPath, string newVfsPath)
-        {
-            return;
-        }
-        public JCDDirEntry[] ListDirectory(string vfsPath)
-        {
-            return null;
-        }
-        public void SetCurrentDirectory(string vfsPath)
-        {
-            return;
-        }
-        public string GetCurrentDirectory()
-        {
-            return null;
-        }
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    internal struct ByteToUintConverter
-    {
-        [FieldOffset(0)]
-        public byte[] bytes;
-
-        [FieldOffset(0)]
-        public uint[] uints;
-    }
-
-    internal class JCDFAT : IDisposable
+    class JCDFAT : IDisposable
     {
         private bool initialized = false;
+        private long currentFileOffset = 0;
 
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
@@ -160,12 +18,13 @@ namespace vfs.core
 
         // All sizes in this class are given in bytes unless otherwise specified.
         private const uint reservedBlockNumbers = 2; //End-of-chain and free
+        // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
         private const uint blockSize = 1 << 12; // 4KB blocks
         public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
-        public const uint fileEntrySize = 1 << 8; //256B
+        public const uint fileEntrySize = 1 << 8; // 256B
         private const uint fatEntriesPerBlock = blockSize / 4;
         public const uint filesEntriesPerBlock = blockSize / fileEntrySize;
 
@@ -207,8 +66,11 @@ namespace vfs.core
             br = new BinaryReader(fs);
 
             newFSWriteMetaData();
+            newFSWriteFAT();
             newFSCreateRootFolder();
             newFSCreateSearchFile();
+            // Make sure that the file system is written to disk.
+            bw.Flush();
 
             initialized = true;
         }
@@ -227,10 +89,14 @@ namespace vfs.core
             parseMetaData();
             initSize(false);
             initRootFolder();
+            initSearchFile();
 
             readFAT();
 
             initialized = true;
+
+            Console.WriteLine("Root dir spans {0} blocks", fileNumberOfBlocks(rootDirBlock));
+            Console.WriteLine("Search file spans {0} blocks", fileNumberOfBlocks(searchFileBlock));
         }
 
         /// <summary>
@@ -247,11 +113,11 @@ namespace vfs.core
         /// Update the meta-data field "first free block".
         /// </summary>
         /// <param name="newVal"></param>
-        private void setfirstFreeBlock(uint newVal)
+        private void setFirstFreeBlock(uint newVal)
         {
             firstFreeBlock = newVal;
             Write(firstFreeBlockOffset, firstFreeBlock);
-        }       
+        }
 
         /// <summary>
         /// Write data to JCDVFS-file.
@@ -287,13 +153,13 @@ namespace vfs.core
         }
 
         /// <summary>
-        /// Get offset _in to_ FAT. Used to get the byte offset in the JCDVFS-file in which the index'th index is positioned.
+        /// Get the byte offset in the JCDVFS-file in which the nth index of the FAT is positioned.
         /// </summary>
         /// <param name="index">Index in to the FAT.</param>
-        /// <returns>Byte offset in to JCDVFS-file of the index'th index of the FAT.</returns>
+        /// <returns>Byte offset in to JCDVFS-file of the nth index of the FAT.</returns>
         private long fatOffset(uint index)
         {
-            if (index >= this.currentNumDataBlocks)
+            if (index >= this.maxNumDataBlocks)
             {
                 throw new Exception("The FAT doesn't have that many entries!");
             }
@@ -309,7 +175,9 @@ namespace vfs.core
         public void fatSet(uint index, uint value)
         {
             fat[index] = value;
-            Write((ulong)fatOffset(index), value);
+            ulong offset = (ulong)fatOffset(index);
+            // Console.WriteLine("Set fat[{0}] = 0x{1} (0x{2})", index, value.ToString("X"), offset.ToString("X"));
+            Write(offset, value);
         }
 
         /// <summary>
@@ -356,6 +224,11 @@ namespace vfs.core
         {
             for (uint i = 0; i < blockIndex; i++)
             {
+                if (fat[firstBlock] == endOfChain || fat[firstBlock] == freeBlock)
+                {
+                    throw new Exception("File doesn't have that many blocks!");
+                }
+
                 firstBlock = fat[firstBlock];
             }
             return blockGetByteOffset(firstBlock, blockOffset);
@@ -384,10 +257,30 @@ namespace vfs.core
             initSize(true);
 
             // These are written in newFSWriteMetaData()
-            freeBlocks = 0;
-            firstFreeBlock = endOfChain;
+
+            // The current number of unused blocks in the FS.
+            // The JCDVFS-file might not yet be big enough to actually hold this many blocks!
+            freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock;
+            firstFreeBlock = 2; // The first free block is after the (initially empty) root dir and search file block.
 
             fs.SetLength((long)currentSize);
+        }
+
+        private void newFSWriteFAT()
+        {
+            // Not using fatSet in this function because of performance.
+            fs.Seek(fatOffset(0), SeekOrigin.Begin);
+            for (uint i = 0; i < this.fatBlocks * fatEntriesPerBlock; i += 1)
+            {
+                if (fat[i] == 0)
+                {
+                    bw.Write(freeBlock);
+                }
+                else
+                {
+                    bw.Write(fat[i]);
+                }
+            }
         }
 
         private void initSize(bool newFile)
@@ -411,6 +304,7 @@ namespace vfs.core
 
         private void readFAT()
         {
+            // The FAT placed contiously, starting from the first data block.
             fs.Seek(metaDataBlocks * blockSize, SeekOrigin.Begin);
             ByteToUintConverter cnv = new ByteToUintConverter
             {
@@ -430,12 +324,12 @@ namespace vfs.core
             // Go to start of JCDVFS-file and write meta data continuously.
             fs.Seek(0L, SeekOrigin.Begin);
             bw.Write(magicNumber);
-            bw.Write(blockSize); // Currently set to 4KB fixed size, and therefore unused.
+            bw.Write(blockSize); // Currently set to 4KB fixed size.
             bw.Write(fatBlocks); // Number of blocks that the FAT spans.
-            bw.Write(freeBlocks); // Number of free blocks, initially 0.
-            bw.Write(firstFreeBlock); // First free block, initially endOfChain.
-            bw.Write(rootDirBlock); // Currently unused
-            bw.Write(searchFileBlock); // Currently unused
+            bw.Write(freeBlocks); // Number of free blocks.
+            bw.Write(firstFreeBlock); // First free block. Currently statically set to 2.
+            bw.Write(rootDirBlock); // Currently statically set to 0.
+            bw.Write(searchFileBlock); // Currently statically set to 1.
         }
 
         private void parseMetaData()
@@ -449,6 +343,7 @@ namespace vfs.core
                 throw new InvalidFileException();
             }
 
+            // Make sure that the block size is 2^12, since this isn't configurable yet.
             tmp = br.ReadUInt32();
             if (tmp != blockSize)
             {
@@ -459,20 +354,21 @@ namespace vfs.core
             fatBlocks = br.ReadUInt32();
             freeBlocks = br.ReadUInt32();
             firstFreeBlock = br.ReadUInt32();
-            //rootDirBlock = br.ReadUInt32(); //Unused
-            //searchFileBlock = br.ReadUInt32(); //Unused
+            //rootDirBlock = br.ReadUInt32(); // Unused.
+            //searchFileBlock = br.ReadUInt32(); // Unused.
         }
 
         private void newFSCreateRootFolder()
         {
-            rootFolder = JCDFolder.createRootFolder(this);
-            currentFolder = rootFolder;
+            // The FAT is updated in createRootFolder, which is why that's not done here.
+            this.rootFolder = JCDFolder.createRootFolder(this);
+            this.currentFolder = rootFolder;
         }
 
         private void initRootFolder()
         {
-            rootFolder = JCDFolder.rootFolder(this);
-            currentFolder = rootFolder;
+            this.rootFolder = JCDFolder.rootFolder(this);
+            this.currentFolder = rootFolder;
         }
 
         private void newFSCreateSearchFile()
@@ -480,9 +376,34 @@ namespace vfs.core
             //Not implemented
             fatSetEOC(searchFileBlock);
         }
+
         private void initSearchFile()
         {
             //Not implemented
+        }
+
+        /// <summary>
+        /// Traverse the FAT to figure out how many blocks a file spans.
+        /// </summary>
+        /// <param name="firstBlock"></param>
+        /// <returns></returns>
+        private uint fileNumberOfBlocks(uint firstBlock)
+        {
+            // File doesn't exist if the first block is free, or if the next block is one of the reserved blocks.
+            if (fat[firstBlock] == freeBlock || fat[firstBlock] <= reservedBlockNumbers)
+            {
+                return 0;
+            }
+
+            uint nextBlock = fat[firstBlock];
+            uint count = 1;
+            while (nextBlock != endOfChain && nextBlock != freeBlock &&
+                   nextBlock != rootDirBlock && nextBlock != searchFileBlock)
+            {
+                nextBlock = fat[nextBlock];
+                count += 1;
+            }
+            return count;
         }
 
         public void Dispose()
@@ -497,6 +418,16 @@ namespace vfs.core
             bw.Dispose();
             br.Dispose();
             fs.Dispose();
+        }
+
+        public ulong getSize()
+        {
+            return this.maxSize;
+        }
+
+        public ulong getFreeSpace()
+        {
+            return this.freeBlocks * JCDFAT.blockSize;
         }
     }
 }
