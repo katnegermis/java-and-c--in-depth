@@ -30,7 +30,7 @@ namespace vfs.core {
         }
 
         private ulong entryOffset(uint index) {
-            return container.offset(entry.firstBlock, index / JCDFAT.filesEntriesPerBlock,
+            return container.fileGetByteOffset(entry.firstBlock, index / JCDFAT.filesEntriesPerBlock,
                 (index % JCDFAT.filesEntriesPerBlock) * JCDFAT.fileEntrySize);
         }
 
