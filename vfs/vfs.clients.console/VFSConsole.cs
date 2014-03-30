@@ -68,6 +68,7 @@ namespace console.client
             public int Execute(VFSConsole console)
             {
                 //TODO implement something useful
+                Console.WriteLine("Unknown command!");
                 return 0;
             }
         }
@@ -112,6 +113,7 @@ namespace console.client
                 try
                 {
                     JCDVFS fat = JCDVFS.Create(path, size);
+                    fat.Close();
                 }
                 catch (Exception e)
                 {
@@ -119,7 +121,7 @@ namespace console.client
                     return 0;
                 }
 
-                Console.WriteLine(String.Format("Created VFS {0} with size {1}.", path, size));
+                Console.WriteLine(String.Format("Created VFS {0} with size {1}. The VFS has not been mounted.", path, size));
 
                 return 0;
             }
@@ -784,8 +786,35 @@ namespace console.client
 
                 try
                 {
-                    ulong occupied = console.mountedJCDVFS.FreeSpace();
+                    ulong occupied = console.mountedJCDVFS.OccupiedSpace();
                     Console.WriteLine(String.Format("The amount of occupied space on the mounted VFS is: {0} bytes.", occupied));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Data);
+                    return 0;
+                }
+
+                return 0;
+            }
+        }
+
+        public class SizeCommand : ICommand
+        {
+
+            public int Execute(VFSConsole console)
+            {
+
+                if (!console.mounted)
+                {
+                    Console.WriteLine("No vfs mounted.");
+                    return 0;
+                }
+
+                try
+                {
+                    ulong size = console.mountedJCDVFS.Size();
+                    Console.WriteLine(String.Format("The size of the mounted VFS is: {0} bytes.", size));
                 }
                 catch (Exception e)
                 {

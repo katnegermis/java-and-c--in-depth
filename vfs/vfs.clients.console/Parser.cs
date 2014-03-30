@@ -48,6 +48,8 @@ namespace console.client
                 return new VFSConsole.FreeCommand();
             case "occupied":
                 return new VFSConsole.OccupiedCommand();
+            case "size":
+                return new VFSConsole.SizeCommand();
              default:
                  return new VFSConsole.NULLCommand();
          }
