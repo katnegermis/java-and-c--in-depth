@@ -24,13 +24,13 @@ namespace vfs.core {
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {
             JCDFolder root = rootFolder(vfs);
-            vfs.fatSetEOC(JCDFAT.rootDirBlock);
+            vfs.FatSetEOC(JCDFAT.rootDirBlock);
             root.setEntryFinal(0);
             return root;
         }
 
         private ulong entryOffset(uint index) {
-            return container.fileGetByteOffset(entry.firstBlock, index / JCDFAT.filesEntriesPerBlock,
+            return container.FileGetByteOffset(entry.firstBlock, index / JCDFAT.filesEntriesPerBlock,
                 (index % JCDFAT.filesEntriesPerBlock) * JCDFAT.fileEntrySize);
         }
 

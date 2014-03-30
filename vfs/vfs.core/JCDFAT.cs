@@ -60,15 +60,15 @@ namespace vfs.core
 
             // TODO: Make sure that the file is empty??
 
-            newFSSetSize(size);
+            NewFSSetSize(size);
 
             bw = new BinaryWriter(fs);
             br = new BinaryReader(fs);
 
-            newFSWriteMetaData();
-            newFSWriteFAT();
-            newFSCreateRootFolder();
-            newFSCreateSearchFile();
+            NewFSWriteMetaData();
+            NewFSWriteFAT();
+            NewFSCreateRootFolder();
+            NewFSCreateSearchFile();
             // Make sure that the file system is written to disk.
             bw.Flush();
 
@@ -86,24 +86,24 @@ namespace vfs.core
             bw = new BinaryWriter(fs);
             br = new BinaryReader(fs);
 
-            parseMetaData();
-            initSize(false);
-            initRootFolder();
-            initSearchFile();
+            ParseMetaData();
+            InitSize(false);
+            InitRootFolder();
+            InitSearchFile();
 
-            readFAT();
+            ReadFAT();
 
             initialized = true;
 
-            Console.WriteLine("Root dir spans {0} blocks", fileNumberOfBlocks(rootDirBlock));
-            Console.WriteLine("Search file spans {0} blocks", fileNumberOfBlocks(searchFileBlock));
+            Console.WriteLine("Root dir spans {0} blocks", FileNumberOfBlocks(rootDirBlock));
+            Console.WriteLine("Search file spans {0} blocks", FileNumberOfBlocks(searchFileBlock));
         }
 
         /// <summary>
         /// Update the meta-data field "free blocks".
         /// </summary>
         /// <param name="newVal">New number of free blocks.</param>
-        private void setFreeBlocks(uint newVal)
+        private void SetFreeBlocks(uint newVal)
         {
             freeBlocks = newVal;
             Write(freeBlocksOffset, freeBlocks);
@@ -113,7 +113,7 @@ namespace vfs.core
         /// Update the meta-data field "first free block".
         /// </summary>
         /// <param name="newVal"></param>
-        private void setFirstFreeBlock(uint newVal)
+        private void SetFirstFreeBlock(uint newVal)
         {
             firstFreeBlock = newVal;
             Write(firstFreeBlockOffset, firstFreeBlock);
@@ -157,7 +157,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="index">Index in to the FAT.</param>
         /// <returns>Byte offset in to JCDVFS-file of the nth index of the FAT.</returns>
-        private long fatOffset(uint index)
+        private long FatOffset(uint index)
         {
             if (index >= this.maxNumDataBlocks)
             {
@@ -172,10 +172,10 @@ namespace vfs.core
         /// </summary>
         /// <param name="index"></param>
         /// <param name="value"></param>
-        public void fatSet(uint index, uint value)
+        public void FatSet(uint index, uint value)
         {
             fat[index] = value;
-            ulong offset = (ulong)fatOffset(index);
+            ulong offset = (ulong)FatOffset(index);
             // Console.WriteLine("Set fat[{0}] = 0x{1} (0x{2})", index, value.ToString("X"), offset.ToString("X"));
             Write(offset, value);
         }
@@ -184,18 +184,18 @@ namespace vfs.core
         /// Set an entry in the FAT to end-of-cluster.
         /// </summary>
         /// <param name="index"></param>
-        public void fatSetEOC(uint index)
+        public void FatSetEOC(uint index)
         {
-            fatSet(index, endOfChain);
+            FatSet(index, endOfChain);
         }
 
         /// <summary>
         /// Make an entry in the FAT free.
         /// </summary>
         /// <param name="index"></param>
-        public void fatSetFree(uint index)
+        public void FatSetFree(uint index)
         {
-            fatSet(index, freeBlock);
+            FatSet(index, freeBlock);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace vfs.core
         /// <param name="dataBlock"></param>
         /// <param name="blockOffset"></param>
         /// <returns></returns>
-        public ulong blockGetByteOffset(uint dataBlock, uint blockOffset)
+        public ulong BlockGetByteOffset(uint dataBlock, uint blockOffset)
         {
             if (dataBlock >= this.maxNumDataBlocks)
             {
@@ -220,7 +220,7 @@ namespace vfs.core
         /// <param name="blockIndex">Block which you wish to index.</param>
         /// <param name="blockOffset">Offset in to the block wished to index.</param>
         /// <returns></returns>
-        public ulong fileGetByteOffset(uint firstBlock, uint blockIndex, uint blockOffset)
+        public ulong FileGetByteOffset(uint firstBlock, uint blockIndex, uint blockOffset)
         {
             for (uint i = 0; i < blockIndex; i++)
             {
@@ -231,7 +231,7 @@ namespace vfs.core
 
                 firstBlock = fat[firstBlock];
             }
-            return blockGetByteOffset(firstBlock, blockOffset);
+            return BlockGetByteOffset(firstBlock, blockOffset);
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace vfs.core
             return (num + den - 1) / den;
         }
 
-        private void newFSSetSize(ulong size)
+        private void NewFSSetSize(ulong size)
         {
             // Adjust size so that it is a multiple of block size.
             size = ruid(size, blockSize); // Round up to whole blocks.
@@ -254,7 +254,7 @@ namespace vfs.core
             fatBlocks = (uint)ruid(size, sizeMultiple); // Number of FAT blocks.
             fat = new uint[fatBlocks * fatEntriesPerBlock];
 
-            initSize(true);
+            InitSize(true);
 
             // These are written in newFSWriteMetaData()
 
@@ -266,10 +266,10 @@ namespace vfs.core
             fs.SetLength((long)currentSize);
         }
 
-        private void newFSWriteFAT()
+        private void NewFSWriteFAT()
         {
             // Not using fatSet in this function because of performance.
-            fs.Seek(fatOffset(0), SeekOrigin.Begin);
+            fs.Seek(FatOffset(0), SeekOrigin.Begin);
             for (uint i = 0; i < this.fatBlocks * fatEntriesPerBlock; i += 1)
             {
                 if (fat[i] == 0)
@@ -283,7 +283,7 @@ namespace vfs.core
             }
         }
 
-        private void initSize(bool newFile)
+        private void InitSize(bool newFile)
         {
             dataOffsetBlocks = metaDataBlocks + fatBlocks;
             maxNumDataBlocks = Math.Min(fatBlocks * fatEntriesPerBlock, availableBlockNumbers);
@@ -302,7 +302,7 @@ namespace vfs.core
             maxSize = maxNumBlocks * blockSize;
         }
 
-        private void readFAT()
+        private void ReadFAT()
         {
             // The FAT placed contiously, starting from the first data block.
             fs.Seek(metaDataBlocks * blockSize, SeekOrigin.Begin);
@@ -319,7 +319,7 @@ namespace vfs.core
         /// <summary>
         /// Write meta data to JCDVFS-file. Must be called after newFSSetSize, since this function calculates some of the meta data.
         /// </summary>
-        private void newFSWriteMetaData()
+        private void NewFSWriteMetaData()
         {
             // Go to start of JCDVFS-file and write meta data continuously.
             fs.Seek(0L, SeekOrigin.Begin);
@@ -332,7 +332,7 @@ namespace vfs.core
             bw.Write(searchFileBlock); // Currently statically set to 1.
         }
 
-        private void parseMetaData()
+        private void ParseMetaData()
         {
             fs.Seek(0L, SeekOrigin.Begin);
 
@@ -358,26 +358,26 @@ namespace vfs.core
             //searchFileBlock = br.ReadUInt32(); // Unused.
         }
 
-        private void newFSCreateRootFolder()
+        private void NewFSCreateRootFolder()
         {
             // The FAT is updated in createRootFolder, which is why that's not done here.
             this.rootFolder = JCDFolder.createRootFolder(this);
             this.currentFolder = rootFolder;
         }
 
-        private void initRootFolder()
+        private void InitRootFolder()
         {
             this.rootFolder = JCDFolder.rootFolder(this);
             this.currentFolder = rootFolder;
         }
 
-        private void newFSCreateSearchFile()
+        private void NewFSCreateSearchFile()
         {
             //Not implemented
-            fatSetEOC(searchFileBlock);
+            FatSetEOC(searchFileBlock);
         }
 
-        private void initSearchFile()
+        private void InitSearchFile()
         {
             //Not implemented
         }
@@ -387,7 +387,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="firstBlock"></param>
         /// <returns></returns>
-        private uint fileNumberOfBlocks(uint firstBlock)
+        private uint FileNumberOfBlocks(uint firstBlock)
         {
             // File doesn't exist if the first block is free, or if the next block is one of the reserved blocks.
             if (fat[firstBlock] == freeBlock || fat[firstBlock] <= reservedBlockNumbers)
@@ -420,12 +420,12 @@ namespace vfs.core
             fs.Dispose();
         }
 
-        public ulong getSize()
+        public ulong GetSize()
         {
             return this.maxSize;
         }
 
-        public ulong getFreeSpace()
+        public ulong GetFreeSpace()
         {
             return this.freeBlocks * JCDFAT.blockSize;
         }

@@ -102,15 +102,15 @@ namespace vfs.core
         //Interface methods
         public ulong Size()
         {
-            return fat.getSize();
+            return fat.GetSize();
         }
         public ulong OccupiedSpace()
         {
-            return fat.getSize() - fat.getFreeSpace();
+            return fat.GetSize() - fat.GetFreeSpace();
         }
         public ulong FreeSpace()
         {
-            return fat.getFreeSpace();
+            return fat.GetFreeSpace();
         }
         public void CreateDirectory(string vfsPath, bool createParents)
         {
