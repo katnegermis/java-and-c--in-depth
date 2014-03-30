@@ -148,6 +148,26 @@ namespace vfs.core
         {
             return null;
         }
+
+        /// <summary>
+        /// Takes the given path and combines it with the CurrentDirectory.
+        /// </summary>
+        /// <remarks>If the given path is rooted(e.g. absolute), it will be returned unchanged.</remarks>
+        /// <param name="path">To combine with the current dir.</param>
+        /// <returns>The resulting directory path</returns>
+        /// <exception cref="System.ArgumentException"></exception>
+        /// <exception cref="System.ArgumentNullException"></exception>
+        public string CombinePathWithCurrentDirectory(string path)
+        {
+            if (System.IO.Path.IsPathRooted(path))
+               return path;
+            else
+            {        
+                var newPath = Path.GetFullPath(Path.Combine(GetCurrentDirectory(), path));
+                return newPath;
+            }
+
+        }
     }
 
     [StructLayout(LayoutKind.Explicit)]
