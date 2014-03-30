@@ -6,12 +6,12 @@ namespace vfs.core {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 243)]
-        public string name;
-        public ulong size;
-        public bool isFolder;
-        public uint firstBlock;
+        public string Name;
+        public ulong Size;
+        public bool IsFolder;
+        public uint FirstBlock;
 
-        public JCDDirEntry fromByteArr(byte[] byteArr) {
+        public JCDDirEntry FromByteArr(byte[] byteArr) {
             int size = Marshal.SizeOf(typeof(JCDDirEntry));
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
@@ -37,8 +37,8 @@ namespace vfs.core {
         protected ulong parentIndex;
         protected string path;
 
-        public static JCDFile fromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, ulong parentIndex, string path) {
-            if(entry.isFolder) {
+        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, ulong parentIndex, string path) {
+            if(entry.IsFolder) {
                 return new JCDFolder(container, entry, parent, parentIndex, path);
             }
             else {
