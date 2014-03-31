@@ -34,7 +34,7 @@ namespace console.client
             {
                 //TODO write the current path if mounted
                 /*if (mounted)
-                    Console.Write(mountedJCDVFS.)*/
+                    Console.Write(mountedJCDVFS.GetCurrentDirectory() + ">");*/
                 var command = Parser.Parse(Console.ReadLine());
                 res = command.Execute(this);
                 Console.WriteLine("");
@@ -42,6 +42,8 @@ namespace console.client
         }
 
         #region ICommand implementations
+
+        #region Executable all the time
 
         public class HelpCommand : ICommand
         {
@@ -58,7 +60,19 @@ namespace console.client
         {
             public int Execute(VFSConsole console)
             {
-                //TODO dismount if mounted
+                try
+                {
+                    if (console.mounted)
+                    {
+                        console.mountedJCDVFS.Close();
+                        console.mounted = false;
+                        console.mountedJCDVFS = null;
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("An exception happened when closing the mounted VFS.");
+                }
                 return -1;
             }
         }
@@ -72,6 +86,10 @@ namespace console.client
                 return 0;
             }
         }
+
+        #endregion
+
+        #region Executable only when NOT mounted
 
         public class CreateCommand : ICommand
         {
@@ -96,7 +114,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
 
@@ -110,6 +128,13 @@ namespace console.client
                     return 0;
                 }
 
+                if (console.mounted)
+                {
+                    Console.WriteLine("Command can only be executed when no VFS is mounted.");
+                    return 0;
+                }
+
+
                 try
                 {
                     JCDVFS fat = JCDVFS.Create(path, size);
@@ -117,7 +142,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -149,7 +174,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
 
@@ -160,6 +185,12 @@ namespace console.client
                 if (!valid)
                 {
                     Console.WriteLine("Invalid command, check help for more details.");
+                    return 0;
+                }
+
+                if (console.mounted)
+                {
+                    Console.WriteLine("Command can only be executed when no VFS is mounted.");
                     return 0;
                 }
 
@@ -179,7 +210,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -188,36 +219,6 @@ namespace console.client
                 return 0;
             }
 
-        }
-
-        public class CloseCommand : ICommand
-        {
-
-            public int Execute(VFSConsole console)
-            {
-
-                if (!console.mounted)
-                {
-                    Console.WriteLine("No vfs mounted.");
-                    return 0;
-                }
-
-                try
-                {
-                    console.mountedJCDVFS.Close();
-                    console.mountedJCDVFS = null;
-                    console.mounted = false;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Data);
-                    return 0;
-                }
-
-                Console.WriteLine(String.Format("Closed VFS successfully."));
-
-                return 0;
-            }
         }
 
         public class DeleteCommand : ICommand
@@ -241,7 +242,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
 
@@ -255,13 +256,19 @@ namespace console.client
                     return 0;
                 }
 
+                if (console.mounted)
+                {
+                    Console.WriteLine("Command can only be executed when no VFS is mounted.");
+                    return 0;
+                }
+
                 try
                 {
                     JCDVFS.Delete(path);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -270,6 +277,40 @@ namespace console.client
                 return 0;
             }
 
+        }
+
+        #endregion
+
+        #region Executable only when mounted
+
+        public class CloseCommand : ICommand
+        {
+
+            public int Execute(VFSConsole console)
+            {
+
+                if (!console.mounted)
+                {
+                    Console.WriteLine("No vfs mounted.");
+                    return 0;
+                }
+
+                try
+                {
+                    console.mountedJCDVFS.Close();
+                    console.mountedJCDVFS = null;
+                    console.mounted = false;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    return 0;
+                }
+
+                Console.WriteLine(String.Format("Closed VFS successfully."));
+
+                return 0;
+            }
         }
 
         public class LsCommand : ICommand
@@ -308,7 +349,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -338,7 +379,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -363,7 +404,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -409,7 +450,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -435,7 +476,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -481,7 +522,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -507,7 +548,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -553,7 +594,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -579,7 +620,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -637,7 +678,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -658,7 +699,7 @@ namespace console.client
 
                 try
                 {
-                    if (sourceOnVFS && targetOnVFS )
+                    if (sourceOnVFS && targetOnVFS)
                     {
                         console.mountedJCDVFS.MoveFile(sourcePath, targetPath);
                         Console.WriteLine(String.Format("Moved successfully from {0} to {1}.", targetPath, sourcePath));
@@ -678,7 +719,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -710,7 +751,7 @@ namespace console.client
                 catch (Exception e)
                 {
                     valid = false;
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return;
                 }
             }
@@ -736,7 +777,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -764,7 +805,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -791,7 +832,7 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
@@ -818,13 +859,15 @@ namespace console.client
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Data);
+                    Console.WriteLine(e.ToString());
                     return 0;
                 }
 
                 return 0;
             }
         }
+
+        #endregion
 
     }
 
