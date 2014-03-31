@@ -23,13 +23,14 @@ namespace vfs.core.visitor
         {
         }
 
-        public void Visit(JCDFAT vfs, uint block)
+        public bool Visit(JCDFAT vfs, uint block)
         {
             if (this.debug)
             {
                 Console.WriteLine("Walked block: {0}", block);
             }
             this.Blocks += 1;
+            return true;
         }
     }
 }

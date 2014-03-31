@@ -8,6 +8,6 @@ namespace vfs.core.visitor
 {
     public interface IVisitor
     {
-        void Visit(JCDFAT vfs, uint block);
+        bool Visit(JCDFAT vfs, uint block);
     }
 }

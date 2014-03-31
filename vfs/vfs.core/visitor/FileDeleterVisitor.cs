@@ -8,9 +8,10 @@ namespace vfs.core.visitor
 {
     class FileDeleterVisitor : IVisitor
     {
-        public void Visit(JCDFAT vfs, uint block)
+        public bool Visit(JCDFAT vfs, uint block)
         {
             vfs.FatSetFree(block);
+            return true;
         }
     }
 }

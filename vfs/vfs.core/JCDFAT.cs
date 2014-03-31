@@ -66,7 +66,7 @@ namespace vfs.core
             br = new BinaryReader(fs);
 
             NewFSWriteMetaData();
-            NewFSWriteFAT();
+            NewFSInitAndWriteFAT();
             NewFSCreateRootFolder();
             NewFSCreateSearchFile();
             // Make sure that the file system is written to disk.
@@ -94,8 +94,10 @@ namespace vfs.core
             ReadFAT();
 
             initialized = true;
-            Console.WriteLine("Root dir spans {0} blocks", WalkFATChain(rootDirBlock, new BlockCounterVisitor()).Blocks);
-            Console.WriteLine("Search file spans {0} blocks", WalkFATChain(searchFileBlock, new BlockCounterVisitor()).Blocks);
+            var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
+            Console.WriteLine("Root dir spans {0} blocks", rootDir.Blocks);
+            var searchFile = (BlockCounterVisitor)WalkFATChain(searchFileBlock, new BlockCounterVisitor());
+            Console.WriteLine("Search file spans {0} blocks", searchFile.Blocks);
         }
 
         /// <summary>
@@ -109,7 +111,7 @@ namespace vfs.core
         }
 
         /// <summary>
-        /// Update the meta-data field "first free block".
+        /// Update the firstFreeBlock variable and the associated meta-data field.
         /// </summary>
         /// <param name="newVal"></param>
         private void SetFirstFreeBlock(uint newVal)
@@ -180,9 +182,13 @@ namespace vfs.core
         public void FatSet(uint index, uint value)
         {
             fat[index] = value;
-            ulong offset = (ulong)FatOffset(index);
-            // Console.WriteLine("Set fat[{0}] = 0x{1} (0x{2})", index, value.ToString("X"), offset.ToString("X"));
-            Write(offset, value);
+            Write((ulong)FatOffset(index), value);
+
+            // Update firstFreeBlock if an earlier block was just freed.
+            if (index < GetFreeBlock() && value == freeBlock)
+            {
+                SetFirstFreeBlock(index);
+            }
         }
 
         /// <summary>
@@ -201,6 +207,39 @@ namespace vfs.core
         public void FatSetFree(uint index)
         {
             FatSet(index, freeBlock);
+        }
+
+        /// <summary>
+        /// Get the FAT-index of the first free block. and update the internal firstFreeBlock variable.
+        /// </summary>
+        /// <returns></returns>
+        public uint GetFreeBlock()
+        {
+            if (fat[firstFreeBlock] == freeBlock)
+            {
+                return firstFreeBlock;
+            }
+
+            if (!(freeBlocks >= 1))
+            {
+                throw new Exception("No more free blocks!");
+            }
+
+            // firstFreeBlock wasn't free! Since this variable was not maintained, we assume
+            // that freeBlocks was not maintained either.
+            freeBlocks -= 1;
+            for (uint i = firstFreeBlock + 1; i < maxNumDataBlocks; i += 1)
+            {
+                Console.WriteLine("Trying to find a free block: fat[{0}] = {1}", i, fat[i]);
+                if (fat[i] == freeBlock)
+                {
+                    SetFirstFreeBlock(i);
+                    return firstFreeBlock;
+                }
+            }
+
+            // Did not find a free block, even though there should one!
+            throw new Exception("Didn't find a free block!");
         }
 
         /// <summary>
@@ -271,20 +310,23 @@ namespace vfs.core
             fs.SetLength((long)currentSize);
         }
 
-        private void NewFSWriteFAT()
+        /// <summary>
+        /// Initialize FAT (mark all unused blocks free) and write it to the JCDVFS-file.
+        /// </summary>
+        private void NewFSInitAndWriteFAT()
         {
-            // Not using fatSet in this function because of performance.
+            // Not using fatSet in this function because of performance issues.
+            // (Really. It took me 60 seconds to write 2 MB.)
             fs.Seek(FatOffset(0), SeekOrigin.Begin);
             for (uint i = 0; i < this.fatBlocks * fatEntriesPerBlock; i += 1)
             {
+                // The array will be initialized with 0's, so initially, free
+                // entries will (incorrectly) have 0 as value.
                 if (fat[i] == 0)
                 {
-                    bw.Write(freeBlock);
+                    fat[i] = freeBlock;
                 }
-                else
-                {
-                    bw.Write(fat[i]);
-                }
+                bw.Write(fat[i]);
             }
         }
 
@@ -309,7 +351,7 @@ namespace vfs.core
 
         private void ReadFAT()
         {
-            // The FAT placed contiously, starting from the first data block.
+            // The is FAT placed contiously, starting from the first data block.
             fs.Seek(metaDataBlocks * blockSize, SeekOrigin.Begin);
             ByteToUintConverter cnv = new ByteToUintConverter
             {
@@ -365,7 +407,7 @@ namespace vfs.core
 
         private void NewFSCreateRootFolder()
         {
-            // The FAT is updated in createRootFolder, which is why that's not done here.
+            // The FAT is updated in JCDFolder.createRootFolder, which is why that's not done here.
             this.rootFolder = JCDFolder.createRootFolder(this);
             this.currentFolder = rootFolder;
         }
@@ -394,20 +436,23 @@ namespace vfs.core
         /// <param name="firstBlock">Index of first FAT entry</param>
         /// <param name="v">Instance of IVisitor</param>
         /// <returns></returns>
-        private T WalkFATChain<T>(uint firstEntry, T v)
+        private IVisitor WalkFATChain(uint firstEntry, IVisitor v)
         {
             // firstBlock didn't point to a valid starting point of a file.
-            if (fat[firstEntry] == freeBlock || fat[firstEntry] <= reservedBlockNumbers)
+            // Assumes that the reserved block numbers are placed continuously from 0.
+            if (fat[firstEntry] == freeBlock || fat[firstEntry] < reservedBlockNumbers)
             {
                 return v;
             }
+        
+            // Check whether the visitor wants to visit the next block.
+            bool continue_ = v.Visit(this, firstEntry);
 
-            ((IVisitor)(v)).Visit(this, firstEntry);
             uint nextEntry = fat[firstEntry];
-            while (nextEntry != endOfChain && nextEntry != freeBlock &&
+            while (continue_ && nextEntry != endOfChain && nextEntry != freeBlock &&
                    nextEntry != rootDirBlock && nextEntry != searchFileBlock)
             {
-                ((IVisitor)(v)).Visit(this, nextEntry);
+                continue_ = ((IVisitor)(v)).Visit(this, nextEntry);
                 nextEntry = fat[nextEntry];    
             }
             return v;
