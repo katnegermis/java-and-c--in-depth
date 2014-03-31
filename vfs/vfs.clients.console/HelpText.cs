@@ -33,6 +33,7 @@ namespace console.client
             Console.WriteLine("mv \t -hv/vh/vv source target Move the source to the target");
             Console.WriteLine("\t\t\t\t -hv is import, -vh export, -vv in the VFS");
             Console.WriteLine("rn \t path newName \t\t Rename the file/dir");
+            Console.WriteLine("size \t\t\t\t Show the size of the VFS");
             Console.WriteLine("free \t\t\t\t Show the free space");
             Console.WriteLine("occupied \t\t\t Show the occupied space");
             Console.WriteLine("");
