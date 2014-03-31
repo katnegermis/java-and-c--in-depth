@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<OrderedTest name="OrderedJCDVFSTest" storage="c:\users\pascal\documents\github\ravioli\vfs\vfs.core.tests\orderedjcdvfstest.orderedtest" id="4e681bf5-830b-419c-af20-a4bd8957e685" continueAfterFailure="true" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <TestLinks>
+    <TestLink id="5c14514f-8035-7eeb-8e77-306a99e0faa4" name="CreateNormal" storage="bin\debug\vfs.core.tests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <TestLink id="0f65edf7-46da-ac1d-dc89-d54e43a60339" name="CreateWithFileExisting" storage="bin\debug\vfs.core.tests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <TestLink id="8a95c98f-20c7-75ac-5986-e8584f414c4d" name="CreateWithInvalidPathTest" storage="bin\debug\vfs.core.tests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <TestLink id="6637d832-ff9d-9289-ba2b-41ab2b74cb5f" name="CreateWithSizeTooBigTest" storage="bin\debug\vfs.core.tests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <TestLink id="7ea0f359-01ad-545c-6bb7-c28460f5764d" name="CreateWithSizeTooSmallTest" storage="bin\debug\vfs.core.tests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  </TestLinks>
+</OrderedTest>

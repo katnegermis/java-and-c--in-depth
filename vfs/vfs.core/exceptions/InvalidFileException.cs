@@ -2,7 +2,7 @@
 
 namespace vfs.exceptions
 {
-    class InvalidFileException : Exception
+    public class InvalidFileException : Exception
     {
     }
 }
