@@ -15,11 +15,22 @@ namespace vfs.core.tests
         public const string TEST_DIRECTORY = @"testDirectory\";
         public const string TEST_FILE = @"test.vfs";
         public const ulong SIZE_MAX = UInt64.MaxValue;
-        public const ulong SIZE_STANDARD = UInt32.MaxValue;
+        public const ulong SIZE_STANDARD = 50 * 1024 * 1024;
+        public const long SIZE_SMALL = 5 * 1024 * 1024;
 
         public static string FilePath()
         {
             return Path.GetFullPath(TestVariables.TEST_DIRECTORY + TestVariables.TEST_FILE);
+        }
+
+        public static string SourcePath()
+        {
+            return Path.GetFullPath(TestVariables.TEST_DIRECTORY + @"source.txt");
+        }
+
+        public static string TargetPath()
+        {
+            return Path.GetFullPath(TestVariables.TEST_DIRECTORY + @"target.txt");
         }
     }
 
@@ -62,7 +73,7 @@ namespace vfs.core.tests
         #region Create Tests
 
         [TestMethod()]
-        public void CreateNormal()
+        public void CreateNormalTest()
         {
             testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             Assert.IsNotNull(testVFS);
@@ -105,7 +116,7 @@ namespace vfs.core.tests
         [TestMethod()]
         [ExpectedException(typeof(FileAlreadyExistsException),
          "An existing file was discovered.")]
-        public void CreateWithFileExisting()
+        public void CreateWithFileExistingTest()
         {
             File.Create(TestVariables.FilePath()).Close();
             testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
@@ -197,6 +208,13 @@ namespace vfs.core.tests
                 File.Delete(TestVariables.FilePath());
             else if (!Directory.Exists(TestVariables.TEST_DIRECTORY))
                 Directory.CreateDirectory(TestVariables.TEST_DIRECTORY);
+
+            if (File.Exists(TestVariables.SourcePath()))
+                File.Delete(TestVariables.SourcePath());
+
+            if (File.Exists(TestVariables.TargetPath()))
+                File.Delete(TestVariables.TargetPath());
+
             testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             testVFS.Close();
             testVFS = JCDVFS.Open(TestVariables.FilePath());
@@ -216,6 +234,76 @@ namespace vfs.core.tests
                     testVFS = null;
                 }
             }
+        }
+
+        /// <summary>
+        /// Helper method that creates a file with the given size at the given location
+        /// </summary>
+        /// <param name="path">To create the file at</param>
+        /// <param name="size">Size of the file to create</param>
+        public void createFile(string path, long size)
+        {
+            using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                fs.SetLength(size);
+            }
+        }
+
+        /// <summary>
+        /// Helper method to compare 2 files (byte by byte)
+        /// </summary>
+        /// <param name="file1">First file path</param>
+        /// <param name="file2">Second file path</param>
+        /// <returns>true if equal, false otherwise</returns>
+        private bool FileCompare(string file1, string file2)
+        {
+            int file1byte;
+            int file2byte;
+            FileStream fs1;
+            FileStream fs2;
+
+            // Determine if the same file was referenced two times.
+            if (file1 == file2)
+            {
+                // Return true to indicate that the files are the same.
+                return true;
+            }
+
+            // Open the two files.
+            fs1 = new FileStream(file1, FileMode.Open);
+            fs2 = new FileStream(file2, FileMode.Open);
+
+            // Check the file sizes. If they are not the same, the files 
+            // are not the same.
+            if (fs1.Length != fs2.Length)
+            {
+                // Close the file
+                fs1.Close();
+                fs2.Close();
+
+                // Return false to indicate files are different
+                return false;
+            }
+
+            // Read and compare a byte from each file until either a
+            // non-matching set of bytes is found or until the end of
+            // file1 is reached.
+            do
+            {
+                // Read one byte from each file.
+                file1byte = fs1.ReadByte();
+                file2byte = fs2.ReadByte();
+            }
+            while ((file1byte == file2byte) && (file1byte != -1));
+
+            // Close the files.
+            fs1.Close();
+            fs2.Close();
+
+            // Return the success of the comparison. "file1byte" is 
+            // equal to "file2byte" at this point only if the files are 
+            // the same.
+            return ((file1byte - file2byte) == 0);
         }
 
         #region Close Tests
@@ -251,6 +339,8 @@ namespace vfs.core.tests
         [TestMethod()]
         public void OccupiedSpaceNormalTest()
         {
+            var before = testVFS.OccupiedSpace();
+            //testVFS.
             Assert.Inconclusive("No way to verify the result.");
         }
 
@@ -302,7 +392,7 @@ namespace vfs.core.tests
         public void CreateDirectoryNormalParentTrueTest()
         {
             testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"\dir\another", true);
-            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory()+ @"\dir");
+            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory() + @"\dir");
             Assert.AreEqual(1, list.Length);
         }
 
@@ -310,29 +400,80 @@ namespace vfs.core.tests
         public void CreateDirectoryParentMissingTest()
         {
             testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"\dir\another", false);
-            Assert.Inconclusive("No way to verify the result.Some exception might have to be thrown.");
+            Assert.Inconclusive("No way to verify the result. Some exception might have to be thrown.");
         }
 
         #endregion
 
-        /* [TestMethod()]
-         public void ImportFileTest()
-         {
-             Assert.Fail();
-         }
+        #region ImportFile Tests
 
-         [TestMethod()]
-         public void ExportFileTest()
-         {
-             Assert.Fail();
-         }
+        [TestMethod()]
+        public void ImportNormalTest()
+        {
+            var freeBefore = testVFS.FreeSpace();
+            createFile(TestVariables.TEST_DIRECTORY + @"source.txt", TestVariables.SIZE_SMALL);
+            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", @"vfsSrc.txt");
+            var freeAfter = testVFS.FreeSpace();
+            Assert.IsTrue(freeBefore > freeAfter);
+        }
 
-         [TestMethod()]
-         public void DeleteFileTest()
-         {
-             Assert.Fail();
-         }
+        [TestMethod()]
+        [ExpectedException(typeof(InvalidFileException),
+        "The fact that the file is too big for the VFS was discovered.")]
+        public void ImportFileTooBigTest()
+        {
+            string sourceFile = TestVariables.TEST_DIRECTORY + @"source.txt";
+            createFile(sourceFile, (long)TestVariables.SIZE_STANDARD + 8);
+            testVFS.ImportFile(sourceFile, @"vfsSrc.txt");
+            Assert.Inconclusive("No way to verify the result, but no exception was thrown.");
+        }
 
+        #endregion
+
+        #region ExportFile Tests
+
+        [TestMethod()]
+        public void ExportFileNormalTest()
+        {
+            createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
+            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
+            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
+            Assert.IsTrue(FileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
+        }
+
+
+        [TestMethod()]
+        public void ExportFileNotExistingTest()
+        {
+            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
+            Assert.Inconclusive("No way to verify the result, but no exception was thrown.");
+        }
+
+        [TestMethod()]
+        public void ExportFileEmptyTest()
+        {
+            createFile(TestVariables.SourcePath(), 0);
+            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
+            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
+            Assert.IsTrue(FileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
+        }
+
+        #endregion
+
+        #region DeleteFile Tests
+
+        [TestMethod()]
+        public void DeleteFileNormalTest()
+        {
+            createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
+            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
+            testVFS.DeleteFile(@"vfsSrc.txt", false);
+            Assert.Inconclusive("No way to verify the result");
+        }
+
+        #endregion
+
+        /*
          [TestMethod()]
          public void RenameFileTest()
          {

@@ -1,0 +1,85 @@
+1. Create
+	- CreateNormalTest
+		Pass
+
+	- CreateWithInvalidPathTest
+		Fail: Directory instead of file throws FileAlreadyExists exception
+			-> Run-time behaviour may be fine
+		
+	- CreateWithSizeTooBigTest
+		Pass
+	
+	- CreateWithSizeTooSmallTest
+		Pass: Size taken was 0. What's the minimal size? Shouldn't maybe the size better be the free space after creation?
+	
+	- CreateWithFileExistingTest
+		Pass
+	
+2. Open
+	- OpenNormalTest
+		Inconclusive
+		
+	- OpenInvalidFileTest
+		Fail: Empty file opened instead of VFS file.
+			-> Throws EndOfStreamException
+			
+	- OpenWithInvalidPathTest
+		Fail: Same as with CreateWithInvalidPathTest.
+			-> Run-time behaviour may be fine
+	
+3. Delete
+	- DeleteNormalTest
+		Pass
+		
+	- DeleteNoVFSFileTest
+		Fail: Trying to delete empty, non-VFS file.
+			-> Throws EndOfStreamException
+			
+	- DeleteNotExistingFileTest
+		Pass
+		
+4. Close
+	- CloseNormalTest
+		Inconclusive
+		
+5. Size
+	- SizeTest
+		Fail: Result is 0
+		
+6. OccupiedSpace & FreeSpace
+	-> All inconclusive. No idea how to test
+	
+7. Size, Free and Occupied combined
+	- SizeFreeOccupiedCombinedTest
+		Pass
+		
+8. CreateDirectory
+	- CreateDirectoryNormalParentFalseTest
+		Fail: NullReferenceException
+		
+	- CreateDirectoryNormalParentTrueTest
+		Fail: NullReferenceException
+		
+	- CreateDirectoryParentMissingTest
+		Inconclusive at the moment. An exception might have to be thrown..
+		
+9. ImportFile
+	- ImportNormalTest
+		Fail
+		
+	- ImportFileTooBigTest
+		Inconclusive: Should most likely throw an exception
+	
+10. ExportFile	
+	- ExportFileNormalTest
+		Fail: No target file created to then compare
+		
+	- ExportFileNotExistingTest
+		Inconclusive: Should throw an exception
+		
+	- ExportFileEmptyTest
+		Fail: No target file created to then compare
+		
+11. DeleteFile
+	- DeleteFileNormalTest
+		Inconclusive
