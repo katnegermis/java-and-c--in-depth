@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using vfs.exceptions;
 
@@ -160,13 +161,52 @@ namespace vfs.core
         public string CombinePathWithCurrentDirectory(string path)
         {
             if (System.IO.Path.IsPathRooted(path))
-               return path;
+                return path;
             else
-            {        
+            {
                 var newPath = Path.GetFullPath(Path.Combine(GetCurrentDirectory(), path));
                 return newPath;
             }
+        }
 
+        /// <summary>
+        /// Method to compress the input Stream and write the result into the output Stream 
+        /// </summary>
+        /// <param name="input">Stream where the bytes to compress come from</param>
+        /// <param name="output">Stream where the compressed bytes go to</param>
+        /// <example>
+        /// using (FileStream input = File.Open(@"C:\source.txt", FileMode.Open))
+        ///    using (FileStream fileStream = File.Create(@"C:\temp.txt"))
+        ///    { 
+        ///        Compress(input, fileStream);
+        ///    }
+        /// </example>
+        private static void Compress(Stream input, Stream output)
+        {
+            using (var compressor = new DeflateStream(output, CompressionMode.Compress))
+            {
+                input.CopyTo(compressor);
+            }
+        }
+
+        /// <summary>
+        /// Method to decompress the input Stream and write the result into the output Stream
+        /// </summary>
+        /// <param name="input">Stream where the bytes to decompress come from</param>
+        /// <param name="output">Stream where the decompressed bytes go to</param>
+        /// <example>
+        /// using (FileStream input = File.Open(@"C:\temp.txt", FileMode.Open))
+        ///    using (FileStream fileStream = File.Create(@"C:\target.txt"))
+        ///    {
+        ///        Decompress(input, fileStream);
+        ///    }
+        /// </example>
+        private static void Decompress(Stream input, Stream output)
+        {
+            using (var decompressor = new DeflateStream(input, CompressionMode.Decompress))
+            {
+                decompressor.CopyTo(output);
+            }
         }
     }
 
