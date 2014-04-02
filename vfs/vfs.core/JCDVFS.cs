@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using vfs.exceptions;
 
 namespace vfs.core
@@ -208,6 +209,44 @@ namespace vfs.core
                 decompressor.CopyTo(output);
             }
         }
+
+        private static void Encrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.GenerateKey();
+            AES.GenerateIV();
+            //byte[] key = AES.Key;
+            //byte[] iv = AES.IV;
+
+            /*using (FileStream input = File.Open(@"C:\source.txt", FileMode.Open))
+            {
+                using (FileStream fileStream = File.Create(@"C:\temp.txt"))
+                {*/
+            using (var encryptor = new CryptoStream(output, AES.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                input.CopyTo(encryptor);
+            }
+            //}
+            //}
+        }
+
+        private static void Decrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.Key = key;
+            AES.IV = iv;
+
+            /*using (FileStream input = File.Open(@"C:\temp.txt", FileMode.Open))
+                using (FileStream fileStream = File.Create(@"C:\target.txt"))
+                   {*/
+            using (var decryptor = new CryptoStream(output, AES.CreateDecryptor(), CryptoStreamMode.Write))
+            {
+                input.CopyTo(decryptor);
+            }
+            //}
+            //}
+        }
+
     }
 
     [StructLayout(LayoutKind.Explicit)]
