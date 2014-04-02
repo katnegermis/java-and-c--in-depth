@@ -2,6 +2,7 @@
 using System.IO;
 using vfs.exceptions;
 using vfs.core.visitor;
+using System.Collections.Generic;
 
 namespace vfs.core
 {
@@ -17,7 +18,7 @@ namespace vfs.core
         private const uint searchFileBlock = 1;
 
         // All sizes in this class are given in bytes unless otherwise specified.
-        private const uint reservedBlockNumbers = 2; //End-of-chain and free
+        private const uint reservedBlockNumbers = 2; // End-of-chain and free
         // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
@@ -153,6 +154,12 @@ namespace vfs.core
             bw.Write(data);
         }
 
+        /// <summary>
+        /// Read raw data from the JCDVFS-file.
+        /// </summary>
+        /// <param name="offset">Byte-offset of point to start reading from.</param>
+        /// <param name="length">Length in bytes.</param>
+        /// <returns>Byte array of length `length`.</returns>
         public byte[] Read(ulong offset, uint length)
         {
             fs.Seek((long)offset, SeekOrigin.Begin);
@@ -184,8 +191,12 @@ namespace vfs.core
             fat[index] = value;
             Write((ulong)FatOffset(index), value);
 
-            // Update firstFreeBlock if an earlier block was just freed.
-            if (index < GetFreeBlock() && value == freeBlock)
+            // Update firstFreeBlock if an earlier block was just freed above.
+            // We're not using GetFreeBlock here since it has the side effect
+            // that it checks whether firstFreeBlock actually is free, and
+            // finds the next free block if it is not. Since we're possible
+            // updating firstFreeBlock, this would be wasteful.
+            if (index < firstFreeBlock && value == freeBlock)
             {
                 SetFirstFreeBlock(index);
             }
@@ -210,7 +221,7 @@ namespace vfs.core
         }
 
         /// <summary>
-        /// Get the FAT-index of the first free block. and update the internal firstFreeBlock variable.
+        /// Get the FAT-index of the first free block and update the internal firstFreeBlock variable.
         /// </summary>
         /// <returns></returns>
         public uint GetFreeBlock()
@@ -225,9 +236,9 @@ namespace vfs.core
                 throw new Exception("No more free blocks!");
             }
 
-            // firstFreeBlock wasn't free! Since this variable was not maintained, we assume
-            // that freeBlocks was not maintained either.
-            freeBlocks -= 1;
+            // firstFreeBlock wasn't free! Since this variable was not updated, we assume
+            // that freeBlocks wasn't updated either.
+            SetFreeBlocks(freeBlocks - 1);
             for (uint i = firstFreeBlock + 1; i < maxNumDataBlocks; i += 1)
             {
                 Console.WriteLine("Trying to find a free block: fat[{0}] = {1}", i, fat[i]);
@@ -456,6 +467,34 @@ namespace vfs.core
                 nextEntry = fat[nextEntry];    
             }
             return v;
+        }
+
+        /// <summary>
+        /// Get list of dir entries read from firstBlock and continuing in the FAT chain.
+        /// </summary>
+        /// <param name="firstBlock"></param>
+        /// <returns></returns>
+        public List<JCDDirEntry> GetDirEntries(uint firstBlock)
+        {
+            var dirEntries = new List<JCDDirEntry>();
+
+            // Get the contents of a block and create dir entries from it.
+            FileReaderVisitor.GetFileContents interpretBlock = delegate(byte[] src) {
+                for (int i = 0; i < fatEntriesPerBlock; i += 1)
+                {
+                    JCDDirEntry dirEntry = new JCDDirEntry();
+                    int size = dirEntry.GetSize();
+                    var dst = new byte[size];
+                    Buffer.BlockCopy(src, i * size, dst, 0, size);
+                    dirEntry.FromByteArr(dst);
+                    // Decide whether the entry was the last entry. If it was, we probably want
+                    // to return false (meaning that we don't want the contents of the next block.)
+                    dirEntries.Add(dirEntry);
+                }
+                return true;
+            };
+            WalkFATChain(firstBlock, new FileReaderVisitor(interpretBlock));
+            return dirEntries;
         }
 
 

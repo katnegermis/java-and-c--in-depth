@@ -23,6 +23,10 @@ namespace vfs.core {
             Marshal.FreeHGlobal(ptr);
             return ret;
         }
+
+        public int GetSize() {
+            return 243;   
+        }
     }
 
     internal class JCDFile {
