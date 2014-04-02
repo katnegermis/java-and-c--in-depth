@@ -408,13 +408,22 @@ namespace vfs.core.tests
         #region ImportFile Tests
 
         [TestMethod()]
-        public void ImportNormalTest()
+        public void ImportFileNormalTest()
         {
-            var freeBefore = testVFS.FreeSpace();
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = @"vfsSrc.txt";
             createFile(TestVariables.TEST_DIRECTORY + @"source.txt", TestVariables.SIZE_SMALL);
-            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", @"vfsSrc.txt");
-            var freeAfter = testVFS.FreeSpace();
-            Assert.IsTrue(freeBefore > freeAfter);
+
+            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", currentDir + name);
+            var list = testVFS.ListDirectory(currentDir);
+            bool found = false;
+            foreach (var entry in list)
+                if (entry.Name == name)
+                {
+                    found = true;
+                    break;
+                }
+            Assert.IsTrue(found);
         }
 
         [TestMethod()]
@@ -446,7 +455,7 @@ namespace vfs.core.tests
         public void ExportFileNotExistingTest()
         {
             testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
-            Assert.Inconclusive("No way to verify the result, but no exception was thrown.");
+            Assert.Inconclusive("No way to verify the result. No exception was thrown, although this would probably make sense.");
         }
 
         [TestMethod()]
@@ -465,49 +474,220 @@ namespace vfs.core.tests
         [TestMethod()]
         public void DeleteFileNormalTest()
         {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = @"vfsSrc.txt";
             createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
-            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
-            testVFS.DeleteFile(@"vfsSrc.txt", false);
+
+            testVFS.ImportFile(TestVariables.SourcePath(), Path.Combine(currentDir, name));
+            testVFS.DeleteFile(Path.Combine(currentDir, name), false);
+            var list = testVFS.ListDirectory(currentDir);
+            bool notDeleted = false;
+            foreach (var entry in list)
+                if (entry.Name == name)
+                {
+                    notDeleted = true;
+                    break;
+                }
+            Assert.IsFalse(notDeleted);
+            Assert.Inconclusive("No way to verify the result");
+        }
+
+        [TestMethod()]
+        public void DeleteFileRecursiveTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
+            testVFS.CreateDirectory(Path.Combine(currentDir, @"dir"), false);
+
+            testVFS.ImportFile(TestVariables.SourcePath(), Path.Combine(currentDir, @"dir\vfsSrc.txt"));
+            testVFS.DeleteFile(Path.Combine(currentDir, @"dir\vfsSrc.txt"), true);
+            var list = testVFS.ListDirectory(currentDir);
+
+            Assert.AreEqual(0, list.Length);
+            Assert.Inconclusive("No way to verify the result");
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(FileNotFoundException),
+        "The fact that the file to delete does not exist was discovered.")]
+        public void DeleteFileNotExistingTest()
+        {
+            testVFS.DeleteFile("file", true);
             Assert.Inconclusive("No way to verify the result");
         }
 
         #endregion
 
-        /*
-         [TestMethod()]
-         public void RenameFileTest()
-         {
-             Assert.Fail();
-         }
+        #region RenameFile Tests
 
-         [TestMethod()]
-         public void MoveFileTest()
-         {
-             Assert.Fail();
-         }
+        [TestMethod()]
+        public void RenameFileNormalTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            testVFS.CreateDirectory(Path.Combine(currentDir, @"dir"), false);
 
-         [TestMethod()]
-         public void ListDirectoryTest()
-         {
-             Assert.Fail();
-         }
+            testVFS.RenameFile(Path.Combine(currentDir, @"dir"), @"new");
+            var list = testVFS.ListDirectory(currentDir);
 
-         [TestMethod()]
-         public void SetCurrentDirectoryTest()
-         {
-             Assert.Fail();
-         }
+            bool foundNew = false;
+            bool foundOld = false;
+            foreach (var entry in list)
+            {
+                if (entry.Name == @"new")
+                    foundNew = true;
+                if (entry.Name == @"dir")
+                    foundOld = false;
+            }
+            Assert.IsTrue(foundNew);
+            Assert.IsFalse(foundOld);
+        }
 
-         [TestMethod()]
-         public void GetCurrentDirectoryTest()
-         {
-             Assert.Fail();
-         }
+        [TestMethod()]
+        [ExpectedException(typeof(FileNotFoundException),
+        "The fact that the file to rename does not exist was discovered.")]
+        public void RenameFileNotExistingTest()
+        {
+            testVFS.RenameFile("file", "newName");
+            Assert.Inconclusive("No way to verify the result");
+        }
 
-         [TestMethod()]
-         public void CombinePathWithCurrentDirectoryTest()
-         {
-             Assert.Fail();
-         }*/
+        [TestMethod()]
+        [ExpectedException(typeof(InvalidFileNameException),
+        "The fact that the file name to change to does already exist was discovered.")]
+        public void RenameFileToExistingNameTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            testVFS.CreateDirectory(Path.Combine(currentDir, @"old"), false);
+            testVFS.CreateDirectory(Path.Combine(currentDir, @"new"), false);
+
+            testVFS.RenameFile(Path.Combine(currentDir, @"old"), @"new");
+            Assert.Inconclusive("Should throw some exception");
+        }
+
+        #endregion
+
+        #region MoveFile Tests
+
+        [TestMethod()]
+        public void MoveFileNormalTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = @"vfsSrc.txt";
+            string targetDir = "target";
+            createFile(TestVariables.TEST_DIRECTORY + @"file.txt", TestVariables.SIZE_SMALL);
+
+            testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
+            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", Path.Combine(currentDir, name));
+            testVFS.MoveFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
+            var list = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
+            bool found = false;
+            foreach (var entry in list)
+                if (entry.Name == name)
+                {
+                    found = true;
+                    break;
+                }
+            Assert.IsTrue(found);
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(FileNotFoundException),
+        "The fact that the file to move does not exist was discovered.")]
+        public void MoveFileNotExistingTest()
+        {
+            testVFS.CreateDirectory("dir", false);
+            testVFS.MoveFile("file", "dir");
+            Assert.Inconclusive("Should throw some exception");
+        }
+
+        #endregion
+
+        #region ListDirectory Tests
+
+        [TestMethod()]
+        public void ListDirectoryNormalTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = "dir";
+
+            testVFS.CreateDirectory(Path.Combine(currentDir, name), false);
+            var list = testVFS.ListDirectory(currentDir);
+            bool found = false;
+            foreach (var entry in list)
+                if (entry.Name == name)
+                {
+                    found = true;
+                    break;
+                }
+            Assert.IsTrue(found);
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(DirectoryNotFoundException),
+        "The fact that the directory to list does not exist was discovered.")]
+        public void ListDirectoryNotExistingTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = "dir";
+
+            var list = testVFS.ListDirectory(Path.Combine(currentDir, name));
+            Assert.Inconclusive("Should throw some exception");
+        }
+
+        #endregion
+
+        #region SetCurrentDirectory Tests
+
+        [TestMethod()]
+        public void SetCurrentDirectoryNormalTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = "dir";
+
+            testVFS.CreateDirectory(Path.Combine(currentDir, name), false);
+            testVFS.SetCurrentDirectory(Path.Combine(currentDir, name));
+
+            Assert.AreEqual(Path.Combine(currentDir, name), testVFS.GetCurrentDirectory());
+        }
+
+        [TestMethod()]
+        public void SetCurrentDirectoryUpwardsTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = @"dir\inner";
+
+            testVFS.CreateDirectory(Path.Combine(currentDir, name), true);
+            testVFS.SetCurrentDirectory(Path.Combine(currentDir, name));
+            testVFS.SetCurrentDirectory("..");
+
+            Assert.AreEqual(Path.Combine(currentDir, "dir"), testVFS.GetCurrentDirectory());
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(DirectoryNotFoundException),
+        "The fact that the directory to set cannot exist was discovered.")]
+        public void SetCurrentDirectoryUpwardsAtRootTest()
+        {
+            testVFS.SetCurrentDirectory(@"\");
+            testVFS.SetCurrentDirectory("..");
+            Assert.Inconclusive("Should throw some exception");
+        }
+
+        #endregion
+
+        #region GetCurrentDirectory Tests
+
+        [TestMethod()]
+        public void GetCurrentDirectoryNormalTest()
+        {
+            string name = @"\dir";
+
+            testVFS.CreateDirectory(name, false);
+            testVFS.SetCurrentDirectory(name);
+
+            Assert.AreEqual(name, testVFS.GetCurrentDirectory());
+        }
+
+        #endregion
     }
 }

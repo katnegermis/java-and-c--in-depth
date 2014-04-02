@@ -64,8 +64,8 @@
 		Inconclusive at the moment. An exception might have to be thrown..
 		
 9. ImportFile
-	- ImportNormalTest
-		Fail
+	- ImportFileNormalTest
+		Fail: ListDirectory has to be implemented for checking whether import works
 		
 	- ImportFileTooBigTest
 		Inconclusive: Should most likely throw an exception
@@ -82,4 +82,48 @@
 		
 11. DeleteFile
 	- DeleteFileNormalTest
-		Inconclusive
+		Fail: Not all methods implemented to run test
+		
+	- DeleteFileRecursiveTest
+		Fail: Not all methods implemented to run test
+		
+	- DeleteFileNotExistingTest
+		Inconclusive: Exception would have to be thrown
+		
+12. RenameFile
+	- RenameFileNormalTest
+		Fail: Not all methods implemented to run test
+		
+	- RenameFileNotExistingTest
+		Inconclusive: Exception would have to be thrown
+		
+	- RenameFileToExistingNameTest
+		Fail: Not all methods implemented to run test
+		
+13. MoveFile
+	- MoveFileNormalTest
+		Fail: Not all methods implemented to run test
+		
+	- MoveFileNotExistingTest
+		Inconclusive: Exception would have to be thrown
+	
+13. ListDirectory	
+	- ListDirectoryNormalTest
+		Fail: Not all methods implemented to run test
+	
+	- ListDirectoryNotExistingTest
+		Fail: Not all methods implemented to run test
+		
+14. SetCurrentDirectory
+	- SetCurrentDirectoryNormalTest
+		Fail: Not all methods implemented to run test
+		
+	- SetCurrentDirectoryUpwardsTest
+		Fail: Not all methods implemented to run test
+		
+	- SetCurrentDirectoryUpwardsAtRootTest
+		Inconclusive: Exception would have to be thrown
+		
+15. GetCurrentDirectory
+	- GetCurrentDirectoryNormalTest
+		Fail: Not implemented
