@@ -447,7 +447,7 @@ namespace vfs.core
         /// <param name="firstBlock">Index of first FAT entry</param>
         /// <param name="v">Instance of IVisitor</param>
         /// <returns></returns>
-        private IVisitor WalkFATChain(uint firstEntry, IVisitor v)
+        public IVisitor WalkFATChain(uint firstEntry, IVisitor v)
         {
             // firstBlock didn't point to a valid starting point of a file.
             // Assumes that the reserved block numbers are placed continuously from 0.
@@ -482,21 +482,19 @@ namespace vfs.core
             FileReaderVisitor.GetFileContents interpretBlock = delegate(byte[] src) {
                 for (int i = 0; i < fatEntriesPerBlock; i += 1)
                 {
-                    JCDDirEntry dirEntry = new JCDDirEntry();
-                    int size = dirEntry.GetSize();
+                    int size = JCDDirEntry.StructSize();
                     var dst = new byte[size];
                     Buffer.BlockCopy(src, i * size, dst, 0, size);
-                    dirEntry.FromByteArr(dst);
                     // Decide whether the entry was the last entry. If it was, we probably want
                     // to return false (meaning that we don't want the contents of the next block.)
-                    dirEntries.Add(dirEntry);
+                    dirEntries.Add(JCDDirEntry.FromByteArr(dst));
                 }
                 return true;
             };
+
             WalkFATChain(firstBlock, new FileReaderVisitor(interpretBlock));
             return dirEntries;
         }
-
 
         public void Dispose()
         {

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using vfs.core.visitor;
 
 namespace vfs.core {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 243)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = JCDDirEntry.StructSize())]
         public string Name;
         public ulong Size;
         public bool IsFolder;
         public uint FirstBlock;
 
-        public JCDDirEntry FromByteArr(byte[] byteArr) {
+        public static JCDDirEntry FromByteArr(byte[] byteArr) {
             int size = Marshal.SizeOf(typeof(JCDDirEntry));
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
@@ -24,7 +25,7 @@ namespace vfs.core {
             return ret;
         }
 
-        public int GetSize() {
+        public static int StructSize() {
             return 243;   
         }
     }
@@ -61,6 +62,23 @@ namespace vfs.core {
             this.parent = parent;
             this.parentIndex = parentIndex;
             this.path = path;
+        }
+
+        public void Delete()
+        {
+            if (entry.IsFolder)
+            {
+                var dirEntries = container.GetDirEntries(entry.FirstBlock);
+                foreach (var dirEntry in dirEntries)
+                {
+                    // What is parent index? Where do we get the path from? Current path + file name, I guess?
+                    // JCDFile.FromDirEntry(container, dirEntry, this, ?, ?).Delete();
+                }
+            }
+            else
+            {
+                container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
+            }
         }
     }
 }
