@@ -6,7 +6,7 @@ using vfs.core.visitor;
 namespace vfs.core {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = JCDDirEntry.StructSize())]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 243)]
         public string Name;
         public ulong Size;
         public bool IsFolder;
@@ -20,7 +20,7 @@ namespace vfs.core {
 
             IntPtr ptr = Marshal.AllocHGlobal(size);
             Marshal.Copy(byteArr, 0, ptr, size);
-            JCDDirEntry ret = (JCDDirEntry)Marshal.PtrToStructure(ptr, typeof(JCDDirEntry));
+            var ret = (JCDDirEntry)Marshal.PtrToStructure(ptr, typeof(JCDDirEntry));
             Marshal.FreeHGlobal(ptr);
             return ret;
         }
@@ -28,21 +28,29 @@ namespace vfs.core {
         public static int StructSize() {
             return Marshal.SizeOf(typeof(JCDDirEntry));   
         }
+
+        public bool IsEmptyEntry()
+        {
+            return false;
+        }
+
+        public bool IsFinalEntry()
+        {
+            return false;
+        }
     }
 
     internal class JCDFile {
-        protected JCDDirEntry entry;
-        /*private string name;
-        private ulong size;
-        private bool isFolder;
-        private uint firstBlock;*/
+        protected const ushort emptyEntry = 0x00FF;
+        protected const ushort finalEntry = 0x0000;
 
+        protected JCDDirEntry entry;
         protected JCDFAT container;
         protected JCDFolder parent;
-        protected ulong parentIndex;
+        protected uint parentIndex;
         protected string path;
 
-        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, ulong parentIndex, string path) {
+        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             if(entry.IsFolder) {
                 return new JCDFolder(container, entry, parent, parentIndex, path);
             }
@@ -51,7 +59,7 @@ namespace vfs.core {
             }
         }
 
-        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, ulong parentIndex, string path) {
+        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             this.entry = entry;
             /*name = entry.name;
             size = entry.size;
@@ -70,18 +78,25 @@ namespace vfs.core {
             if (entry.IsFolder)
             {
                 var folder = (JCDFolder)this;
-                var dirEntries = folder.GetDirEntries(entry.FirstBlock);
-                foreach (var dirEntry in dirEntries)
+                var files = folder.GetFileEntries();
+
+                foreach (var file in files)
                 {
-                    // How do we get the index of this entry? We want to pass it to our child.
-                    ulong parentIndex = 0;
-                    string entryPath = System.IO.Path.Combine(path, dirEntry.Name);
-                    JCDFile.FromDirEntry(container, dirEntry, folder, parentIndex, entryPath).Delete();
+                    file.Delete();
                 }
             }
 
-            // Delete this instance, whether folder or file. All (potential) sub-entries have been deleted at this point.
+            // Delete blocks for this file, whether folder or file.
+            // All (potential) sub-entries will have been deleted at this point.
             container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
+
+            // Remove this dir-entry from parent folder.
+            parent.DeleteEntry((uint)parentIndex);
+        }
+
+        public string GetName()
+        {
+            return entry.Name;
         }
     }
 }

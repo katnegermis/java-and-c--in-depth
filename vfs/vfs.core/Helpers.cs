@@ -18,5 +18,10 @@ namespace vfs.core
         {
             return (num + den - 1) / den;
         }
+
+        public static string PathCombine(string path, string fileName)
+        {
+            return System.IO.Path.Combine(path, fileName);
+        }
     }
 }
