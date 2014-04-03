@@ -13,20 +13,20 @@ namespace vfs.core {
         public uint FirstBlock;
 
         public static JCDDirEntry FromByteArr(byte[] byteArr) {
-            int size = Marshal.SizeOf(typeof(JCDDirEntry));
+            int size = StructSize();
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
             }
 
             IntPtr ptr = Marshal.AllocHGlobal(size);
             Marshal.Copy(byteArr, 0, ptr, size);
-            JCDDirEntry ret = (JCDDirEntry) Marshal.PtrToStructure(ptr, typeof(JCDDirEntry));
+            JCDDirEntry ret = (JCDDirEntry)Marshal.PtrToStructure(ptr, typeof(JCDDirEntry));
             Marshal.FreeHGlobal(ptr);
             return ret;
         }
 
         public static int StructSize() {
-            return 243;   
+            return Marshal.SizeOf(typeof(JCDDirEntry));   
         }
     }
 
@@ -66,19 +66,22 @@ namespace vfs.core {
 
         public void Delete()
         {
+            // If this is a folder, delete all dir entries recursively.
             if (entry.IsFolder)
             {
-                var dirEntries = container.GetDirEntries(entry.FirstBlock);
+                var folder = (JCDFolder)this;
+                var dirEntries = folder.GetDirEntries(entry.FirstBlock);
                 foreach (var dirEntry in dirEntries)
                 {
-                    // What is parent index? Where do we get the path from? Current path + file name, I guess?
-                    // JCDFile.FromDirEntry(container, dirEntry, this, ?, ?).Delete();
+                    // How do we get the index of this entry? We want to pass it to our child.
+                    ulong parentIndex = 0;
+                    string entryPath = System.IO.Path.Combine(path, dirEntry.Name);
+                    JCDFile.FromDirEntry(container, dirEntry, folder, parentIndex, entryPath).Delete();
                 }
             }
-            else
-            {
-                container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
-            }
+
+            // Delete this instance, whether folder or file. All (potential) sub-entries have been deleted at this point.
+            container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
         }
     }
 }

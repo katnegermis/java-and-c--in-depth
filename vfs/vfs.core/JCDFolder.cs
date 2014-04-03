@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using vfs.core.visitor;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {
@@ -52,6 +53,39 @@ namespace vfs.core {
         }
         public void setEntryFinal(uint index) {
             container.Write(entryOffset(index), finalEntry);
+        }
+
+        /// <summary>
+        /// Get list of dir entries read from firstBlock and continuing in the FAT chain.
+        /// </summary>
+        /// <param name="firstBlock"></param>
+        /// <returns></returns>
+        public List<JCDDirEntry> GetDirEntries(uint firstBlock)
+        {
+            var dirEntries = new List<JCDDirEntry>();
+
+            // Get the contents of a block and create dir entries from it.
+            FileReaderVisitor.GetFileContents interpretBlock = delegate(byte[] src)
+            {
+                for (int i = 0; i < JCDFAT.fatEntriesPerBlock; i += 1)
+                {
+                    int size = JCDDirEntry.StructSize();
+                    var dst = new byte[size];
+                    Buffer.BlockCopy(src, i * size, dst, 0, size);
+                    var entry = JCDDirEntry.FromByteArr(dst);
+                    // Decide whether the entry was the last entry. If it was, we probably want
+                    // to return false (meaning that we don't want the contents of the next block.)
+                    //if (entry.IsLastEntryOfThisFolder_PhewThisIsALongFunctionName_OhWell_ItsCSharp())
+                    //{
+                        //return false;
+                    //}
+                    dirEntries.Add(entry);
+                }
+                return true;
+            };
+
+            container.WalkFATChain(firstBlock, new FileReaderVisitor(interpretBlock));
+            return dirEntries;
         }
 
         public void populate() {

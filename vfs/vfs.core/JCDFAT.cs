@@ -26,7 +26,7 @@ namespace vfs.core
         public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
         public const uint fileEntrySize = 1 << 8; // 256B
-        private const uint fatEntriesPerBlock = blockSize / 4;
+        public const uint fatEntriesPerBlock = blockSize / 4;
         public const uint filesEntriesPerBlock = blockSize / fileEntrySize;
 
         private const int freeBlocksOffset = 12;
@@ -467,33 +467,6 @@ namespace vfs.core
                 nextEntry = fat[nextEntry];    
             }
             return v;
-        }
-
-        /// <summary>
-        /// Get list of dir entries read from firstBlock and continuing in the FAT chain.
-        /// </summary>
-        /// <param name="firstBlock"></param>
-        /// <returns></returns>
-        public List<JCDDirEntry> GetDirEntries(uint firstBlock)
-        {
-            var dirEntries = new List<JCDDirEntry>();
-
-            // Get the contents of a block and create dir entries from it.
-            FileReaderVisitor.GetFileContents interpretBlock = delegate(byte[] src) {
-                for (int i = 0; i < fatEntriesPerBlock; i += 1)
-                {
-                    int size = JCDDirEntry.StructSize();
-                    var dst = new byte[size];
-                    Buffer.BlockCopy(src, i * size, dst, 0, size);
-                    // Decide whether the entry was the last entry. If it was, we probably want
-                    // to return false (meaning that we don't want the contents of the next block.)
-                    dirEntries.Add(JCDDirEntry.FromByteArr(dst));
-                }
-                return true;
-            };
-
-            WalkFATChain(firstBlock, new FileReaderVisitor(interpretBlock));
-            return dirEntries;
         }
 
         public void Dispose()
