@@ -65,8 +65,7 @@ namespace vfs.core {
             var dirEntries = new List<JCDDirEntry>();
 
             // Get the contents of a block and create dir entries from it.
-            FileReaderVisitor.GetFileContents interpretBlock = delegate(byte[] src)
-            {
+            container.WalkFATChain(firstBlock, new FileReaderVisitor(src => {
                 for (int i = 0; i < JCDFAT.fatEntriesPerBlock; i += 1)
                 {
                     int size = JCDDirEntry.StructSize();
@@ -77,14 +76,13 @@ namespace vfs.core {
                     // to return false (meaning that we don't want the contents of the next block.)
                     //if (entry.IsLastEntryOfThisFolder_PhewThisIsALongFunctionName_OhWell_ItsCSharp())
                     //{
-                        //return false;
+                    //return false;
                     //}
                     dirEntries.Add(entry);
                 }
                 return true;
-            };
+            }));
 
-            container.WalkFATChain(firstBlock, new FileReaderVisitor(interpretBlock));
             return dirEntries;
         }
 

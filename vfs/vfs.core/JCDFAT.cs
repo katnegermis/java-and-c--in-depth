@@ -3,6 +3,7 @@ using System.IO;
 using vfs.exceptions;
 using vfs.core.visitor;
 using System.Collections.Generic;
+using vfs.core.exceptions;
 
 namespace vfs.core
 {
@@ -289,24 +290,13 @@ namespace vfs.core
             return BlockGetByteOffset(firstBlock, blockOffset);
         }
 
-        /// <summary>
-        /// Round up integer divison
-        /// </summary>
-        /// <param name="num">Numerator</param>
-        /// <param name="den">Denominator</param>
-        /// <returns></returns>
-        private ulong ruid(ulong num, ulong den)
-        {
-            return (num + den - 1) / den;
-        }
-
         private void NewFSSetSize(ulong size)
         {
             // Adjust size so that it is a multiple of block size.
-            size = ruid(size, blockSize); // Round up to whole blocks.
+            size = Helpers.ruid(size, blockSize); // Round up to whole blocks.
             size -= metaDataBlocks; // Without metadata blocks.
             ulong sizeMultiple = 1 + fatEntriesPerBlock; // One FAT block + number of data blocks it represents.
-            fatBlocks = (uint)ruid(size, sizeMultiple); // Number of FAT blocks.
+            fatBlocks = (uint)Helpers.ruid(size, sizeMultiple); // Number of FAT blocks.
             fat = new uint[fatBlocks * fatEntriesPerBlock];
 
             InitSize(true);
@@ -467,6 +457,33 @@ namespace vfs.core
                 nextEntry = fat[nextEntry];    
             }
             return v;
+        }
+
+        /// <summary>
+        /// Allocate the minimum amount of blocks in which `size` bytes can be contained.
+        /// </summary>
+        /// <returns>Index of first block</returns>
+        public uint AllocateBlocks(ulong size)
+        {
+            // Make sure that there are enough free blocks.
+            uint blocksRequired = (uint)Helpers.ruid(size, JCDFAT.blockSize);
+            if (!(freeBlocks >= blocksRequired))
+            {
+                throw new NotEnoughSpaceException();
+            }
+
+            uint firstBlock = GetFreeBlock();
+            uint prevBlock = firstBlock;
+            uint nextBlock = GetFreeBlock();
+            // Chain blocks in FAT. Make sure that we mark last block as EOC.
+            for (int i = 0; i < blocksRequired - 1; i += 1)
+            {
+                FatSet(prevBlock, nextBlock);
+                prevBlock = nextBlock;
+                nextBlock = GetFreeBlock();
+            }
+            FatSetEOC(nextBlock);
+            return firstBlock;
         }
 
         public void Dispose()
