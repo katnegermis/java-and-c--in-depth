@@ -32,5 +32,10 @@ namespace vfs.core
         {
             return System.IO.Path.GetFileName(path);
         }
+
+        public static bool PathIsValid(string path)
+        {
+            return true;
+        }
     }
 }
