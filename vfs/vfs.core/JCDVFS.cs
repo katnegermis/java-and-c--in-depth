@@ -132,6 +132,7 @@ namespace vfs.core
                 return;
             }
             fat.ImportFile(fileToImport, vfsPath, Helpers.PathGetFileName(vfsPath));
+            fileToImport.Close();
 
             return;
         }
