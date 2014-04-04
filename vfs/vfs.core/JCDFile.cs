@@ -100,5 +100,11 @@ namespace vfs.core {
         {
             return this.entry.IsEmpty();
         }
+
+        protected uint GetLastBlockId()
+        {
+            var blockVisitor = (LastBlockIdVisitor)container.WalkFATChain(entry.FirstBlock, new LastBlockIdVisitor());
+            return blockVisitor.Block;
+        }
     }
 }

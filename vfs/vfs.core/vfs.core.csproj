@@ -58,6 +58,7 @@
     <Compile Include="visitor\BlockCounterVisitor.cs" />
     <Compile Include="visitor\FileDeleterVisitor.cs" />
     <Compile Include="visitor\FileReaderVisitor.cs" />
+    <Compile Include="visitor\LastBlockIdVisitor.cs" />
     <Compile Include="visitor\IVisitor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

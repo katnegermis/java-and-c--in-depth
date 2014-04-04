@@ -15,7 +15,7 @@ namespace vfs.core {
         }
 
         public static JCDFolder rootFolder(JCDFAT vfs) {
-            JCDDirEntry entry = new JCDDirEntry {
+            var entry = new JCDDirEntry {
                 Name = null, Size = 0, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
             return new JCDFolder(vfs, entry, null, 0, null);
@@ -118,7 +118,7 @@ namespace vfs.core {
         }
 
         /// <summary>
-        /// Read JCDDirEntries from disk.
+        /// Populate this.entries list with JCDFiles.
         /// </summary>
         private void Populate() {
             bool emptyEntrySet = false;
@@ -159,7 +159,14 @@ namespace vfs.core {
                 }
             }
             // There were no more empty entries!
-            // TODO: Allocate a new block.
+            var prevLastBlock = GetLastBlockId();
+            var newLastBlock = container.GetFreeBlock();
+
+            // Update FAT entries.
+            container.FatSet(prevLastBlock, newLastBlock);
+            container.FatSetEOC(newLastBlock);
+            // TODO: Create empty entries and write them to newLastBlock.
+            // Add the new entries to this.entries.
             return 0;
         }
 
