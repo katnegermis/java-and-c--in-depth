@@ -48,6 +48,23 @@ namespace vfs.core {
         protected uint parentIndex;
         protected string path;
 
+        public string Name {
+            get { return this.entry.Name; }
+            set {
+                this.entry.Name = value;
+                this.UpdateEntry(this.entry);
+            }
+        }
+
+        public ulong Size
+        {
+            get { return this.entry.Size; }
+            set {
+                this.entry.Size = value;
+                this.UpdateEntry(this.entry);
+            }
+        }
+
         public JCDDirEntry Entry { get { return this.entry; } }
         public string Path { get { return this.path; } }
 
@@ -100,11 +117,6 @@ namespace vfs.core {
             parent.DeleteEntry((uint)parentIndex);
         }
 
-        public string GetName()
-        {
-            return entry.Name;
-        }
-
         public bool EntryIsEmpty()
         {
             return this.entry.IsEmpty();
@@ -121,21 +133,9 @@ namespace vfs.core {
             return blockVisitor.Block;
         }
 
-        protected void UpdateEntry(JCDDirEntry entry)
+        private void UpdateEntry(JCDDirEntry entry)
         {
             this.parent.setEntry(this.parentIndex, this.entry);
-        }
-
-        protected void SetSize(ulong size)
-        {
-            this.entry.Size = size;
-            UpdateEntry(this.entry);
-        }
-
-        protected void SetName(string name)
-        {
-            this.entry.Name = name;
-            UpdateEntry(this.entry);
         }
     }
 }

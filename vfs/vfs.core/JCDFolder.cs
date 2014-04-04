@@ -144,7 +144,7 @@ namespace vfs.core {
         {
             foreach (var file in this.entries)
             {
-                if (file.GetName() == name)
+                if (file.Name == name)
                 {
                     return file;
                 }
@@ -252,7 +252,7 @@ namespace vfs.core {
         public string FileGetPath(JCDFile file)
         {
             // Check whether dirEntry is in entries. If it is not
-            return Helpers.PathCombine(this.path, file.GetName());
+            return Helpers.PathCombine(this.path, file.Name);
         }
 
         public string FileGetPath(string name)
@@ -277,7 +277,7 @@ namespace vfs.core {
 
             // Update the file's current size.
             // Make sure to reflect this change on disk.
-            SetSize(this.entry.Size + JCDFAT.blockSize);
+            this.Size += JCDFAT.blockSize;
             return newLastBlock;
         }
     }
