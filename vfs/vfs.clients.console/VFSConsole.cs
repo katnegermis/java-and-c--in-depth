@@ -615,7 +615,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.DeleteFile(path, parents);
+                    console.mountedJCDVFS.CreateDirectory(path, parents);
                     Console.WriteLine(String.Format("Created directory {0} successfully.", path));
                 }
                 catch (Exception e)
