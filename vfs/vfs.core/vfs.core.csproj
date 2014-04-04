@@ -57,6 +57,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="visitor\BlockCounterVisitor.cs" />
     <Compile Include="visitor\FileDeleterVisitor.cs" />
+    <Compile Include="visitor\FileWriterVisitor.cs" />
     <Compile Include="visitor\FileReaderVisitor.cs" />
     <Compile Include="visitor\LastBlockIdVisitor.cs" />
     <Compile Include="visitor\IVisitor.cs" />
