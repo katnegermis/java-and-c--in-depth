@@ -77,8 +77,8 @@ namespace vfs.core {
                     var dst = new byte[size];
                     Buffer.BlockCopy(src, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
-                    // Decide whether the entry was the last entry. If it was, we don't want 
-                    // to read the contents of the next block.
+                    // If this is final entry we don't want to read the contents of the next block.
+                    // In fact, there should be no more blocks to read.
                     if (entry.IsFinal())
                     {
                         return false;
@@ -140,7 +140,7 @@ namespace vfs.core {
         }
 
         /// <summary>
-        /// Get the first empty entry of the folder.
+        /// Get the first empty entry index of the folder.
         /// Allocates another block if there are no more entries left in the currently allocated blocks.
         /// </summary>
         /// <returns></returns>
@@ -158,15 +158,13 @@ namespace vfs.core {
                     }
                 }
             }
-            // There were no more empty entries!
-            var prevLastBlock = GetLastBlockId();
-            var newLastBlock = container.GetFreeBlock();
+            // There were no more empty entries! Allocate block so that we can store more entries.
+            uint newBlock = this.ExpandFile();
 
-            // Update FAT entries.
-            container.FatSet(prevLastBlock, newLastBlock);
-            container.FatSetEOC(newLastBlock);
-            // TODO: Create empty entries and write them to newLastBlock.
-            // Add the new entries to this.entries.
+            // TODO: Create empty dirEntries and write them to newBlock.
+            // Add the new (empty) dirEntries to this.entries.
+            // Set this.firstEmptyEntry to the first index of the new block.
+            // How do we know which index the first entry in the new block has?
             return 0;
         }
 

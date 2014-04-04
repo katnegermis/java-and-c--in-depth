@@ -106,5 +106,25 @@ namespace vfs.core {
             var blockVisitor = (LastBlockIdVisitor)container.WalkFATChain(entry.FirstBlock, new LastBlockIdVisitor());
             return blockVisitor.Block;
         }
+
+
+        /// <summary>
+        /// Expand file by one block.
+        /// </summary>
+        /// <returns>FAT index of newly allocated block.</returns>
+        protected uint ExpandFile()
+        {
+            var prevLastBlock = GetLastBlockId();
+            var newLastBlock = container.GetFreeBlock();
+
+            // Update FAT entries.
+            container.FatSet(prevLastBlock, newLastBlock);
+            container.FatSetEOC(newLastBlock);
+
+            // Update the file's current size.
+            // Make sure to reflect this change on disk.
+            entry.Size += JCDFAT.blockSize;
+            return newLastBlock;
+        }
     }
 }
