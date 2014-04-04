@@ -26,9 +26,9 @@ namespace vfs.core
         public const uint blockSize = 1 << 12; // 4KB blocks
         public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
-        public const uint fileEntrySize = 1 << 8; // 256B
+        public const uint dirEntrySize = 1 << 8; // 256B == JCDDirEntry.StructSize();
         public const uint fatEntriesPerBlock = blockSize / 4;
-        public const uint filesEntriesPerBlock = blockSize / fileEntrySize;
+        public const uint dirEntriesPerBlock = blockSize / dirEntrySize;
 
         private const int freeBlocksOffset = 12;
         private const int firstFreeBlockOffset = 16;
@@ -508,6 +508,22 @@ namespace vfs.core
         public ulong GetFreeSpace()
         {
             return this.freeBlocks * JCDFAT.blockSize;
+        }
+
+        public void CreateFile(ulong size, string path, string fileName, bool isFolder)
+        {
+            // TODO: Make sure that fileName is not longer than allowed by dirEntry.
+            // This should probably be checked in JCDDirEntry constructor.
+
+            var entry = new JCDDirEntry
+            {
+                Name = fileName,
+                Size = size,
+                IsFolder = isFolder,
+                FirstBlock = AllocateBlocks(size),
+            };
+
+            this.currentFolder.AddDirEntry(entry);
         }
     }
 }

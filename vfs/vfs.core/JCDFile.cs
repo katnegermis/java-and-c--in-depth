@@ -4,16 +4,17 @@ using System.Runtime.InteropServices;
 using vfs.core.visitor;
 
 namespace vfs.core {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, Pack=1, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 243)]
-        public string Name;
-        public ulong Size;
-        public bool IsFolder;
-        public uint FirstBlock;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 120)]
+        public string Name; // 240B
+        public ulong Size; // 8B
+        public bool IsFolder; // 4B
+        public uint FirstBlock; // 4B
 
         public static JCDDirEntry FromByteArr(byte[] byteArr) {
             int size = StructSize();
+            Console.WriteLine("JCDDirEntry struct has size: {0}", size);
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
             }
@@ -31,26 +32,30 @@ namespace vfs.core {
 
         public bool IsEmpty()
         {
-            // TODO: Implement.
-            return false;
+            var dst = new byte[2];
+            Buffer.BlockCopy(Name.ToCharArray(), 0, dst, 0, 2);
+
+            return dst == JCDFile.EmptyEntry;
         }
 
         public bool IsFinal()
         {
-            // TODO: Implement.
-            return false;
+            Console.WriteLine("File name length of JCDDirEntry: {0}", Name.Length);
+            var dst = new byte[2];
+            Buffer.BlockCopy(Name.ToCharArray(), 0, dst, 0, 2);
+            return dst == JCDFile.FinalEntry;
         }
     }
 
     internal class JCDFile {
-        protected const ushort emptyEntry = 0x00FF;
-        protected const ushort finalEntry = 0x0000;
-
         protected JCDDirEntry entry;
         protected JCDFAT container;
         protected JCDFolder parent;
         protected uint parentIndex;
         protected string path;
+
+        public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
+        public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
 
         public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             if(entry.IsFolder) {
@@ -103,6 +108,11 @@ namespace vfs.core {
             return this.entry.IsEmpty();
         }
 
+        public bool EntryIsFinal()
+        {
+            return this.entry.IsFinal();
+        }
+
         protected uint GetLastBlockId()
         {
             var blockVisitor = (LastBlockIdVisitor)container.WalkFATChain(entry.FirstBlock, new LastBlockIdVisitor());
@@ -114,7 +124,7 @@ namespace vfs.core {
         /// Expand file by one block.
         /// </summary>
         /// <returns>FAT index of newly allocated block.</returns>
-        protected uint Expand()
+        protected uint ExpandOneBlock()
         {
             var prevLastBlock = GetLastBlockId();
             var newLastBlock = container.GetFreeBlock();

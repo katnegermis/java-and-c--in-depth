@@ -16,7 +16,7 @@ namespace vfs.core {
 
         public static JCDFolder rootFolder(JCDFAT vfs) {
             var entry = new JCDDirEntry {
-                Name = null, Size = 0, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
+                Name = null, Size = JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
             return new JCDFolder(vfs, entry, null, 0, null);
         }
@@ -29,20 +29,46 @@ namespace vfs.core {
         }
 
         private ulong entryOffset(uint index) {
-            return container.FileGetByteOffset(entry.FirstBlock, index / JCDFAT.filesEntriesPerBlock,
-                (index % JCDFAT.filesEntriesPerBlock) * JCDFAT.fileEntrySize);
+            return container.FileGetByteOffset(this.entry.FirstBlock, index / JCDFAT.dirEntriesPerBlock,
+                (index % JCDFAT.dirEntriesPerBlock) * JCDFAT.dirEntrySize);
+        }
+
+        public void setEntry(uint index, byte[] byteArr)
+        {
+            // Update firstEmptyEntry if we mark an 'earlier' entry empty.
+            if (byteArr == JCDFile.EmptyEntry && index < firstEmptyEntry)
+            {
+                firstEmptyEntry = index;
+            }
+
+            // Verify that the given index goes at most one block beyond the number of blocks currently allocated.
+            var numBlocks = Helpers.ruid(this.entry.Size, JCDFAT.blockSize);
+            var blocksRequired = Helpers.ruid(index, JCDFAT.dirEntriesPerBlock);
+            if (blocksRequired > numBlocks + 1)
+            {
+                throw new Exception("Folders are only allowed to expand by one block at a time!");
+            }
+
+            // Expand folder if `index` points beyond the folder's currently allocated blocks.
+            if (index >= numBlocks * JCDFAT.dirEntriesPerBlock)
+            {
+                this.ExpandOneBlock();
+                setEntryFinal(index + 1);
+            }
+
+            container.Write(entryOffset(index), byteArr);
+            // TODO: Make sure that this is reflected in the dirEntry in memory.
         }
 
         public void setEntry(uint index, JCDDirEntry entry) {
             // Assuming any corresponding entry in the entries List is already set
-            int size = Marshal.SizeOf(entry);
+            int size = JCDDirEntry.StructSize();
             byte[] byteArr = new byte[size];
             IntPtr ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(entry, ptr, false);
             Marshal.Copy(ptr, byteArr, 0, size);
             Marshal.FreeHGlobal(ptr);
-
-            container.Write(entryOffset(index), byteArr);
+            setEntry(index, byteArr);        
         }
 
         /// <summary>
@@ -50,13 +76,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryEmpty(uint index) {
-            container.Write(entryOffset(index), emptyEntry);
-
-            // Update firstEmptyEntry if we just freed an 'earlier' one.
-            if (index < this.firstEmptyEntry)
-            {
-                this.firstEmptyEntry = index;
-            }
+            setEntry(index, JCDFile.EmptyEntry);
         }
 
         /// <summary>
@@ -64,7 +84,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryFinal(uint index) {
-            container.Write(entryOffset(index), finalEntry);
+            setEntry(index, JCDFile.FinalEntry);
         }
 
         /// <summary>
@@ -72,21 +92,23 @@ namespace vfs.core {
         /// </summary>
         /// <param name="firstBlock"></param>
         /// <returns></returns>
-        private List<JCDDirEntry> GetDirEntries()
+        private List<JCDDirEntry> GetDirEntries(uint firstBlock)
         {
             var dirEntries = new List<JCDDirEntry>();
 
             // Get the contents of a block and create dir entries from it.
-            container.WalkFATChain(this.entry.FirstBlock, new FileReaderVisitor(src =>
+            // The function defined below is called once for each block in the folder.
+            container.WalkFATChain(firstBlock, new FileReaderVisitor(blockData =>
             {
-                for (int i = 0; i < JCDFAT.fatEntriesPerBlock; i += 1)
+                for (int i = 0; i < JCDFAT.dirEntriesPerBlock; i += 1)
                 {
                     int size = JCDDirEntry.StructSize();
                     var dst = new byte[size];
-                    Buffer.BlockCopy(src, i * size, dst, 0, size);
+                    Buffer.BlockCopy(blockData, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
                     // If this is final entry we don't want to read the contents of the next block.
                     // In fact, there should be no more blocks to read.
+                    // Maybe we should make sure to mark the rest of the entries free?
                     if (entry.IsFinal())
                     {
                         return false;
@@ -136,7 +158,7 @@ namespace vfs.core {
         /// </summary>
         private void Populate() {
             bool emptyEntrySet = false;
-            var dirEntries = GetDirEntries();
+            var dirEntries = GetDirEntries(this.entry.FirstBlock);
             for (uint i = 0; i < dirEntries.Count; i += 1)
             {
                 var dirEntry = dirEntries[(int)i];
@@ -161,19 +183,36 @@ namespace vfs.core {
         public uint GetEmptyEntryIndex()
         {
             // Check whether firstEmptyEntry is still empty. If not, update it.
-            if (!this.entries[(int)this.firstEmptyEntry].EntryIsEmpty())
+            if (!this.populated)
             {
-                for (int i = (int)this.firstEmptyEntry + 1; i < this.entries.Count; i += 1)
+                this.Populate();
+            }
+            var firstEmpty = this.entries[(int)this.firstEmptyEntry];
+
+            if (!firstEmpty.EntryIsEmpty())
+            {
+                var numBlocks = (uint)this.entry.Size / JCDFAT.blockSize;
+
+                // Find an empty entry in the entries following firstEmptyEntry.
+                for (uint i = this.firstEmptyEntry + 1; i < numBlocks * JCDFAT.dirEntriesPerBlock; i += 1)
                 {
-                    if (this.entries[i].EntryIsEmpty())
+                    var dirEntry = this.entries[(int)i];
+                    if (dirEntry.EntryIsFinal())
+                    {
+                        setEntryEmpty(i);
+                        setEntryFinal(i + 1);
+                        return this.firstEmptyEntry;
+                    }
+                    if (dirEntry.EntryIsEmpty())
                     {
                         this.firstEmptyEntry = (uint)i;
                         return this.firstEmptyEntry;
                     }
                 }
             }
+            // If index > current max index
             // There were no more empty entries! Allocate block so that we can store more entries.
-            uint newBlock = this.Expand();
+            uint newBlock = this.ExpandOneBlock();
 
             // TODO: Create empty dirEntries and write them to newBlock.
             // Add the new (empty) dirEntries to this.entries.
@@ -201,9 +240,9 @@ namespace vfs.core {
 
         public string FileGetPath(string name)
         {
-            foreach (var entry in entries)
+            foreach (var dirEntry in entries)
             {
-                if (entry.GetName() == name)
+                if (dirEntry.GetName() == name)
                 {
                     return Helpers.PathCombine(this.path, name);
                 }

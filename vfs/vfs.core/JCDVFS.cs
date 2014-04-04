@@ -116,7 +116,7 @@ namespace vfs.core
         }
         public void CreateDirectory(string vfsPath, bool createParents)
         {
-            return;
+            fat.CreateFile(JCDFAT.blockSize, "", "FirstDirectory", true);
         }
         public void ImportFile(string hfsPath, string vfsPath)
         {
