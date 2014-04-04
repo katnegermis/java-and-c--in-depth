@@ -6,9 +6,9 @@ namespace vfs.core.visitor
     class FileWriterVisitor : IVisitor
     {
         /// <summary>
-        /// Returns contents of file to write, one block at a time.
+        /// Returns the offset into the buffer where the file continues
         /// </summary>
-        /// <returns>The next block of data to write, or less if end of file is reached.</returns>
+        /// <returns>The offset of next block of data in the buffer.</returns>
         public delegate uint BufferIndex();
 
         private BufferIndex f;
