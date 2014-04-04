@@ -15,7 +15,6 @@ namespace vfs.core {
 
         public static JCDDirEntry FromByteArr(byte[] byteArr) {
             int size = StructSize();
-            Console.WriteLine("JCDDirEntry struct has size: {0}", size);
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
             }

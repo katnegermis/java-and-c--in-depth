@@ -550,7 +550,6 @@ namespace vfs.core
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];
 
-
             WalkFATChain(firstBlock, new FileWriterVisitor(file.Length, buffer, () => {
                 if(bufPos >= bufSize) {
                     file.Read(buffer, 0, bufSize);

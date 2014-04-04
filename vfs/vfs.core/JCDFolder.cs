@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using vfs.core.visitor;
+using vfs.exceptions;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {
@@ -137,6 +138,18 @@ namespace vfs.core {
             }
             return this.entries;
         }
+
+        public JCDFile GetFile(string name)
+        {
+            foreach (var file in this.entries)
+            {
+                if (file.GetName() == name)
+                {
+                    return file;
+                }
+            }
+            return null;
+        }
         
         /// <summary>
         /// Add JCDDirEntry to folder.
@@ -145,6 +158,11 @@ namespace vfs.core {
         /// <returns>Index of the newly added entry.</returns>
         public uint AddDirEntry(JCDDirEntry dirEntry)
         {
+            // Verify that a file with that name doesn't already exist.
+            if (this.GetFile(dirEntry.Name) != null)
+            {
+                throw new FileAlreadyExistsException();
+            }
             uint index = GetEmptyEntryIndex();
             var entryPath = Helpers.PathCombine(this.path, dirEntry.Name);
             this.entries.Insert((int)index, JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath));
@@ -180,6 +198,10 @@ namespace vfs.core {
                     emptyEntrySet = true;
                 }
             }
+            if (!emptyEntrySet)
+            {
+                this.firstEmptyEntry = (uint)dirEntries.Count;
+            }
             this.populated = true;
         }
 
@@ -195,16 +217,29 @@ namespace vfs.core {
                 this.Populate();
             }
 
+            if (this.firstEmptyEntry >= this.entries.Count)
+            {
+                return this.firstEmptyEntry;
+            }
+
             var firstEmpty = this.entries[(int)this.firstEmptyEntry];
 
             if (firstEmpty.EntryIsEmpty() || firstEmpty.EntryIsFinal())
             {
                 return this.firstEmptyEntry;
             }
-            
-            // Not empty or final, find the next entry
 
-            return 0;
+            int i;
+            for (i = (int)firstEmptyEntry + 1; i < this.entries.Count; i += 1)
+            {
+                if (this.entries[i].EntryIsEmpty())
+                {
+                    this.firstEmptyEntry = (uint)i;
+                }
+            }
+            this.firstEmptyEntry = (uint)i;
+            this.setEntryEmpty((uint)i);
+            return this.firstEmptyEntry;
         }
 
         /// <summary>
