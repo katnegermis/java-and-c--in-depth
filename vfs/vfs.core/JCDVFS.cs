@@ -121,20 +121,16 @@ namespace vfs.core
         }
         public void ImportFile(string hfsPath, string vfsPath)
         {
-            //Walk...
-
-            FileStream fileToImport;
-            try {
-                fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.None);
+            FileStream fileToImport = null;
+            try
+            {
+                fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                fat.ImportFile(fileToImport, vfsPath, Helpers.PathGetFileName(vfsPath));
             }
-            catch(FileNotFoundException e) {
-                Console.WriteLine("File not found!");
-                return;
+            finally
+            {
+                fileToImport.Close();
             }
-            fat.ImportFile(fileToImport, vfsPath, Helpers.PathGetFileName(vfsPath));
-            fileToImport.Close();
-
-            return;
         }
         public void ExportFile(string vfsPath, string hfsPath)
         {

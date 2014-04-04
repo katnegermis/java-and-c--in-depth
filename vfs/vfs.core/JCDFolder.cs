@@ -107,9 +107,10 @@ namespace vfs.core {
             // The function defined below is called once for each block in the folder.
             container.WalkFATChain(firstBlock, new FileReaderVisitor(blockData =>
             {
-                for (int i = 0; i < JCDFAT.dirEntriesPerBlock; i += 1)
+                int size = JCDDirEntry.StructSize();
+                var entriesInBlock = Math.Min(JCDFAT.dirEntriesPerBlock, blockData.Length / JCDFAT.dirEntrySize);
+                for (int i = 0; i < entriesInBlock; i += 1)
                 {
-                    int size = JCDDirEntry.StructSize();
                     var dst = new byte[size];
                     Buffer.BlockCopy(blockData, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
@@ -259,6 +260,25 @@ namespace vfs.core {
             return Helpers.PathCombine(this.path, name);
             // TODO: Throw proper exception.
             throw new Exception("A file with that name is not a child of this folder!");
+        }
+
+        /// <summary>
+        /// Expand folder by one block.
+        /// </summary>
+        /// <returns>FAT index of newly allocated block.</returns>
+        protected uint ExpandOneBlock()
+        {
+            var prevLastBlock = GetLastBlockId();
+            var newLastBlock = container.GetFreeBlock();
+
+            // Update FAT entries.
+            container.FatSet(prevLastBlock, newLastBlock);
+            container.FatSetEOC(newLastBlock);
+
+            // Update the file's current size.
+            // Make sure to reflect this change on disk.
+            SetSize(this.entry.Size + JCDFAT.blockSize);
+            return newLastBlock;
         }
     }
 }

@@ -121,24 +121,21 @@ namespace vfs.core {
             return blockVisitor.Block;
         }
 
-
-        /// <summary>
-        /// Expand file by one block.
-        /// </summary>
-        /// <returns>FAT index of newly allocated block.</returns>
-        protected uint ExpandOneBlock()
+        protected void UpdateEntry(JCDDirEntry entry)
         {
-            var prevLastBlock = GetLastBlockId();
-            var newLastBlock = container.GetFreeBlock();
+            this.parent.setEntry(this.parentIndex, this.entry);
+        }
 
-            // Update FAT entries.
-            container.FatSet(prevLastBlock, newLastBlock);
-            container.FatSetEOC(newLastBlock);
+        protected void SetSize(ulong size)
+        {
+            this.entry.Size = size;
+            UpdateEntry(this.entry);
+        }
 
-            // Update the file's current size.
-            // Make sure to reflect this change on disk.
-            entry.Size += JCDFAT.blockSize;
-            return newLastBlock;
+        protected void SetName(string name)
+        {
+            this.entry.Name = name;
+            UpdateEntry(this.entry);
         }
     }
 }
