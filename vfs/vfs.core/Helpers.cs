@@ -21,7 +21,16 @@ namespace vfs.core
 
         public static string PathCombine(string path, string fileName)
         {
+            if (path == null)
+            {
+                path = "/";
+            }
             return System.IO.Path.Combine(path, fileName);
+        }
+
+        public static string PathGetFileName(string path)
+        {
+            return System.IO.Path.GetFileName(path);
         }
     }
 }

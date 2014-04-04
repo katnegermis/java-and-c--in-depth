@@ -116,7 +116,7 @@ namespace vfs.core
         }
         public void CreateDirectory(string vfsPath, bool createParents)
         {
-            fat.CreateFile(JCDFAT.blockSize, "", "FirstDirectory", true);
+            fat.CreateFile(JCDFAT.blockSize, "", Helpers.PathGetFileName(vfsPath), createParents);
         }
         public void ImportFile(string hfsPath, string vfsPath)
         {
@@ -140,7 +140,9 @@ namespace vfs.core
         }
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
-            return null;
+            var dirEntries = fat.ListDirectory(vfsPath);
+            Console.WriteLine("Number of entries: {0}", dirEntries.Length);
+            return dirEntries;
         }
         public void SetCurrentDirectory(string vfsPath)
         {
