@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using vfs.core.visitor;
+using vfs.exceptions;
 
 namespace vfs.core {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -49,6 +50,7 @@ namespace vfs.core {
         protected string path;
 
         public JCDDirEntry Entry { get { return this.entry; } }
+        public string Path { get { return this.path; } }
 
         public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
         public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
@@ -63,6 +65,11 @@ namespace vfs.core {
         }
 
         protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
+            if (!Helpers.PathIsValid(path))
+            {
+                throw new InvalidFileNameException();
+            }
+
             this.entry = entry;
             this.container = container;
             this.parent = parent;
