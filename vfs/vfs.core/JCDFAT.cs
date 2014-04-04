@@ -19,6 +19,8 @@ namespace vfs.core
         public const uint rootDirBlock = 0;
         private const uint searchFileBlock = 1;
 
+        private const uint readBufferSize = 50 * 1024; //In blocks
+
         // All sizes in this class are given in bytes unless otherwise specified.
         private const uint reservedBlockNumbers = 2; // End-of-chain and free
         // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
@@ -121,6 +123,19 @@ namespace vfs.core
         {
             firstFreeBlock = newVal;
             Write(firstFreeBlockOffset, firstFreeBlock);
+        }
+
+        /// <summary>
+        /// Write data to JCDVFS-file.
+        /// </summary>
+        /// <param name="offset">Absolute offset in to JCDVFS-file at which to start writing data.</param>
+        /// <param name="data">The buffer containing data to write to JCDVFS-file.</param>
+        /// <param name="arrOffset">The zero-based byte offset in data from which to begin copying bytes to JCDVFS-file.</param>
+        /// <param name="count">The maximum number of bytes to write.</param>
+        public void Write(ulong offset, byte[] data, int arrOffset, int count)
+        {
+            fs.Seek((long)offset, SeekOrigin.Begin);
+            fs.Write(data, arrOffset, count);
         }
 
         /// <summary>
@@ -511,7 +526,7 @@ namespace vfs.core
             return this.freeBlocks * JCDFAT.blockSize;
         }
 
-        public void CreateFile(ulong size, string path, string fileName, bool isFolder)
+        public uint CreateFile(ulong size, string path, string fileName, bool isFolder)
         {
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
@@ -525,6 +540,28 @@ namespace vfs.core
             };
 
             this.currentFolder.AddDirEntry(entry);
+
+            return entry.FirstBlock;
+        }
+
+        public void ImportFile(FileStream file, string path, string fileName) {
+            uint firstBlock = CreateFile((ulong)file.Length, path, fileName, false);
+            uint bufPos = readBufferSize * blockSize;
+            int bufSize = (int)bufPos;
+            byte[] buffer = new byte[bufSize];
+
+
+            WalkFATChain(file.Length, firstBlock, new BufferIndex(buffer, () => {
+                if(bufPos >= bufSize) {
+                    file.Read(buffer, 0, bufSize);
+                    bufPos = 0;
+                    return bufPos;
+                }
+
+                uint returnPos = bufPos;
+                bufPos += blockSize;
+                return returnPos;
+            }));
         }
 
         public JCDDirEntry[] ListDirectory(string vfsPath)
