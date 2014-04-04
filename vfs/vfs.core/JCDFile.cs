@@ -29,13 +29,15 @@ namespace vfs.core {
             return Marshal.SizeOf(typeof(JCDDirEntry));   
         }
 
-        public bool IsEmptyEntry()
+        public bool IsEmpty()
         {
+            // TODO: Implement.
             return false;
         }
 
-        public bool IsFinalEntry()
+        public bool IsFinal()
         {
+            // TODO: Implement.
             return false;
         }
     }
@@ -61,11 +63,6 @@ namespace vfs.core {
 
         protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             this.entry = entry;
-            /*name = entry.name;
-            size = entry.size;
-            isFolder = entry.isFolder;
-            firstBlock = entry.firstBlock;*/
-
             this.container = container;
             this.parent = parent;
             this.parentIndex = parentIndex;
@@ -97,6 +94,11 @@ namespace vfs.core {
         public string GetName()
         {
             return entry.Name;
+        }
+
+        public bool EntryIsEmpty()
+        {
+            return this.entry.IsEmpty();
         }
     }
 }

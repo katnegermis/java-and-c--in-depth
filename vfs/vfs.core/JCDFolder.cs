@@ -7,6 +7,7 @@ namespace vfs.core {
     internal class JCDFolder : JCDFile {
         private bool populated = false;
         private List<JCDFile> entries;
+        private uint firstEmptyEntry;
 
         public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path)
             : base(container, entry, parent, parentIndex, path) {
@@ -33,8 +34,7 @@ namespace vfs.core {
         }
 
         public void setEntry(uint index, JCDDirEntry entry) {
-            //Assuming any corresponding entry in the entries LinkedList is already set
-
+            // Assuming any corresponding entry in the entries List is already set
             int size = Marshal.SizeOf(entry);
             byte[] byteArr = new byte[size];
             IntPtr ptr = Marshal.AllocHGlobal(size);
@@ -47,6 +47,12 @@ namespace vfs.core {
 
         public void setEntryEmpty(uint index) {
             container.Write(entryOffset(index), emptyEntry);
+
+            // Update firstEmptyEntry if we just freed an 'earlier' one.
+            if (index < this.firstEmptyEntry)
+            {
+                this.firstEmptyEntry = index;
+            }
         }
 
         public void setEntryFinal(uint index) {
@@ -58,12 +64,13 @@ namespace vfs.core {
         /// </summary>
         /// <param name="firstBlock"></param>
         /// <returns></returns>
-        public List<JCDDirEntry> GetDirEntries(uint firstBlock)
+        private List<JCDDirEntry> GetDirEntries()
         {
             var dirEntries = new List<JCDDirEntry>();
 
             // Get the contents of a block and create dir entries from it.
-            container.WalkFATChain(firstBlock, new FileReaderVisitor(src => {
+            container.WalkFATChain(this.entry.FirstBlock, new FileReaderVisitor(src =>
+            {
                 for (int i = 0; i < JCDFAT.fatEntriesPerBlock; i += 1)
                 {
                     int size = JCDDirEntry.StructSize();
@@ -72,7 +79,7 @@ namespace vfs.core {
                     var entry = JCDDirEntry.FromByteArr(dst);
                     // Decide whether the entry was the last entry. If it was, we don't want 
                     // to read the contents of the next block.
-                    if (entry.IsFinalEntry())
+                    if (entry.IsFinal())
                     {
                         return false;
                     }
@@ -95,10 +102,10 @@ namespace vfs.core {
 
         public void AddFile(JCDDirEntry dirEntry)
         {
-            uint index = GetFreeIndex();
+            uint index = GetEmptyEntryIndex();
             var entryPath = Helpers.PathCombine(this.path, dirEntry.Name);
             this.entries.Insert((int)index, JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath));
-            // Actually write dir entry to disk
+            setEntry(index, dirEntry);
         }
 
         /// <summary>
@@ -113,13 +120,21 @@ namespace vfs.core {
         /// <summary>
         /// Read JCDDirEntries from disk.
         /// </summary>
-        public void Populate() {
-            var dirEntries = GetDirEntries(entry.FirstBlock);
+        private void Populate() {
+            bool emptyEntrySet = false;
+            var dirEntries = GetDirEntries();
             for (uint i = 0; i < dirEntries.Count; i += 1)
             {
                 var dirEntry = dirEntries[(int)i];
                 var entryPath = FileGetPath(dirEntry.Name);
                 this.entries.Add(JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath));
+
+                // Set firstEmptyEntry if not already set.
+                if (!emptyEntrySet && dirEntry.IsEmpty())
+                {
+                    this.firstEmptyEntry = i;
+                    emptyEntrySet = true;
+                }
             }
             this.populated = true;
         }
@@ -129,8 +144,22 @@ namespace vfs.core {
         /// Allocates another block if there are no more entries left in the currently allocated blocks.
         /// </summary>
         /// <returns></returns>
-        public uint GetFreeIndex()
+        public uint GetEmptyEntryIndex()
         {
+            // Check whether firstEmptyEntry is still empty. If not, update it.
+            if (!this.entries[(int)this.firstEmptyEntry].EntryIsEmpty())
+            {
+                for (int i = (int)this.firstEmptyEntry + 1; i < this.entries.Count; i += 1)
+                {
+                    if (this.entries[i].EntryIsEmpty())
+                    {
+                        this.firstEmptyEntry = (uint)i;
+                        return this.firstEmptyEntry;
+                    }
+                }
+            }
+            // There were no more empty entries!
+            // TODO: Allocate a new block.
             return 0;
         }
 
