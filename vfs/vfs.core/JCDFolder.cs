@@ -45,6 +45,10 @@ namespace vfs.core {
             container.Write(entryOffset(index), byteArr);
         }
 
+        /// <summary>
+        /// Mark an entry as Empty.
+        /// </summary>
+        /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryEmpty(uint index) {
             container.Write(entryOffset(index), emptyEntry);
 
@@ -55,6 +59,10 @@ namespace vfs.core {
             }
         }
 
+        /// <summary>
+        /// Mark an entry as the final entry in the folder.
+        /// </summary>
+        /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryFinal(uint index) {
             container.Write(entryOffset(index), finalEntry);
         }
@@ -99,13 +107,19 @@ namespace vfs.core {
             }
             return this.entries;
         }
-
-        public void AddFile(JCDDirEntry dirEntry)
+        
+        /// <summary>
+        /// Add JCDDirEntry to folder.
+        /// </summary>
+        /// <param name="dirEntry">Entry to be added.</param>
+        /// <returns>Index of the newly added entry.</returns>
+        public uint AddDirEntry(JCDDirEntry dirEntry)
         {
             uint index = GetEmptyEntryIndex();
             var entryPath = Helpers.PathCombine(this.path, dirEntry.Name);
             this.entries.Insert((int)index, JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath));
             setEntry(index, dirEntry);
+            return index;
         }
 
         /// <summary>
@@ -159,7 +173,7 @@ namespace vfs.core {
                 }
             }
             // There were no more empty entries! Allocate block so that we can store more entries.
-            uint newBlock = this.ExpandFile();
+            uint newBlock = this.Expand();
 
             // TODO: Create empty dirEntries and write them to newBlock.
             // Add the new (empty) dirEntries to this.entries.

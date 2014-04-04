@@ -69,21 +69,23 @@ namespace vfs.core {
             this.path = path;
         }
 
+        /// <summary>
+        /// Delete file and all potential subdirectories.
+        /// Subdirectories are deleted in a depth-first manner.
+        /// </summary>
         public void Delete()
         {
             // If this is a folder, delete all dir entries recursively.
             if (entry.IsFolder)
             {
-                var folder = (JCDFolder)this;
-                var files = folder.GetFileEntries();
-
+                var files = ((JCDFolder)this).GetFileEntries();
                 foreach (var file in files)
                 {
                     file.Delete();
                 }
             }
 
-            // Delete blocks for this file, whether folder or file.
+            // Delete blocks for this file.
             // All (potential) sub-entries will have been deleted at this point.
             container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
 
@@ -112,7 +114,7 @@ namespace vfs.core {
         /// Expand file by one block.
         /// </summary>
         /// <returns>FAT index of newly allocated block.</returns>
-        protected uint ExpandFile()
+        protected uint Expand()
         {
             var prevLastBlock = GetLastBlockId();
             var newLastBlock = container.GetFreeBlock();
