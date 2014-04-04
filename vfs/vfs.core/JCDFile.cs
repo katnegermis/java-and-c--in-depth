@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using vfs.core.visitor;
 
 namespace vfs.core {
-    [StructLayout(LayoutKind.Sequential, Pack=1, CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 120)]
         public string Name; // 240B
@@ -32,18 +32,12 @@ namespace vfs.core {
 
         public bool IsEmpty()
         {
-            var dst = new byte[2];
-            Buffer.BlockCopy(Name.ToCharArray(), 0, dst, 0, 2);
-
-            return dst == JCDFile.EmptyEntry;
+            return (Name.Length == 0 && IsFolder);
         }
 
         public bool IsFinal()
         {
-            Console.WriteLine("File name length of JCDDirEntry: {0}", Name.Length);
-            var dst = new byte[2];
-            Buffer.BlockCopy(Name.ToCharArray(), 0, dst, 0, 2);
-            return dst == JCDFile.FinalEntry;
+            return (Name.Length == 0 && !IsFolder);
         }
     }
 
@@ -53,6 +47,8 @@ namespace vfs.core {
         protected JCDFolder parent;
         protected uint parentIndex;
         protected string path;
+
+        public JCDDirEntry Entry { get { return this.entry; } }
 
         public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
         public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000

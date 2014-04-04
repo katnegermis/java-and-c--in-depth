@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using vfs.exceptions;
 using vfs.core.visitor;
@@ -524,6 +525,12 @@ namespace vfs.core
             };
 
             this.currentFolder.AddDirEntry(entry);
+        }
+
+        public JCDDirEntry[] ListDirectory(string vfsPath)
+        {
+            var files = this.currentFolder.GetFileEntries();
+            return files.Select(file => { return file.Entry; }).ToArray();
         }
     }
 }

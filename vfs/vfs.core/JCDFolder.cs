@@ -7,6 +7,8 @@ namespace vfs.core {
     internal class JCDFolder : JCDFile {
         private bool populated = false;
         private List<JCDFile> entries;
+
+        // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
         private uint firstEmptyEntry;
 
         public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path)
@@ -41,11 +43,12 @@ namespace vfs.core {
                 firstEmptyEntry = index;
             }
 
-            // Verify that the given index goes at most one block beyond the number of blocks currently allocated.
+            // Check that the given index goes at most one block beyond the number of blocks currently allocated.
             var numBlocks = Helpers.ruid(this.entry.Size, JCDFAT.blockSize);
             var blocksRequired = Helpers.ruid(index, JCDFAT.dirEntriesPerBlock);
             if (blocksRequired > numBlocks + 1)
             {
+                // TODO: Throw proper exception.
                 throw new Exception("Folders are only allowed to expand by one block at a time!");
             }
 
@@ -53,7 +56,7 @@ namespace vfs.core {
             if (index >= numBlocks * JCDFAT.dirEntriesPerBlock)
             {
                 this.ExpandOneBlock();
-                setEntryFinal(index + 1);
+                setEntryFinal(index);
             }
 
             container.Write(entryOffset(index), byteArr);
@@ -76,7 +79,8 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryEmpty(uint index) {
-            setEntry(index, JCDFile.EmptyEntry);
+            var emptyEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = true, FirstBlock = 0 };
+            setEntry(index, emptyEntry);
         }
 
         /// <summary>
@@ -84,7 +88,8 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryFinal(uint index) {
-            setEntry(index, JCDFile.FinalEntry);
+            var finalEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = false, FirstBlock = 0 };
+            setEntry(index, finalEntry);
         }
 
         /// <summary>
@@ -106,9 +111,9 @@ namespace vfs.core {
                     var dst = new byte[size];
                     Buffer.BlockCopy(blockData, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
+
                     // If this is final entry we don't want to read the contents of the next block.
                     // In fact, there should be no more blocks to read.
-                    // Maybe we should make sure to mark the rest of the entries free?
                     if (entry.IsFinal())
                     {
                         return false;
@@ -166,7 +171,7 @@ namespace vfs.core {
                 this.entries.Add(JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath));
 
                 // Set firstEmptyEntry if not already set.
-                if (!emptyEntrySet && dirEntry.IsEmpty())
+                if (!emptyEntrySet && (dirEntry.IsEmpty() || dirEntry.IsFinal()))
                 {
                     this.firstEmptyEntry = i;
                     emptyEntrySet = true;
@@ -182,42 +187,20 @@ namespace vfs.core {
         /// <returns></returns>
         public uint GetEmptyEntryIndex()
         {
-            // Check whether firstEmptyEntry is still empty. If not, update it.
             if (!this.populated)
             {
                 this.Populate();
             }
+
             var firstEmpty = this.entries[(int)this.firstEmptyEntry];
 
-            if (!firstEmpty.EntryIsEmpty())
+            if (firstEmpty.EntryIsEmpty() || firstEmpty.EntryIsFinal())
             {
-                var numBlocks = (uint)this.entry.Size / JCDFAT.blockSize;
-
-                // Find an empty entry in the entries following firstEmptyEntry.
-                for (uint i = this.firstEmptyEntry + 1; i < numBlocks * JCDFAT.dirEntriesPerBlock; i += 1)
-                {
-                    var dirEntry = this.entries[(int)i];
-                    if (dirEntry.EntryIsFinal())
-                    {
-                        setEntryEmpty(i);
-                        setEntryFinal(i + 1);
-                        return this.firstEmptyEntry;
-                    }
-                    if (dirEntry.EntryIsEmpty())
-                    {
-                        this.firstEmptyEntry = (uint)i;
-                        return this.firstEmptyEntry;
-                    }
-                }
+                return this.firstEmptyEntry;
             }
-            // If index > current max index
-            // There were no more empty entries! Allocate block so that we can store more entries.
-            uint newBlock = this.ExpandOneBlock();
+            
+            // Not empty or final, find the next entry
 
-            // TODO: Create empty dirEntries and write them to newBlock.
-            // Add the new (empty) dirEntries to this.entries.
-            // Set this.firstEmptyEntry to the first index of the new block.
-            // How do we know which index the first entry in the new block has?
             return 0;
         }
 
@@ -230,23 +213,12 @@ namespace vfs.core {
         public string FileGetPath(JCDFile file)
         {
             // Check whether dirEntry is in entries. If it is not
-            if (!entries.Contains(file))
-            {
-                // TODO: Throw proper exception.
-                throw new Exception("That file is not a child of this folder!");
-            }
             return Helpers.PathCombine(this.path, file.GetName());
         }
 
         public string FileGetPath(string name)
         {
-            foreach (var dirEntry in entries)
-            {
-                if (dirEntry.GetName() == name)
-                {
-                    return Helpers.PathCombine(this.path, name);
-                }
-            }
+            return Helpers.PathCombine(this.path, name);
             // TODO: Throw proper exception.
             throw new Exception("A file with that name is not a child of this folder!");
         }

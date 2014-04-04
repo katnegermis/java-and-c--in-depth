@@ -344,7 +344,7 @@ namespace console.client
                     //TODO make output
                     foreach (var file in list)
                     {
-
+                        Console.WriteLine(file.Name);
                     }
                 }
                 catch (Exception e)
