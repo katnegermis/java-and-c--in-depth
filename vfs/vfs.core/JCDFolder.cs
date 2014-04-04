@@ -60,6 +60,7 @@ namespace vfs.core {
             }
 
             container.Write(entryOffset(index), byteArr);
+            Console.WriteLine("Supposed to have written file '{0}' to disk.", JCDDirEntry.FromByteArr(byteArr).Name);
             // TODO: Make sure that this is reflected in the dirEntry in memory.
         }
 
@@ -111,6 +112,8 @@ namespace vfs.core {
                     var dst = new byte[size];
                     Buffer.BlockCopy(blockData, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
+                    Console.WriteLine("Just read file '{0}' from disk", entry.Name);
+                    //Console.WriteLine("The file contains: \n\n{0}", BitConverter.ToString(dst));
 
                     // If this is final entry we don't want to read the contents of the next block.
                     // In fact, there should be no more blocks to read.

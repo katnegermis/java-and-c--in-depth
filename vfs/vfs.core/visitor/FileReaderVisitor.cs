@@ -24,7 +24,7 @@ namespace vfs.core.visitor
             ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
             // Pass contents of block on to f and inform caller whether f wants 
             // the contents of the next block.
-            return f(vfs.Read(block, JCDFAT.blockSize));
+            return f(vfs.Read(vfsOffset, JCDFAT.blockSize));
         }
     }
 }
