@@ -106,7 +106,7 @@ namespace vfs.core {
 
             // Get the contents of a block and create dir entries from it.
             // The function defined below is called once for each block in the folder.
-            container.WalkFATChain(firstBlock, new FileReaderVisitor(blockData =>
+            container.WalkFATChain(firstBlock, new FileReaderVisitor(this.Size, (blockData, lastBlock) =>
             {
                 int size = JCDDirEntry.StructSize();
                 var entriesInBlock = Math.Min(JCDFAT.dirEntriesPerBlock, blockData.Length / JCDFAT.dirEntrySize);
@@ -115,8 +115,6 @@ namespace vfs.core {
                     var dst = new byte[size];
                     Buffer.BlockCopy(blockData, i * size, dst, 0, size);
                     var entry = JCDDirEntry.FromByteArr(dst);
-                    Console.WriteLine("Just read file '{0}' from disk", entry.Name);
-                    //Console.WriteLine("The file contains: \n\n{0}", BitConverter.ToString(dst));
 
                     // If this is final entry we don't want to read the contents of the next block.
                     // In fact, there should be no more blocks to read.
@@ -143,6 +141,10 @@ namespace vfs.core {
 
         public JCDFile GetFile(string name)
         {
+            if (!this.populated)
+            {
+                this.Populate();
+            }
             foreach (var file in this.entries)
             {
                 if (file.Name == name)

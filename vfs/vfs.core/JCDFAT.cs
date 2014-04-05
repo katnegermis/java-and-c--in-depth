@@ -576,6 +576,44 @@ namespace vfs.core
             }));
         }
 
+        public void ExportFile(FileStream outputFile, string path, string fileName)
+        {
+            int bufSize = (int)readBufferSize;
+            var buffer = new byte[bufSize];
+            int bufPos = 0;
+            int filePos = 0;
+
+            // Find vfs file
+            // TODO: Actually look for the file in the directory tree, instead of just looking in current directory.
+            var file = rootFolder.GetFile(fileName);
+            if (file == null)
+            {
+                throw new vfs.core.exceptions.FileNotFoundException();
+            }
+
+            WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) => {
+                Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
+                bufPos += blockData.Length;
+
+                // Last block reached. Write buffer to disk.
+                if (lastBlock)
+                {
+                    outputFile.Write(buffer, filePos, bufPos);
+                    return false;
+                }
+
+                // Buffer is full. Write it to disk.
+                if (bufPos >= bufSize) {
+                    // Write writes AT MOST bufSize.
+                    outputFile.Write(buffer, filePos, bufSize);
+                    filePos += bufPos;
+                    bufPos = 0;
+                }
+
+                return true;
+            }));
+        }
+
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var files = this.currentFolder.GetFileEntries();
