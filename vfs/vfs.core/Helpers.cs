@@ -19,14 +19,14 @@ namespace vfs.core
             return (num + den - 1) / den;
         }
 
-        public static string PathCombine(string path, string fileName)
+        /*public static string PathCombine(string path, string fileName)
         {
             if (path == null)
             {
                 path = "/";
             }
             return System.IO.Path.Combine(path, fileName);
-        }
+        }*/
 
         public static string PathGetDirectoryName(string path)
         {
@@ -38,9 +38,32 @@ namespace vfs.core
             return System.IO.Path.GetFileName(path);
         }
 
-        public static bool PathIsValid(string path)
-        {
+        public static bool PathIsValid(Uri path) {
+            if(!path.IsFile || path.Host != JCDFolder.Host) {
+                return false;
+            }
             return true;
+        }
+
+        public static bool PathIsValid(Uri path, bool isFolder)
+        {
+            if(!PathIsValid(path)) {
+                return false;
+            }
+
+            if(!isFolder && path.Segments.Last().EndsWith("/")) {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static string TrimLastSlash(string name) {
+            return name.TrimEnd(new char[] { '/' });
+        }
+
+        public static string PathGetFileName(Uri path) {
+            return TrimLastSlash(path.Segments.Last());
         }
     }
 }

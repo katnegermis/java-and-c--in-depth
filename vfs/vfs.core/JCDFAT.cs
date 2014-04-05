@@ -524,7 +524,39 @@ namespace vfs.core
             return this.freeBlocks * JCDFAT.blockSize;
         }
 
-        public uint CreateFile(ulong size, string path, string fileName, bool isFolder)
+        private JCDFile BrowseStep(JCDFolder folder, string step) {
+            step = Helpers.TrimLastSlash(step);
+            if(step == "..") {
+                return folder.Parent;
+            }
+            else {
+                return folder.GetFile(step);
+            }
+        }
+
+        private JCDFile GetFile(Uri path) {
+            JCDFolder ret;
+            if(path.Segments[0] == "/") { //Offset folder
+                ret = rootFolder;
+            }
+            else {
+                ret = currentFolder;
+            }
+
+            path = ret.Path.MakeRelativeUri(path);
+            int i;
+            for(i = 0; i < path.Segments.Length - 1; i++ ) {
+                var tmp = BrowseStep(ret, path.Segments[i]);
+                if(tmp == null || !tmp.IsFolder) {
+                    return null;
+                }
+                ret = (JCDFolder) tmp;
+            }
+
+            return BrowseStep(ret, path.Segments[i]);
+        }
+
+        public uint CreateFile(ulong size, Uri path, bool isFolder)
         {
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
@@ -533,13 +565,13 @@ namespace vfs.core
 
             var entry = new JCDDirEntry
             {
-                Name = fileName,
+                Name = Helpers.PathGetFileName(path),
                 Size = size,
                 IsFolder = isFolder,
                 FirstBlock = AllocateBlocks(size),
             };
 
-            // Clear folder in case it holds old data.
+            // Clear folder in case it holds old data, so that all entries become "final".
             if (isFolder)
             {
                 ZeroBlock(entry.FirstBlock);
@@ -557,37 +589,35 @@ namespace vfs.core
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
-        public void ImportFile(FileStream file, string path, string fileName) {
-            uint firstBlock = CreateFile((ulong)file.Length, path, fileName, false);
+        public void ImportFile(FileStream file, Uri path) {
+            uint firstBlock = CreateFile((ulong)file.Length, path, false);
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];
 
             WalkFATChain(firstBlock, new FileWriterVisitor(file.Length, buffer, () => {
+                bufPos += blockSize;
                 if(bufPos >= bufSize) {
                     file.Read(buffer, 0, bufSize);
                     bufPos = 0;
                     return bufPos;
                 }
-
-                uint returnPos = bufPos;
-                bufPos += blockSize;
-                return returnPos;
+                return bufPos;
             }));
         }
 
-        public JCDDirEntry[] ListDirectory(string vfsPath)
+        public JCDDirEntry[] ListDirectory(Uri vfsPath)
         {
             var files = this.currentFolder.GetFileEntries();
             return files.Select(file => { return file.Entry; }).ToArray();
         }
 
-        public void DeleteFile(string path, bool recursive)
+        public void DeleteFile(Uri path, bool recursive)
         {
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
             var fileName = Helpers.PathGetFileName(path);
-            path = Helpers.PathGetDirectoryName(path);
+            //path = Helpers.PathGetDirectoryName(path);
             var parentFolder = (JCDFolder)null;
             var file = parentFolder.GetFile(fileName);
             if (file.IsFolder && !recursive)
