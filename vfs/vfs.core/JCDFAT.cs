@@ -219,7 +219,7 @@ namespace vfs.core
             // Update firstFreeBlock if an earlier block was just freed above.
             // We're not using GetFreeBlock here since it has the side effect
             // that it checks whether firstFreeBlock actually is free, and
-            // finds the next free block if it is not. Since we're possible
+            // finds the next free block if it is not. Since we're possibly
             // updating firstFreeBlock, this would be wasteful.
             if (index < firstFreeBlock && value == freeBlock)
             {
@@ -627,7 +627,8 @@ namespace vfs.core
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var files = this.currentFolder.GetFileEntries();
-            return files.Select(file => { return file.Entry; }).ToArray();
+            var notNulls = files.Where(file => { return file.EntryIsEmpty() && file.EntryIsFinal(); });
+            return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
         public void DeleteFile(string path, bool recursive)
@@ -636,8 +637,12 @@ namespace vfs.core
 
             var fileName = Helpers.PathGetFileName(path);
             path = Helpers.PathGetDirectoryName(path);
-            var parentFolder = (JCDFolder)null;
+            var parentFolder = rootFolder;
             var file = parentFolder.GetFile(fileName);
+            if (file == null)
+            {
+                throw new vfs.core.exceptions.FileNotFoundException();
+            }
             if (file.IsFolder && !recursive)
             {
                 // TODO: Throw proper exception.

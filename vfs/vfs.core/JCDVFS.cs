@@ -117,7 +117,7 @@ namespace vfs.core
         public void CreateDirectory(string vfsPath, bool createParents)
         {
             //Implement relative paths, e.g. fat.Walk(Helpers.PathGetDirName(vfsPath));
-            fat.CreateFile(JCDFAT.blockSize, Helpers.PathGetDirectoryName(vfsPath), Helpers.PathGetFileName(vfsPath), createParents);
+            fat.CreateFile(JCDFAT.blockSize, Helpers.PathGetDirectoryName(vfsPath), Helpers.PathGetFileName(vfsPath), true);
         }
         public void ImportFile(string hfsPath, string vfsPath)
         {
@@ -148,7 +148,7 @@ namespace vfs.core
 
         public void DeleteFile(string vfsPath, bool recursive)
         {
-            return;
+            fat.DeleteFile(vfsPath, recursive);
         }
         public void RenameFile(string vfsPath, string newName)
         {
