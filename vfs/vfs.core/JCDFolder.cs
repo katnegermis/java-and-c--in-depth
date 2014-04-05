@@ -277,9 +277,7 @@ namespace vfs.core {
             container.FatSetEOC(newLastBlock);
 
             // Clear the newly allocated block in case it has old data.
-            var zeros = new byte[JCDFAT.blockSize];
-            Array.Clear(zeros, 0, zeros.Length);
-            container.Write(container.BlockGetByteOffset(newLastBlock, 0), zeros);
+            container.ZeroBlock(newLastBlock);
 
             // Update the file's current size.
             // Make sure to reflect this change on disk.

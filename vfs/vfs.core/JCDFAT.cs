@@ -258,9 +258,9 @@ namespace vfs.core
             var returnBlock = firstFreeBlock;
             for (uint i = firstFreeBlock + 1; i < maxNumDataBlocks; i += 1)
             {
-                Console.WriteLine("Trying to find a free block: fat[{0}] = {1}", i, fat[i]);
                 if (fat[i] == freeBlock)
                 {
+                    Console.WriteLine("Found a free block: fat[{0}] = {1}", i, fat[i]);
                     SetFirstFreeBlock(i);
                     break;
                 }
@@ -539,9 +539,22 @@ namespace vfs.core
                 FirstBlock = AllocateBlocks(size),
             };
 
+            // Clear folder in case it holds old data.
+            if (isFolder)
+            {
+                ZeroBlock(entry.FirstBlock);
+            }
+
             this.currentFolder.AddDirEntry(entry);
 
             return entry.FirstBlock;
+        }
+
+        public void ZeroBlock(uint block)
+        {
+            var zeros = new byte[JCDFAT.blockSize];
+            Array.Clear(zeros, 0, zeros.Length);
+            Write(BlockGetByteOffset(block, 0), zeros);
         }
 
         public void ImportFile(FileStream file, string path, string fileName) {
