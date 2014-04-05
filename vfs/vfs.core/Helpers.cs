@@ -39,7 +39,7 @@ namespace vfs.core
         }
 
         public static bool PathIsValid(Uri path) {
-            if(!path.IsFile || path.Host != JCDFolder.Host) {
+            if(!path.IsFile) {
                 return false;
             }
             return true;
@@ -51,7 +51,7 @@ namespace vfs.core
                 return false;
             }
 
-            if(!isFolder && path.Segments.Last().EndsWith("/")) {
+            if(!isFolder && path.ToString().EndsWith("/")) {
                 return false;
             }
 
@@ -63,7 +63,8 @@ namespace vfs.core
         }
 
         public static string PathGetFileName(Uri path) {
-            return TrimLastSlash(path.Segments.Last());
+            var tmp = TrimLastSlash(path.ToString());
+            return tmp.Substring(tmp.LastIndexOf('/') + 1);
         }
     }
 }

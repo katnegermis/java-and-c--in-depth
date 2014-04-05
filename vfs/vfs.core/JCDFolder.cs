@@ -6,7 +6,6 @@ using vfs.exceptions;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {
-        public const string Host = "vfs";
 
         private bool populated = false;
         private List<JCDFile> entries;
@@ -24,7 +23,7 @@ namespace vfs.core {
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
-            return new JCDFolder(vfs, entry, null, 0, new Uri("file:///" + Host + "/"));
+            return new JCDFolder(vfs, entry, null, 0, new Uri("file:///"));
         }
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {

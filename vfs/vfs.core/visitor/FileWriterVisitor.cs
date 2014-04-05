@@ -27,7 +27,7 @@ namespace vfs.core.visitor
             ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
             uint bufferPos = f();
 
-            int writeBytes = Math.Min((int) JCDFAT.blockSize, (int) remainingFileSize);
+            int writeBytes = (int) Math.Min((uint) JCDFAT.blockSize, (uint) remainingFileSize);
             vfs.Write(vfsOffset, buffer, (int) bufferPos, writeBytes);
             remainingFileSize -= JCDFAT.blockSize;
 

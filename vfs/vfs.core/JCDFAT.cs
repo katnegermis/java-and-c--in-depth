@@ -558,17 +558,17 @@ namespace vfs.core
                 ret = currentFolder;
             }
 
-            path = ret.Path.MakeRelativeUri(path);
+            string[] segments = ret.Path.MakeRelativeUri(path).ToString().Split(new char[] {'/'});
             int i;
-            for(i = 0; i < path.Segments.Length - 1; i++ ) {
-                var tmp = BrowseStep(ret, path.Segments[i]);
+            for(i = 0; i < segments.Length - 1; i++ ) {
+                var tmp = BrowseStep(ret, segments[i]);
                 if(tmp == null || !tmp.IsFolder) {
                     return null;
                 }
                 ret = (JCDFolder) tmp;
             }
 
-            return BrowseStep(ret, path.Segments[i]);
+            return BrowseStep(ret, segments[i]);
         }
 
         public uint CreateFile(ulong size, Uri path, bool isFolder)
