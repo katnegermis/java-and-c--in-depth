@@ -260,7 +260,7 @@ namespace vfs.core
             {
                 if (fat[i] == freeBlock)
                 {
-                    Console.WriteLine("Found a free block: fat[{0}] = {1}", i, fat[i]);
+                    //Console.WriteLine("Found a free block: fat[{0}] = {1}", i, fat[i]);
                     SetFirstFreeBlock(i);
                     break;
                 }
@@ -360,8 +360,9 @@ namespace vfs.core
                 currentNumBlocks = (ulong)(fs.Length) / blockSize;
                 currentNumDataBlocks = (uint)(currentNumBlocks - fatBlocks - metaDataBlocks);
             }
-            currentSize = currentNumBlocks * blockSize;
-            maxSize = maxNumBlocks * blockSize;
+            // Cast here to get ulong multiplication, to avoid overflow.
+            currentSize = currentNumBlocks * (ulong)blockSize;
+            maxSize = maxNumBlocks * (ulong)blockSize;
         }
 
         private void ReadFAT()
@@ -521,7 +522,8 @@ namespace vfs.core
 
         public ulong GetFreeSpace()
         {
-            return this.freeBlocks * JCDFAT.blockSize;
+            // Cast here to get ulong multiplication, to avoid overflow.
+            return this.freeBlocks * (ulong)JCDFAT.blockSize;
         }
 
         private JCDFile BrowseStep(JCDFolder folder, string step) {
@@ -603,6 +605,40 @@ namespace vfs.core
                     return bufPos;
                 }
                 return bufPos;
+            }));
+                }
+
+        public void ExportFile(FileStream outputFile, string path, string fileName)
+        {
+            int bufSize = (int)readBufferSize;
+            var buffer = new byte[bufSize];
+            int bufPos = 0;
+
+            // Find vfs file
+            // TODO: Actually look for the file in the directory tree, instead of just looking in current directory.
+            var file = rootFolder.GetFile(fileName);
+            if (file == null)
+            {
+                throw new vfs.core.exceptions.FileNotFoundException();
+            }
+
+            WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) => {
+                // If buffer overruns when reading this block, write buffer to file.
+                if (bufPos + blockData.Length > bufSize)
+                {
+                    outputFile.Write(buffer, 0, bufPos);
+                    bufPos = 0;
+                }
+
+                Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
+                bufPos += blockData.Length;
+
+                if (lastBlock)
+                {
+                    outputFile.Write(buffer, 0, bufPos);
+                }
+
+                return true;
             }));
         }
 

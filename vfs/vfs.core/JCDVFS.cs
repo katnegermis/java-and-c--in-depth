@@ -134,8 +134,18 @@ namespace vfs.core
         }
         public void ExportFile(string vfsPath, string hfsPath)
         {
-            return;
+            FileStream outputFile = null; 
+            try
+            {
+                outputFile = new FileStream(hfsPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                fat.ExportFile(outputFile, Helpers.PathGetDirectoryName(vfsPath), Helpers.PathGetFileName(vfsPath));
+            }
+            finally
+            {
+                outputFile.Close();
+            }
         }
+
         public void DeleteFile(string vfsPath, bool recursive)
         {
             return;
