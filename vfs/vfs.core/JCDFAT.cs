@@ -604,6 +604,37 @@ namespace vfs.core
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
+        public void ImportFolder(JCDFolder parentFolder, string hfsFolderPath, Uri vfsPath)
+        {
+            // Create folder in vfs.
+            var folderName = System.IO.Path.GetDirectoryName(hfsFolderPath);
+            this.CreateFile(JCDFAT.blockSize, parentFolder.FileGetPath(folderName, true), true);
+            var folder = parentFolder.GetFile(folderName);
+
+            // Import files from hfsFolderPath
+            var files = Directory.GetFiles(hfsFolderPath); // Returns list of full file paths on hfs.
+            foreach (var filePath in files)
+            {
+                FileStream fs = null;
+                try
+                {
+                    fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    ImportFile(fs, ?);
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
+            // Import folders from hfsFolderPath
+            var folders = Directory.GetDirectories(hfsFolderPath); // Returns list of full folder paths on hfs.
+            foreach (var folderPath in folders)
+            {
+                ImportFolder(folder, folderPath, ?);
+            }
+        }
+
         public void ImportFile(FileStream file, Uri path) {
             uint firstBlock = CreateFile((ulong)file.Length, path, false);
             uint bufPos = readBufferSize * blockSize;
@@ -668,7 +699,7 @@ namespace vfs.core
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
             var fileName = Helpers.PathGetFileName(path);
-            path = Helpers.PathGetDirectoryName(path);
+            // path = Helpers.PathGetDirectoryName(path);
             var parentFolder = rootFolder;
             var file = parentFolder.GetFile(fileName);
             if (file == null)
