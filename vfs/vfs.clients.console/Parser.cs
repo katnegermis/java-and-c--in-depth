@@ -31,7 +31,7 @@ namespace console.client
              case "close":
                  return new VFSConsole.CloseCommand();
              case "ls":
-                 return new VFSConsole.LsCommand();
+                 return new VFSConsole.LsCommand(args);
              case "cd":
                  return new VFSConsole.CdCommand(args);
              case "rm":

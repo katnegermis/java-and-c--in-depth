@@ -48,7 +48,7 @@ namespace vfs.core {
         protected JCDFAT container;
         protected JCDFolder parent;
         protected uint parentIndex;
-        protected Uri path;
+        protected string path;
 
         public string Name {
             get { return this.entry.Name; }
@@ -73,13 +73,13 @@ namespace vfs.core {
         }
 
         public JCDDirEntry Entry { get { return this.entry; } }
-        public Uri Path { get { return this.path; } }
+        public string Path { get { return this.path; } }
         public JCDFolder Parent { get { return this.parent; } }
 
         public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
         public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
 
-        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, Uri path) {
+        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             if(entry.IsFolder) {
                 return new JCDFolder(container, entry, parent, parentIndex, path);
             }
@@ -88,7 +88,7 @@ namespace vfs.core {
             }
         }
 
-        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, Uri path) {
+        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
             if(!Helpers.PathIsValid(path, entry.IsFolder))
             {
                 throw new InvalidFileNameException();

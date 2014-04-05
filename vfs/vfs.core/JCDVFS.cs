@@ -117,7 +117,7 @@ namespace vfs.core
         public void CreateDirectory(string vfsPath, bool createParents)
         {
             //Implement relative paths, e.g. fat.Walk(Helpers.PathGetDirName(vfsPath));
-            fat.CreateFile(JCDFAT.blockSize, new Uri(vfsPath, UriKind.Relative), true);
+            fat.CreateFile(JCDFAT.blockSize, vfsPath, true);
         }
         public void ImportFile(string hfsPath, string vfsPath)
         {
@@ -125,7 +125,7 @@ namespace vfs.core
             try
             {
                 fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                fat.ImportFile(fileToImport, new Uri(vfsPath, UriKind.Relative));
+                fat.ImportFile(fileToImport, vfsPath);
             }
             finally
             {
@@ -138,7 +138,7 @@ namespace vfs.core
             try
             {
                 outputFile = new FileStream(hfsPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                fat.ExportFile(outputFile, Helpers.PathGetDirectoryName(vfsPath), Helpers.PathGetFileName(vfsPath));
+                fat.ExportFile(outputFile, vfsPath);
             }
             finally
             {
@@ -160,13 +160,13 @@ namespace vfs.core
         }
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
-            var dirEntries = fat.ListDirectory(new Uri(vfsPath, UriKind.Relative));
+            var dirEntries = fat.ListDirectory(vfsPath);
             Console.WriteLine("Number of entries: {0}", dirEntries.Length);
             return dirEntries;
         }
         public void SetCurrentDirectory(string vfsPath)
         {
-            return;
+            fat.SetCurrentDirectory(vfsPath);
         }
         public string GetCurrentDirectory()
         {

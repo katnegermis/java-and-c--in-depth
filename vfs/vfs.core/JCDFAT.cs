@@ -544,21 +544,35 @@ namespace vfs.core
             if(step == "..") {
                 return folder.Parent;
             }
+            else if(step == ".") {
+                return folder;
+            }
             else {
                 return folder.GetFile(step);
             }
         }
 
-        private JCDFile GetFile(Uri path) {
+        private JCDFile GetFile(string path) {
             JCDFolder ret;
-            if(path.Segments[0] == "/") { //Offset folder
+            if(path.StartsWith("/")) { //Offset folder
                 ret = rootFolder;
             }
             else {
                 ret = currentFolder;
             }
 
-            string[] segments = ret.Path.MakeRelativeUri(path).ToString().Split(new char[] {'/'});
+            string[] segments = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if(segments.Length == 0) {
+                return ret;
+            }
+
+            /*if(!path.IsAbsoluteUri) {
+                path = new Uri(ret.Path, path);
+            }
+            if(path.Equals(ret.Path)) {
+                return ret;
+            }
+            string[] segments = ret.Path.MakeRelativeUri(path).ToString().Split(new char[] {'/'});*/
             int i;
             for(i = 0; i < segments.Length - 1; i++ ) {
                 var tmp = BrowseStep(ret, segments[i]);
@@ -571,7 +585,16 @@ namespace vfs.core
             return BrowseStep(ret, segments[i]);
         }
 
-        public uint CreateFile(ulong size, Uri path, bool isFolder)
+        public void SetCurrentDirectory(string path) {
+            var newDir = GetFile(path);
+            if(newDir == null || !newDir.IsFolder) {
+                //TODO: proper exception
+                throw new Exception("No such folder!");
+            }
+            currentFolder = (JCDFolder) newDir;
+        }
+
+        public uint CreateFile(ulong size, string path, bool isFolder)
         {
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
@@ -592,7 +615,12 @@ namespace vfs.core
                 ZeroBlock(entry.FirstBlock);
             }
 
-            this.currentFolder.AddDirEntry(entry);
+            var container = GetFile(Helpers.PathGetDirectoryName(path));
+            if(container == null || !container.IsFolder) {
+                throw new Exception("No such folder!");
+            }
+
+            ((JCDFolder)container).AddDirEntry(entry);
 
             return entry.FirstBlock;
         }
@@ -604,7 +632,7 @@ namespace vfs.core
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
-        public void ImportFile(FileStream file, Uri path) {
+        public void ImportFile(FileStream file, string path) {
             uint firstBlock = CreateFile((ulong)file.Length, path, false);
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
@@ -622,7 +650,7 @@ namespace vfs.core
             }));
         }
 
-        public void ExportFile(FileStream outputFile, string path, string fileName)
+        public void ExportFile(FileStream outputFile, string path)
         {
             int bufSize = (int)(readBufferSize * blockSize);
             var buffer = new byte[bufSize];
@@ -630,7 +658,7 @@ namespace vfs.core
 
             // Find vfs file
             // TODO: Actually look for the file in the directory tree, instead of just looking in current directory.
-            var file = rootFolder.GetFile(fileName);
+            var file = GetFile(path);
             if (file == null)
             {
                 throw new vfs.core.exceptions.FileNotFoundException();
@@ -656,21 +684,23 @@ namespace vfs.core
             }));
         }
 
-        public JCDDirEntry[] ListDirectory(Uri vfsPath)
+        public JCDDirEntry[] ListDirectory(string vfsPath)
         {
-            var files = this.currentFolder.GetFileEntries();
-            var notNulls = files.Where(file => { return file.EntryIsEmpty() && file.EntryIsFinal(); });
+            var directory = GetFile(vfsPath);
+            if(directory == null || !directory.IsFolder) {
+                throw new Exception("No such folder!");
+            }
+            var files = ((JCDFolder)directory).GetFileEntries();
+            var notNulls = files.Where(file => { return !(file.EntryIsEmpty() || file.EntryIsFinal()); });
             return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
-        public void DeleteFile(Uri path, bool recursive)
+        public void DeleteFile(string path, bool recursive)
         {
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
-            var fileName = Helpers.PathGetFileName(path);
-            path = Helpers.PathGetDirectoryName(path);
-            var parentFolder = rootFolder;
-            var file = parentFolder.GetFile(fileName);
+            //path = Helpers.PathGetDirectoryName(path);
+            var file = GetFile(path);
             if (file == null)
             {
                 throw new vfs.core.exceptions.FileNotFoundException();

@@ -13,7 +13,7 @@ namespace vfs.core {
         // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
         private uint firstEmptyEntry;
 
-        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, Uri path)
+        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path)
             : base(container, entry, parent, parentIndex, path) {
             entries = new List<JCDFile>();
         }
@@ -23,7 +23,7 @@ namespace vfs.core {
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
-            return new JCDFolder(vfs, entry, null, 0, new Uri("file:///"));
+            return new JCDFolder(vfs, entry, null, 0, "/");
         }
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {
@@ -259,15 +259,24 @@ namespace vfs.core {
             return Helpers.PathCombine(this.path, file.Name);
         }*/
 
-        public Uri FileGetPath(string name, bool isFolder)
+        public string FileGetPath(string name, bool isFolder)
         {
-            if(isFolder) {
+            /*if(isFolder) {
                 return new Uri(this.path, name + "/");
             }
             else {
                 return new Uri(this.path, name);
                 
+            }*/
+
+            if(isFolder) {
+                return Helpers.PathCombine(this.path, name) + "/";
             }
+            else {
+                return Helpers.PathCombine(this.path, name);
+
+            }
+            
             // TODO: Throw proper exception.
             throw new Exception("A file with that name is not a child of this folder!");
         }
