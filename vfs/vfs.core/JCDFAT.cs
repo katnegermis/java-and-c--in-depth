@@ -564,15 +564,14 @@ namespace vfs.core
             byte[] buffer = new byte[bufSize];
 
             WalkFATChain(firstBlock, new FileWriterVisitor(file.Length, buffer, () => {
-                if(bufPos >= bufSize) {
+                bufPos += blockSize;
+                if (bufPos >= bufSize)
+                {
                     file.Read(buffer, 0, bufSize);
                     bufPos = 0;
                     return bufPos;
                 }
-
-                uint returnPos = bufPos;
-                bufPos += blockSize;
-                return returnPos;
+                return bufPos;
             }));
         }
 
@@ -595,10 +594,10 @@ namespace vfs.core
                 Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
                 bufPos += blockData.Length;
 
-                // Buffer is full. Write it to disk.
+                // Buffer is full, or we reached the last block. Write buffer to disk.
                 if (lastBlock || bufPos >= bufSize) {
                     outputFile.Write(buffer, filePos, Math.Min(bufSize, bufPos));
-                    filePos += bufPos;
+                    filePos += bufSize;
                     bufPos = 0;
                 }
 
