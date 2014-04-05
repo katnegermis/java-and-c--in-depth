@@ -133,7 +133,7 @@ namespace vfs.core
         /// <param name="count">The maximum number of bytes to write.</param>
         public void Write(ulong offset, byte[] data, int arrOffset, int count)
         {
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            Seek(offset);
             fs.Write(data, arrOffset, count);
         }
 
@@ -144,7 +144,7 @@ namespace vfs.core
         /// <param name="data">Data to write to JCDVFS-file.</param>
         public void Write(ulong offset, byte[] data)
         {
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            Seek(offset);
             bw.Write(data);
         }
 
@@ -155,7 +155,7 @@ namespace vfs.core
         /// <param name="data">Data to write to JCDVFS-file.</param>
         public void Write(ulong offset, ushort data)
         {
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            Seek(offset);
             bw.Write(data);
         }
 
@@ -166,8 +166,17 @@ namespace vfs.core
         /// <param name="data">Data to write to JCDVFS-file.</param>
         public void Write(ulong offset, uint data)
         {
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            Seek(offset);
             bw.Write(data);
+        }
+
+        private void Seek(ulong offset)
+        {
+            if (fs.Position == (long)offset)
+            {
+                return;
+            }
+            fs.Seek((long)offset, SeekOrigin.Begin);
         }
 
         /// <summary>
@@ -178,7 +187,7 @@ namespace vfs.core
         /// <returns>Byte array of length `length`.</returns>
         public byte[] Read(ulong offset, uint length)
         {
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            Seek(offset);
             return br.ReadBytes((int)length);
         }
 
@@ -332,7 +341,7 @@ namespace vfs.core
         {
             // Not using fatSet in this function because of performance issues.
             // (Really. It took me 60 seconds to write 2 MB.)
-            fs.Seek(FatOffset(0), SeekOrigin.Begin);
+            Seek((ulong)FatOffset(0));
             for (uint i = 0; i < this.fatBlocks * fatEntriesPerBlock; i += 1)
             {
                 // The array will be initialized with 0's, so initially, free
@@ -368,7 +377,7 @@ namespace vfs.core
         private void ReadFAT()
         {
             // The is FAT placed contiously, starting from the first data block.
-            fs.Seek(metaDataBlocks * blockSize, SeekOrigin.Begin);
+            Seek(metaDataBlocks * blockSize);
             ByteToUintConverter cnv = new ByteToUintConverter
             {
                 bytes = br.ReadBytes((int)(fatBlocks * blockSize))
@@ -385,7 +394,7 @@ namespace vfs.core
         private void NewFSWriteMetaData()
         {
             // Go to start of JCDVFS-file and write meta data continuously.
-            fs.Seek(0L, SeekOrigin.Begin);
+            Seek(0L);
             bw.Write(magicNumber);
             bw.Write(blockSize); // Currently set to 4KB fixed size.
             bw.Write(fatBlocks); // Number of blocks that the FAT spans.
@@ -397,7 +406,7 @@ namespace vfs.core
 
         private void ParseMetaData()
         {
-            fs.Seek(0L, SeekOrigin.Begin);
+            Seek(0L);
 
             // Verify that we're reading a JCDVFS-file.
             uint tmp = br.ReadUInt32();
@@ -496,6 +505,10 @@ namespace vfs.core
                 prevBlock = nextBlock;
                 nextBlock = GetFreeBlock();
                 FatSet(prevBlock, nextBlock);
+                if (i % 10000 == 0)
+                {
+                    Console.WriteLine("Allocated {0} blocks.", i);
+                }
             }
             FatSetEOC(nextBlock);
             return firstBlock;
