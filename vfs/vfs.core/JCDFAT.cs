@@ -93,10 +93,9 @@ namespace vfs.core
 
             ParseMetaData();
             InitSize(false);
+            ReadFAT();
             InitRootFolder();
             InitSearchFile();
-
-            ReadFAT();
 
             initialized = true;
             var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
@@ -243,31 +242,30 @@ namespace vfs.core
         /// <returns></returns>
         public uint GetFreeBlock()
         {
-            if (fat[firstFreeBlock] == freeBlock)
-            {
-                return firstFreeBlock;
-            }
-
             if (!(freeBlocks >= 1))
             {
                 throw new Exception("No more free blocks!");
             }
 
-            // firstFreeBlock wasn't free! Since this variable was not updated, we assume
-            // that freeBlocks wasn't updated either.
             SetFreeBlocks(freeBlocks - 1);
+
+            if (freeBlocks == 0)
+            {
+                SetFirstFreeBlock(endOfChain);
+                return firstFreeBlock;
+            }
+
+            var returnBlock = firstFreeBlock;
             for (uint i = firstFreeBlock + 1; i < maxNumDataBlocks; i += 1)
             {
                 Console.WriteLine("Trying to find a free block: fat[{0}] = {1}", i, fat[i]);
                 if (fat[i] == freeBlock)
                 {
                     SetFirstFreeBlock(i);
-                    return firstFreeBlock;
+                    break;
                 }
             }
-
-            // Did not find a free block, even though there should one!
-            throw new Exception("Didn't find a free block!");
+            return returnBlock;
         }
 
         /// <summary>
@@ -489,14 +487,14 @@ namespace vfs.core
             }
 
             uint firstBlock = GetFreeBlock();
-            uint prevBlock = firstBlock;
-            uint nextBlock = GetFreeBlock();
+            var nextBlock = firstBlock;
+            uint prevBlock;
             // Chain blocks in FAT. Make sure that we mark last block as EOC.
             for (int i = 0; i < blocksRequired - 1; i += 1)
             {
-                FatSet(prevBlock, nextBlock);
                 prevBlock = nextBlock;
                 nextBlock = GetFreeBlock();
+                FatSet(prevBlock, nextBlock);
             }
             FatSetEOC(nextBlock);
             return firstBlock;

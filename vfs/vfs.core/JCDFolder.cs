@@ -18,15 +18,16 @@ namespace vfs.core {
         }
 
         public static JCDFolder rootFolder(JCDFAT vfs) {
+            var blockCounter = (BlockCounterVisitor)vfs.WalkFATChain(JCDFAT.rootDirBlock, new BlockCounterVisitor(true));
             var entry = new JCDDirEntry {
-                Name = null, Size = JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
+                Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
             return new JCDFolder(vfs, entry, null, 0, null);
         }
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {
-            JCDFolder root = rootFolder(vfs);
             vfs.FatSetEOC(JCDFAT.rootDirBlock);
+            JCDFolder root = rootFolder(vfs);
             root.setEntryFinal(0);
             return root;
         }
@@ -274,6 +275,11 @@ namespace vfs.core {
             // Update FAT entries.
             container.FatSet(prevLastBlock, newLastBlock);
             container.FatSetEOC(newLastBlock);
+
+            // Clear the newly allocated block in case it has old data.
+            var zeros = new byte[JCDFAT.blockSize];
+            Array.Clear(zeros, 0, zeros.Length);
+            container.Write(container.BlockGetByteOffset(newLastBlock, 0), zeros);
 
             // Update the file's current size.
             // Make sure to reflect this change on disk.
