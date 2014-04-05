@@ -342,9 +342,10 @@ namespace console.client
                 {
                     var list = console.mountedJCDVFS.ListDirectory(path);
                     //TODO make output
+                    Console.WriteLine("Name\tSize\tType");
                     foreach (var file in list)
                     {
-                        Console.WriteLine(file.Name);
+                        Console.WriteLine("{0}\t{1}\t{2}", file.Name, file.Size, file.IsFolder ? "DIR" : "FIL");
                     }
                 }
                 catch (Exception e)
