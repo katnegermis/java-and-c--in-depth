@@ -597,7 +597,6 @@ namespace vfs.core
 
                 // Buffer is full. Write it to disk.
                 if (lastBlock || bufPos >= bufSize) {
-                    // Write writes AT MOST bufSize.
                     outputFile.Write(buffer, filePos, Math.Min(bufSize, bufPos));
                     filePos += bufPos;
                     bufPos = 0;
