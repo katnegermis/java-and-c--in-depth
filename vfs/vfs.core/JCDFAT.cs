@@ -570,5 +570,21 @@ namespace vfs.core
             var files = this.currentFolder.GetFileEntries();
             return files.Select(file => { return file.Entry; }).ToArray();
         }
+
+        public void DeleteFile(string path, bool recursive)
+        {
+            // TODO: Check if path is relative/absolute and retrieve parent folder of file.
+
+            var fileName = Helpers.PathGetFileName(path);
+            path = Helpers.PathGetDirectoryName(path);
+            var parentFolder = (JCDFolder)null;
+            var file = parentFolder.GetFile(fileName);
+            if (file.IsFolder && !recursive)
+            {
+                // TODO: Throw proper exception.
+                throw new Exception("Can't delete a folder when the recursive flag is not set!");
+            }
+            file.Delete();
+        }
     }
 }

@@ -67,6 +67,11 @@ namespace vfs.core {
             }
         }
 
+        public bool IsFolder
+        {
+            get { return this.entry.IsFolder; }
+        }
+
         public JCDDirEntry Entry { get { return this.entry; } }
         public string Path { get { return this.path; } }
 
