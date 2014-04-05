@@ -8,6 +8,8 @@ namespace vfs.core {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 120)]
+        // Name and Size should be updated on an instance of JCDFile if
+        // you want them to be updated automatically on disk.
         public string Name; // 240B
         public ulong Size; // 8B
         public bool IsFolder; // 4B
@@ -135,6 +137,10 @@ namespace vfs.core {
 
         private void UpdateEntry(JCDDirEntry entry)
         {
+            if (this.entry.FirstBlock == JCDFAT.rootDirBlock)
+            {
+                return;
+            }
             this.parent.setEntry(this.parentIndex, this.entry);
         }
     }
