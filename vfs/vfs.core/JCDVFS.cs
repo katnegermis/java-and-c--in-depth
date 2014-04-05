@@ -106,19 +106,23 @@ namespace vfs.core
         {
             return fat.GetSize();
         }
+
         public ulong OccupiedSpace()
         {
             return fat.GetSize() - fat.GetFreeSpace();
         }
+
         public ulong FreeSpace()
         {
             return fat.GetFreeSpace();
         }
+
         public void CreateDirectory(string vfsPath, bool createParents)
         {
             //Implement relative paths, e.g. fat.Walk(Helpers.PathGetDirName(vfsPath));
             fat.CreateFile(JCDFAT.blockSize, vfsPath, true);
         }
+
         public void ImportFile(string hfsPath, string vfsPath)
         {
             FileStream fileToImport = null;
@@ -132,6 +136,7 @@ namespace vfs.core
                 fileToImport.Close();
             }
         }
+
         public void ExportFile(string vfsPath, string hfsPath)
         {
             FileStream outputFile = null; 
@@ -152,11 +157,28 @@ namespace vfs.core
         }
         public void RenameFile(string vfsPath, string newName)
         {
-            return;
+            // TODO: Make sure that newName is a valid name.
+            // TODO: Implement using fat.GetFile.
+            var file = (JCDFile)null; // fat.GetFile(vfsPath);
+            file.Name = newName;
         }
         public void MoveFile(string vfsPath, string newVfsPath)
         {
-            return;
+            // TODO: Implement using fat.GetFile.
+
+            // Get original file
+            var fromFolder = (JCDFolder)null; // fat.GetFile(vfsPath);
+            var fromFileName = Helpers.PathGetFileName(vfsPath);
+            var fromFile = fromFolder.GetFile(fromFileName);
+
+            // Insert file in to destination.
+            var toFolder = (JCDFolder)null; // fat.GetFile(newVfsPath);
+            toFolder.AddDirEntry(fromFile.Entry);
+            var toFile = toFolder.GetFile(fromFileName);
+            toFile.Name = Helpers.PathGetFileName(newVfsPath);
+
+            // Delete original file.
+            fromFile.Delete();
         }
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
