@@ -490,7 +490,8 @@ namespace vfs.core
         public uint AllocateBlocks(ulong size)
         {
             // Make sure that there are enough free blocks.
-            uint blocksRequired = (uint)Helpers.ruid(size, JCDFAT.blockSize);
+            long blocksRequired = Math.Max((uint)Helpers.ruid(size, JCDFAT.blockSize), 1);
+
             if (!(freeBlocks >= blocksRequired))
             {
                 throw new NotEnoughSpaceException();
@@ -594,7 +595,11 @@ namespace vfs.core
             currentFolder = (JCDFolder) newDir;
         }
 
-        public uint CreateFile(ulong size, string path, bool isFolder)
+        public void CreateFolder(string path) {
+            CreateFile(JCDFAT.blockSize, path, true);
+        }
+
+        private JCDFile CreateFile(ulong size, string path, bool isFolder)
         {
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
@@ -620,9 +625,7 @@ namespace vfs.core
                 throw new Exception("No such folder!");
             }
 
-            ((JCDFolder)container).AddDirEntry(entry);
-
-            return entry.FirstBlock;
+            return ((JCDFolder) container).AddDirEntry(entry);
         }
 
         public void ZeroBlock(uint block)
@@ -632,12 +635,20 @@ namespace vfs.core
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
-        public void ImportFolder(JCDFolder parentFolder, string hfsFolderPath, Uri vfsPath)
+        public void ImportFolder(string hfsFolderPath, string vfsPath) {
+            /*var parentDirTmp = GetFile(Helpers.PathGetDirectoryName(vfsPath));
+            if(parentDirTmp == null || !parentDirTmp.IsFolder) {
+                //TODO: proper exception
+                throw new Exception("No such folder!");
+            }
+            var parentDir = (JCDFolder) parentDirTmp;*/
+            var top = (JCDFolder) CreateFile(JCDFAT.blockSize, vfsPath, true);
+
+            ImportFolderRecursive(top, hfsFolderPath);
+        }
+
+        private void ImportFolderRecursive(JCDFolder parentFolder, string hfsFolderPath)
         {
-            // Create folder in vfs.
-            var folderName = System.IO.Path.GetDirectoryName(hfsFolderPath);
-            this.CreateFile(JCDFAT.blockSize, parentFolder.FileGetPath(folderName, true), true);
-            var folder = parentFolder.GetFile(folderName);
 
             // Import files from hfsFolderPath
             var files = Directory.GetFiles(hfsFolderPath); // Returns list of full file paths on hfs.
@@ -647,7 +658,7 @@ namespace vfs.core
                 try
                 {
                     fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    ImportFile(fs, ?);
+                    ImportFile(fs, parentFolder.FileGetPath(Helpers.PathGetFileName(filePath.Replace('\\', '/')), false));
                 }
                 finally
                 {
@@ -659,12 +670,16 @@ namespace vfs.core
             var folders = Directory.GetDirectories(hfsFolderPath); // Returns list of full folder paths on hfs.
             foreach (var folderPath in folders)
             {
-                ImportFolder(folder, folderPath, ?);
+                // Create folder in vfs.
+                var fPath = folderPath.Replace('\\', '/');
+                var folderName = Helpers.PathGetFileName(Helpers.TrimLastSlash(fPath));
+                var folder = (JCDFolder) CreateFile(JCDFAT.blockSize, parentFolder.FileGetPath(folderName, true), true);
+                ImportFolderRecursive(folder, fPath);
             }
         }
 
-        public void ImportFile(FileStream file, Uri path) {
-            uint firstBlock = CreateFile((ulong)file.Length, path, false);
+        public void ImportFile(FileStream file, string path) {
+            uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];

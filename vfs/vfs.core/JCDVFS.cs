@@ -120,20 +120,23 @@ namespace vfs.core
         public void CreateDirectory(string vfsPath, bool createParents)
         {
             //Implement relative paths, e.g. fat.Walk(Helpers.PathGetDirName(vfsPath));
-            fat.CreateFile(JCDFAT.blockSize, vfsPath, true);
+            fat.CreateFolder(vfsPath);
         }
 
         public void ImportFile(string hfsPath, string vfsPath)
         {
             FileStream fileToImport = null;
-            try
-            {
-                fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                fat.ImportFile(fileToImport, vfsPath);
+            if(Directory.Exists(hfsPath)) {
+                fat.ImportFolder(hfsPath, vfsPath);
             }
-            finally
-            {
-                fileToImport.Close();
+            else {
+                try {
+                    fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    fat.ImportFile(fileToImport, vfsPath);
+                }
+                finally {
+                    fileToImport.Close();
+                }
             }
         }
 

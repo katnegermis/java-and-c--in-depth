@@ -26,12 +26,24 @@ namespace vfs.core
 
         public static string PathGetDirectoryName(string path)
         {
-            return System.IO.Path.GetDirectoryName(path);
+            //return System.IO.Path.GetDirectoryName(path);
+            var tmp = TrimLastSlash(path);
+            var slash = tmp.LastIndexOf('/');
+            if(slash > -1) {
+                tmp = tmp.Remove(slash + 1);
+            }
+            else {
+                return ".";
+            }
+
+            return tmp;
         }
 
         public static string PathGetFileName(string path)
         {
-            return System.IO.Path.GetFileName(path);
+            //return System.IO.Path.GetFileName(path);
+            var tmp = TrimLastSlash(path);
+            return tmp.Substring(tmp.LastIndexOf("/") + 1);
         }
 
         /*public static bool PathIsValid(Uri path) {

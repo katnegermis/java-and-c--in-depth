@@ -161,7 +161,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="dirEntry">Entry to be added.</param>
         /// <returns>Index of the newly added entry.</returns>
-        public uint AddDirEntry(JCDDirEntry dirEntry)
+        public JCDFile AddDirEntry(JCDDirEntry dirEntry)
         {
             // Verify that a file with that name doesn't already exist.
             if (this.GetFile(dirEntry.Name) != null)
@@ -170,9 +170,10 @@ namespace vfs.core {
             }
             uint index = GetEmptyEntryIndex();
             var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
-            this.entries.Insert((int)index, JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath));
+            var newFile = JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath);
+            this.entries.Insert((int)index, newFile);
             setEntry(index, dirEntry);
-            return index;
+            return newFile;
         }
 
         /// <summary>
