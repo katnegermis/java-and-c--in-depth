@@ -360,8 +360,9 @@ namespace vfs.core
                 currentNumBlocks = (ulong)(fs.Length) / blockSize;
                 currentNumDataBlocks = (uint)(currentNumBlocks - fatBlocks - metaDataBlocks);
             }
-            currentSize = currentNumBlocks * blockSize;
-            maxSize = maxNumBlocks * blockSize;
+            // Cast here to get ulong multiplication, to avoid overflow.
+            currentSize = currentNumBlocks * (ulong)blockSize;
+            maxSize = maxNumBlocks * (ulong)blockSize;
         }
 
         private void ReadFAT()
@@ -521,7 +522,8 @@ namespace vfs.core
 
         public ulong GetFreeSpace()
         {
-            return this.freeBlocks * JCDFAT.blockSize;
+            // Cast here to get ulong multiplication, to avoid overflow.
+            return this.freeBlocks * (ulong)JCDFAT.blockSize;
         }
 
         public uint CreateFile(ulong size, string path, string fileName, bool isFolder)
