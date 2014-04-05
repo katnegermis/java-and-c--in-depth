@@ -6,13 +6,14 @@ using vfs.exceptions;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {
+
         private bool populated = false;
         private List<JCDFile> entries;
 
         // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
         private uint firstEmptyEntry;
 
-        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path)
+        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, Uri path)
             : base(container, entry, parent, parentIndex, path) {
             entries = new List<JCDFile>();
         }
@@ -22,7 +23,7 @@ namespace vfs.core {
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
-            return new JCDFolder(vfs, entry, null, 0, null);
+            return new JCDFolder(vfs, entry, null, 0, new Uri("file:///"));
         }
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {
@@ -168,7 +169,7 @@ namespace vfs.core {
                 throw new FileAlreadyExistsException();
             }
             uint index = GetEmptyEntryIndex();
-            var entryPath = Helpers.PathCombine(this.path, dirEntry.Name);
+            var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
             this.entries.Insert((int)index, JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath));
             setEntry(index, dirEntry);
             return index;
@@ -192,7 +193,7 @@ namespace vfs.core {
             for (uint i = 0; i < dirEntries.Count; i += 1)
             {
                 var dirEntry = dirEntries[(int)i];
-                var entryPath = FileGetPath(dirEntry.Name);
+                var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
                 this.entries.Add(JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath));
 
                 // Set firstEmptyEntry if not already set.
@@ -252,15 +253,21 @@ namespace vfs.core {
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public string FileGetPath(JCDFile file)
+        /*public string FileGetPath(JCDFile file)
         {
             // Check whether dirEntry is in entries. If it is not
             return Helpers.PathCombine(this.path, file.Name);
-        }
+        }*/
 
-        public string FileGetPath(string name)
+        public Uri FileGetPath(string name, bool isFolder)
         {
-            return Helpers.PathCombine(this.path, name);
+            if(isFolder) {
+                return new Uri(this.path, name + "/");
+            }
+            else {
+                return new Uri(this.path, name);
+                
+            }
             // TODO: Throw proper exception.
             throw new Exception("A file with that name is not a child of this folder!");
         }
