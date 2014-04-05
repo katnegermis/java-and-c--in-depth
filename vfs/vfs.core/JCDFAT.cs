@@ -260,7 +260,7 @@ namespace vfs.core
             {
                 if (fat[i] == freeBlock)
                 {
-                    Console.WriteLine("Found a free block: fat[{0}] = {1}", i, fat[i]);
+                    //Console.WriteLine("Found a free block: fat[{0}] = {1}", i, fat[i]);
                     SetFirstFreeBlock(i);
                     break;
                 }
@@ -582,7 +582,6 @@ namespace vfs.core
             int bufSize = (int)readBufferSize;
             var buffer = new byte[bufSize];
             int bufPos = 0;
-            int filePos = 0;
 
             // Find vfs file
             // TODO: Actually look for the file in the directory tree, instead of just looking in current directory.
@@ -593,14 +592,19 @@ namespace vfs.core
             }
 
             WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) => {
+                // If buffer overruns when reading this block, write buffer to file.
+                if (bufPos + blockData.Length > bufSize)
+                {
+                    outputFile.Write(buffer, 0, bufPos);
+                    bufPos = 0;
+                }
+
                 Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
                 bufPos += blockData.Length;
 
-                // Buffer is full, or we reached the last block. Write buffer to disk.
-                if (lastBlock || bufPos >= bufSize) {
-                    outputFile.Write(buffer, filePos, Math.Min(bufSize, bufPos));
-                    filePos += bufSize;
-                    bufPos = 0;
+                if (lastBlock)
+                {
+                    outputFile.Write(buffer, 0, bufPos);
                 }
 
                 return true;
