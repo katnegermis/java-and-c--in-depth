@@ -25,7 +25,7 @@ namespace vfs.core.visitor
         {
             ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
 
-            var bytesToRead = Math.Min((uint)bytesLeft, JCDFAT.blockSize);
+            var bytesToRead = (uint) Math.Min(bytesLeft, (ulong)JCDFAT.blockSize);
             bytesLeft -= bytesToRead;
             // Pass contents of block on to f and inform caller whether f wants 
             // the contents of the next block.
