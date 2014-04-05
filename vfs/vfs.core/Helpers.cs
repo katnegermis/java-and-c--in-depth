@@ -28,6 +28,11 @@ namespace vfs.core
             return System.IO.Path.Combine(path, fileName);
         }
 
+        public static string PathGetDirectoryName(string path)
+        {
+            return System.IO.Path.GetDirectoryName(path);
+        }
+
         public static string PathGetFileName(string path)
         {
             return System.IO.Path.GetFileName(path);

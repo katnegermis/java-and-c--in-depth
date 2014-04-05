@@ -531,6 +531,8 @@ namespace vfs.core
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
 
+            // TODO: We need to use `path` for something.
+
             var entry = new JCDDirEntry
             {
                 Name = fileName,
