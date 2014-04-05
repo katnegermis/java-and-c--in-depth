@@ -595,17 +595,10 @@ namespace vfs.core
                 Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
                 bufPos += blockData.Length;
 
-                // Last block reached. Write buffer to disk.
-                if (lastBlock)
-                {
-                    outputFile.Write(buffer, filePos, bufPos);
-                    return false;
-                }
-
                 // Buffer is full. Write it to disk.
-                if (bufPos >= bufSize) {
+                if (lastBlock || bufPos >= bufSize) {
                     // Write writes AT MOST bufSize.
-                    outputFile.Write(buffer, filePos, bufSize);
+                    outputFile.Write(buffer, filePos, Math.Min(bufSize, bufPos));
                     filePos += bufPos;
                     bufPos = 0;
                 }
