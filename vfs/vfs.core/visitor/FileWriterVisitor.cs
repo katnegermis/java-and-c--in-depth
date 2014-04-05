@@ -12,10 +12,10 @@ namespace vfs.core.visitor
         public delegate uint BufferIndex();
 
         private BufferIndex f;
-        private long remainingFileSize;
+        private ulong remainingFileSize;
         private byte[] buffer;
 
-        public FileWriterVisitor(long fileSize, byte[] buffer, BufferIndex f)
+        public FileWriterVisitor(ulong fileSize, byte[] buffer, BufferIndex f)
         {
             this.f = f;
             remainingFileSize = fileSize;
@@ -27,7 +27,7 @@ namespace vfs.core.visitor
             ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
             uint bufferPos = f();
 
-            int writeBytes = (int) Math.Min((uint) JCDFAT.blockSize, (uint) remainingFileSize);
+            int writeBytes = (int) Math.Min((ulong) JCDFAT.blockSize, remainingFileSize);
             vfs.Write(vfsOffset, buffer, (int) bufferPos, writeBytes);
             remainingFileSize -= JCDFAT.blockSize;
 

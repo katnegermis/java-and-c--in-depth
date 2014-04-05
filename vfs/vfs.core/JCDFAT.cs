@@ -289,7 +289,7 @@ namespace vfs.core
             {
                 throw new Exception("There aren't that many data blocks!");
             }
-            return (dataOffsetBlocks + dataBlock) * blockSize + blockOffset;
+            return (dataOffsetBlocks + (ulong)dataBlock) * blockSize + blockOffset;
         }
 
         /// <summary>
@@ -610,7 +610,7 @@ namespace vfs.core
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];
 
-            WalkFATChain(firstBlock, new FileWriterVisitor(file.Length, buffer, () => {
+            WalkFATChain(firstBlock, new FileWriterVisitor((ulong)file.Length, buffer, () => {
                 bufPos += blockSize;
                 if(bufPos >= bufSize) {
                     file.Read(buffer, 0, bufSize);
@@ -623,7 +623,7 @@ namespace vfs.core
 
         public void ExportFile(FileStream outputFile, string path, string fileName)
         {
-            int bufSize = (int)readBufferSize;
+            int bufSize = (int)(readBufferSize * blockSize);
             var buffer = new byte[bufSize];
             int bufPos = 0;
 
@@ -637,9 +637,9 @@ namespace vfs.core
 
             WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) => {
                 // If buffer overruns when reading this block, write buffer to file.
-                if (bufPos + blockData.Length > bufSize)
+                if (bufPos >= bufSize)
                 {
-                    outputFile.Write(buffer, 0, bufPos);
+                    outputFile.Write(buffer, 0, bufSize);
                     bufPos = 0;
                 }
 
