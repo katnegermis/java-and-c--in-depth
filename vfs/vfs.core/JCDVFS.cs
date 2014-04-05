@@ -148,7 +148,7 @@ namespace vfs.core
 
         public void DeleteFile(string vfsPath, bool recursive)
         {
-            return;
+            fat.DeleteFile(vfsPath, recursive);
         }
         public void RenameFile(string vfsPath, string newName)
         {

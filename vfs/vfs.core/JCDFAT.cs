@@ -219,7 +219,7 @@ namespace vfs.core
             // Update firstFreeBlock if an earlier block was just freed above.
             // We're not using GetFreeBlock here since it has the side effect
             // that it checks whether firstFreeBlock actually is free, and
-            // finds the next free block if it is not. Since we're possible
+            // finds the next free block if it is not. Since we're possibly
             // updating firstFreeBlock, this would be wasteful.
             if (index < firstFreeBlock && value == freeBlock)
             {
@@ -612,14 +612,15 @@ namespace vfs.core
 
             WalkFATChain(firstBlock, new FileWriterVisitor((ulong)file.Length, buffer, () => {
                 bufPos += blockSize;
-                if(bufPos >= bufSize) {
+                if (bufPos >= bufSize)
+                {
                     file.Read(buffer, 0, bufSize);
                     bufPos = 0;
                     return bufPos;
                 }
                 return bufPos;
             }));
-                }
+        }
 
         public void ExportFile(FileStream outputFile, string path, string fileName)
         {
@@ -658,7 +659,8 @@ namespace vfs.core
         public JCDDirEntry[] ListDirectory(Uri vfsPath)
         {
             var files = this.currentFolder.GetFileEntries();
-            return files.Select(file => { return file.Entry; }).ToArray();
+            var notNulls = files.Where(file => { return file.EntryIsEmpty() && file.EntryIsFinal(); });
+            return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
         public void DeleteFile(Uri path, bool recursive)
@@ -666,9 +668,13 @@ namespace vfs.core
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
             var fileName = Helpers.PathGetFileName(path);
-            //path = Helpers.PathGetDirectoryName(path);
-            var parentFolder = (JCDFolder)null;
+            path = Helpers.PathGetDirectoryName(path);
+            var parentFolder = rootFolder;
             var file = parentFolder.GetFile(fileName);
+            if (file == null)
+            {
+                throw new vfs.core.exceptions.FileNotFoundException();
+            }
             if (file.IsFolder && !recursive)
             {
                 // TODO: Throw proper exception.
