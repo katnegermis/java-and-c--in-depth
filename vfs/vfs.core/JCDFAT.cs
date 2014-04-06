@@ -487,7 +487,9 @@ namespace vfs.core
                 nextEntry = fat[entry];
                 continue_ = ((IVisitor)(v)).Visit(this, entry);
             }
-            ((IVisitor)(v)).Visit(this, entry);
+            if (entry != firstEntry) {
+                ((IVisitor)(v)).Visit(this, entry);
+            }
             return v;
         }
 
