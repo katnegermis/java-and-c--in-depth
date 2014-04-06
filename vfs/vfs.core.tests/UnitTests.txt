@@ -44,7 +44,7 @@
 		
 5. Size
 	- SizeTest
-		Fail: Result is 0
+		Fail: Not equal as fat takes some space -> Inconclusive
 		
 6. OccupiedSpace & FreeSpace
 	-> All inconclusive. No idea how to test
@@ -55,75 +55,76 @@
 		
 8. CreateDirectory
 	- CreateDirectoryNormalParentFalseTest
-		Fail: NullReferenceException
+		Pass
 		
 	- CreateDirectoryNormalParentTrueTest
-		Fail: NullReferenceException
+		Fail: Exception No such folder
 		
 	- CreateDirectoryParentMissingTest
 		Inconclusive at the moment. An exception might have to be thrown..
 		
 9. ImportFile
 	- ImportFileNormalTest
-		Fail: ListDirectory has to be implemented for checking whether import works
+		Pass
 		
 	- ImportFileTooBigTest
-		Inconclusive: Should most likely throw an exception
+		Inconclusive: Should most likely throw an exception, which it did not!
 	
 10. ExportFile	
 	- ExportFileNormalTest
-		Fail: No target file created to then compare
+		Fail: An exception of type 'System.IO.DirectoryNotFoundException' occurred in mscorlib.dll but was not handled in user code
+			Additional information: A part of the path "C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core.tests\bin\Debug\testDirectory\target.txt\vfsSrc.txt" could not be found!
 		
 	- ExportFileNotExistingTest
-		Inconclusive: Should throw an exception
+		Pass
 		
 	- ExportFileEmptyTest
-		Fail: No target file created to then compare
+		Fail: Same as ExportFileNormalTest
 		
 11. DeleteFile
 	- DeleteFileNormalTest
-		Fail: Not all methods implemented to run test
+		Pass
 		
 	- DeleteFileRecursiveTest
-		Fail: Not all methods implemented to run test
+		Fail: Folder still existing. Should be deleted with recursive, right?
 		
 	- DeleteFileNotExistingTest
 		Inconclusive: Exception would have to be thrown
 		
 12. RenameFile
 	- RenameFileNormalTest
-		Fail: Not all methods implemented to run test
+		Pass
 		
 	- RenameFileNotExistingTest
-		Inconclusive: Exception would have to be thrown
+		Pass
 		
 	- RenameFileToExistingNameTest
-		Fail: Not all methods implemented to run test
+		Pass
 		
 13. MoveFile
 	- MoveFileNormalTest
-		Fail: Not all methods implemented to run test
+		Fail: Not moved (Path with \ and not /?)
 		
 	- MoveFileNotExistingTest
-		Inconclusive: Exception would have to be thrown
+		Pass
 	
 13. ListDirectory	
 	- ListDirectoryNormalTest
-		Fail: Not all methods implemented to run test
+		Pass
 	
 	- ListDirectoryNotExistingTest
-		Fail: Not all methods implemented to run test
+		Pass
 		
 14. SetCurrentDirectory
 	- SetCurrentDirectoryNormalTest
-		Fail: Not all methods implemented to run test
+		(Fail: Path.Combine results in /dir, but GetCurrentDirectory gives /dir/)
 		
 	- SetCurrentDirectoryUpwardsTest
-		Fail: Not all methods implemented to run test
+		Fail: Again \ not /, but also with / does not work (.. not supported?)
 		
 	- SetCurrentDirectoryUpwardsAtRootTest
-		Inconclusive: Exception would have to be thrown
+		Pass
 		
 15. GetCurrentDirectory
 	- GetCurrentDirectoryNormalTest
-		Fail: Not implemented
+		(Fail: Path.Combine results in /dir, but GetCurrentDirectory gives /dir/)

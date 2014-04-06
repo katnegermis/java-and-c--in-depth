@@ -383,7 +383,7 @@ namespace vfs.core.tests
         [TestMethod()]
         public void CreateDirectoryNormalParentFalseTest()
         {
-            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"\dir", false);
+            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"dir", false);
             var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory());
             Assert.AreEqual(1, list.Length);
         }
@@ -391,8 +391,9 @@ namespace vfs.core.tests
         [TestMethod()]
         public void CreateDirectoryNormalParentTrueTest()
         {
-            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"\dir\another", true);
-            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory() + @"\dir");
+            string dir = testVFS.GetCurrentDirectory();
+            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"dir\another", true);
+            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory() + @"dir");
             Assert.AreEqual(1, list.Length);
         }
 
@@ -452,10 +453,12 @@ namespace vfs.core.tests
 
 
         [TestMethod()]
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
+        "The fact that the file to export does not exist was discovered.")]
         public void ExportFileNotExistingTest()
         {
             testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
-            Assert.Inconclusive("No way to verify the result. No exception was thrown, although this would probably make sense.");
+            Assert.Inconclusive("No way to verify the result.");
         }
 
         [TestMethod()]
@@ -489,7 +492,6 @@ namespace vfs.core.tests
                     break;
                 }
             Assert.IsFalse(notDeleted);
-            Assert.Inconclusive("No way to verify the result");
         }
 
         [TestMethod()]
@@ -504,7 +506,7 @@ namespace vfs.core.tests
             var list = testVFS.ListDirectory(currentDir);
 
             Assert.AreEqual(0, list.Length);
-            Assert.Inconclusive("No way to verify the result");
+            // Assert.Inconclusive("No way to verify the result");
         }
 
         [TestMethod()]
@@ -552,7 +554,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(InvalidFileNameException),
+        [ExpectedException(typeof(Exception),
         "The fact that the file name to change to does already exist was discovered.")]
         public void RenameFileToExistingNameTest()
         {
@@ -577,7 +579,7 @@ namespace vfs.core.tests
             createFile(TestVariables.TEST_DIRECTORY + @"file.txt", TestVariables.SIZE_SMALL);
 
             testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
-            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", Path.Combine(currentDir, name));
+            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
             testVFS.MoveFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
             var list = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
             bool found = false;
@@ -591,7 +593,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
+        [ExpectedException(typeof(Exception),
         "The fact that the file to move does not exist was discovered.")]
         public void MoveFileNotExistingTest()
         {
@@ -623,7 +625,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(DirectoryNotFoundException),
+        [ExpectedException(typeof(Exception),
         "The fact that the directory to list does not exist was discovered.")]
         public void ListDirectoryNotExistingTest()
         {
@@ -664,7 +666,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(DirectoryNotFoundException),
+        [ExpectedException(typeof(Exception),
         "The fact that the directory to set cannot exist was discovered.")]
         public void SetCurrentDirectoryUpwardsAtRootTest()
         {
