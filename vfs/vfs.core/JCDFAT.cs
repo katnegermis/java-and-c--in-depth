@@ -468,17 +468,23 @@ namespace vfs.core
             {
                 return v;
             }
-        
-            // Check whether the visitor wants to visit the next block.
-            bool continue_ = v.Visit(this, firstEntry);
 
-            uint nextEntry = fat[firstEntry];
+            // Figure out nextEntry before letting visitor visit. This is done later as well.
+            // We do this because the visitor might change the value of the block we give him!
+            uint entry = firstEntry;
+            uint nextEntry = fat[entry];
+
+            // Check whether the visitor wants to visit the next block.
+            bool continue_ = v.Visit(this, entry);
+            
             while (continue_ && nextEntry != endOfChain && nextEntry != freeBlock &&
                    nextEntry != rootDirBlock && nextEntry != searchFileBlock)
             {
-                continue_ = ((IVisitor)(v)).Visit(this, nextEntry);
-                nextEntry = fat[nextEntry];    
+                entry = nextEntry;
+                nextEntry = fat[entry];
+                continue_ = ((IVisitor)(v)).Visit(this, entry);
             }
+            ((IVisitor)(v)).Visit(this, entry);
             return v;
         }
 
