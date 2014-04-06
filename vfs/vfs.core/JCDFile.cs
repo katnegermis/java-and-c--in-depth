@@ -49,6 +49,7 @@ namespace vfs.core {
         protected JCDFolder parent;
         protected uint parentIndex;
         protected string path;
+        protected uint level;
 
         public string Name {
             get { return this.entry.Name; }
@@ -75,20 +76,21 @@ namespace vfs.core {
         public JCDDirEntry Entry { get { return this.entry; } }
         public string Path { get { return this.path; } }
         public JCDFolder Parent { get { return this.parent; } }
+        public uint Level { get { return this.level; } }
 
-        public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
-        public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
+        //public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
+        //public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
 
-        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
+        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
             if(entry.IsFolder) {
-                return new JCDFolder(container, entry, parent, parentIndex, path);
+                return new JCDFolder(container, entry, parent, parentIndex, path, level);
             }
             else {
-                return new JCDFile(container, entry, parent, parentIndex, path);
+                return new JCDFile(container, entry, parent, parentIndex, path, level);
             }
         }
 
-        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path) {
+        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
             if(!Helpers.PathIsValid(path, entry.IsFolder))
             {
                 throw new InvalidFileNameException();
@@ -99,6 +101,7 @@ namespace vfs.core {
             this.parent = parent;
             this.parentIndex = parentIndex;
             this.path = path;
+            this.level = level;
         }
 
         /// <summary>
@@ -122,7 +125,10 @@ namespace vfs.core {
             container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
 
             // Remove this dir-entry from parent folder.
-            parent.DeleteEntry((uint)parentIndex);
+            DeleteEntry();
+        }
+        public void DeleteEntry() {
+            parent.DeleteEntry((uint) parentIndex);
         }
 
         public bool EntryIsEmpty()
@@ -143,7 +149,7 @@ namespace vfs.core {
 
         private void UpdateEntry(JCDDirEntry entry)
         {
-            if (this.entry.FirstBlock == JCDFAT.rootDirBlock)
+            if (this.parent == null)
             {
                 return;
             }

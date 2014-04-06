@@ -800,6 +800,57 @@ namespace vfs.core
             file.Delete();
         }
 
+        public void RenameFile(string vfsPath, string newName) {
+            // TODO: Make sure that newName is a valid name.
+            // TODO: Implement using fat.GetFile.
+            var file = GetFile(vfsPath);
+            if(file == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(file.Parent.GetFile(newName) != null) {
+                //TODO: real exception
+                throw new Exception("There's already a file with that name!");
+            }
+            file.Name = newName;
+        }
+        public void MoveFile(string vfsPath, string newVfsPath) {
+            // TODO: Implement using fat.GetFile.
+
+            // Get original file
+            //var fromFolder = (JCDFolder) null; // fat.GetFile(vfsPath);
+            //var fromFileName = Helpers.PathGetFileName(vfsPath);
+            //var fromFile = fromFolder.GetFile(fromFileName);
+            var fromFile = GetFile(vfsPath);
+
+            // Insert file in to destination.
+            var toFolderTmp = GetFile(Helpers.PathGetDirectoryName(newVfsPath));
+            if(toFolderTmp == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(!toFolderTmp.IsFolder) {
+                //TODO: real exception
+                throw new Exception("Not a folder!");
+            }
+            var toFolder = ((JCDFolder) toFolderTmp);
+            var newName = Helpers.PathGetFileName(newVfsPath);
+            if(toFolder.GetFile(newName) != null) {
+                //TODO: real exception
+                throw new Exception("There's already a file with that name!");
+            }
+            if(fromFile.IsFolder) {
+                if(((JCDFolder) fromFile).IsParentOf(toFolder)) { //Also checks equality
+                    //TODO: real exception
+                    throw new Exception("Cannot copy folder into itself!");
+                }
+            }
+            var toEntry = fromFile.Entry;
+            toEntry.Name = Helpers.PathGetFileName(newVfsPath);
+            var toFile = toFolder.AddDirEntry(toEntry);
+
+            // Delete original file.
+            fromFile.DeleteEntry();
+        }
+
         public string GetCurrentDirectory() {
             return this.currentFolder.Path;
         }

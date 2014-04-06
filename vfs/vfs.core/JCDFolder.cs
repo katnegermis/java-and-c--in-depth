@@ -13,8 +13,8 @@ namespace vfs.core {
         // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
         private uint firstEmptyEntry;
 
-        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path)
-            : base(container, entry, parent, parentIndex, path) {
+        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level)
+            : base(container, entry, parent, parentIndex, path, level) {
             entries = new List<JCDFile>();
         }
 
@@ -23,7 +23,7 @@ namespace vfs.core {
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
-            return new JCDFolder(vfs, entry, null, 0, "/");
+            return new JCDFolder(vfs, entry, null, 0, "/", 0);
         }
 
         public static JCDFolder createRootFolder(JCDFAT vfs) {
@@ -40,11 +40,6 @@ namespace vfs.core {
 
         public void setEntry(uint index, byte[] byteArr)
         {
-            // Update firstEmptyEntry if we mark an 'earlier' entry empty.
-            if (byteArr == JCDFile.EmptyEntry && index < firstEmptyEntry)
-            {
-                firstEmptyEntry = index;
-            }
 
             // Check that the given index goes at most one block beyond the number of blocks currently allocated.
             var numBlocks = Helpers.ruid(this.entry.Size, JCDFAT.blockSize);
@@ -74,7 +69,26 @@ namespace vfs.core {
             Marshal.StructureToPtr(entry, ptr, false);
             Marshal.Copy(ptr, byteArr, 0, size);
             Marshal.FreeHGlobal(ptr);
-            setEntry(index, byteArr);        
+            setEntry(index, byteArr);     
+        }
+
+        private void setFileEntry(uint index, JCDFile file) {
+            //index must not be > Count, i.e. not more than 1 beyond the end of entries
+            if(index < this.entries.Count) {
+                entries[(int)index] = file;
+
+                // Update firstEmptyEntry if we mark an 'earlier' entry empty.
+                if(file.EntryIsEmpty() && index < firstEmptyEntry) {
+                    firstEmptyEntry = index;
+                }
+            }
+            else {
+                entries.Add(file);
+
+                if(firstEmptyEntry == index) {
+                    firstEmptyEntry++;
+                }
+            }
         }
 
         /// <summary>
@@ -83,6 +97,7 @@ namespace vfs.core {
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryEmpty(uint index) {
             var emptyEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = true, FirstBlock = 0 };
+            setFileEntry(index, emptyFile(index, false));
             setEntry(index, emptyEntry);
         }
 
@@ -92,7 +107,13 @@ namespace vfs.core {
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryFinal(uint index) {
             var finalEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = false, FirstBlock = 0 };
+            setFileEntry(index, emptyFile(index, true));
             setEntry(index, finalEntry);
+        }
+
+        private JCDFile emptyFile(uint index, bool isFinal) {
+            var entry = new JCDDirEntry {Name = "", Size = 0, IsFolder = !isFinal, FirstBlock = 0};
+            return JCDFile.FromDirEntry(this.container, entry, this, index, this.path, level + 1);
         }
 
         /// <summary>
@@ -169,8 +190,8 @@ namespace vfs.core {
             }
             uint index = GetEmptyEntryIndex();
             var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
-            var newFile = JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath);
-            this.entries.Insert((int)index, newFile);
+            var newFile = JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath, level + 1);
+            setFileEntry(index, newFile);
             setEntry(index, dirEntry);
             return newFile;
         }
@@ -194,7 +215,8 @@ namespace vfs.core {
             {
                 var dirEntry = dirEntries[(int)i];
                 var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
-                this.entries.Add(JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath));
+                var newFile = JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath, level + 1);
+                this.entries.Add(newFile);
 
                 // Set firstEmptyEntry if not already set.
                 if (!emptyEntrySet && (dirEntry.IsEmpty() || dirEntry.IsFinal()))
@@ -245,6 +267,21 @@ namespace vfs.core {
             this.firstEmptyEntry = (uint)i;
             this.setEntryEmpty((uint)i);
             return this.firstEmptyEntry;
+        }
+
+        /// <summary>
+        /// Whether the give file is equal to, os a descendant of, this folder.
+        /// Usually used when JCDFiles are initialized.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public bool IsParentOf(JCDFile file) {
+            if(level > file.Level) {
+                return false;
+            }
+            JCDFile rec;
+            for(rec = file; level < rec.Level; rec = rec.Parent);
+            return (rec == this);
         }
 
         /// <summary>
