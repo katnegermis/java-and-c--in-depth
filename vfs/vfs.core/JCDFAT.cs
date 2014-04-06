@@ -706,16 +706,20 @@ namespace vfs.core
                     ExportFolderRecursive((JCDFolder)file, folderPath);
                 }
                 else { // Export file.
-                    FileStream outputFile = null;
-                    var filePath = Helpers.PathCombine(hfsPath, file.Name);
-                    try {
-                        outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                        ExportFile(outputFile, file);
-                    }
-                    finally {
-                        outputFile.Close();
-                    }
+                    ExportFile(hfsPath, file);
                 }
+            }
+        }
+
+        private void ExportFile(string hfsPath, JCDFile file) {
+            FileStream outputFile = null;
+            var filePath = Helpers.PathCombine(hfsPath, file.Name);
+            try {
+                outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                ExportFile(outputFile, file);
+            }
+            finally {
+                outputFile.Close();
             }
         }
 
@@ -736,14 +740,7 @@ namespace vfs.core
             }
 
             // Export file
-            FileStream outputFile = null;
-            try {
-                outputFile = new FileStream(hfsPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                ExportFile(outputFile, file);
-            }
-            finally {
-                outputFile.Close();
-            }
+            ExportFile(hfsPath, file);
         }
 
         private void ExportFile(FileStream outputFile, JCDFile file) {
