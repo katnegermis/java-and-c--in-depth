@@ -854,8 +854,8 @@ namespace vfs.core
         }
 
         public void tryShrink() {
-            uint lastUsedBlock = (uint)((fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1);
-            uint i;
+            long lastUsedBlock = (fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1;
+            long i;
             for(i = lastUsedBlock; fat[i] == freeBlock; i--);
 
             if(i < lastUsedBlock) {
