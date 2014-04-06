@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace vfs.core.exceptions
+namespace vfs.exceptions
 {
     class NotEnoughSpaceException : Exception
     {
