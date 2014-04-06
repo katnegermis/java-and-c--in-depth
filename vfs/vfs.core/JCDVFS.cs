@@ -12,10 +12,10 @@ namespace vfs.core
         public static JCDVFS Create(string hfsPath, ulong size)
         {
             // Make sure the directory exists.
-            if (File.Exists(Path.GetDirectoryName(hfsPath)))
-            {
-                throw new DirectoryNotFoundException();
-            }
+             if (File.Exists(Path.GetDirectoryName(hfsPath)))
+             {
+                 throw new DirectoryNotFoundException();
+             }
 
             // Make sure the file doesn't already exist.
             if (File.Exists(hfsPath))
@@ -49,7 +49,7 @@ namespace vfs.core
             {
                 fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
             }
-            catch (vfs.exceptions.FileNotFoundException)
+            catch (System.IO.FileNotFoundException)
             {
                 throw new vfs.exceptions.FileNotFoundException();
             }
