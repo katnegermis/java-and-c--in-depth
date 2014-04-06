@@ -24,8 +24,7 @@
 			-> Throws EndOfStreamException
 			
 	- OpenWithInvalidPathTest
-		Fail: Same as with CreateWithInvalidPathTest.
-			-> Run-time behaviour may be fine
+		Pass
 	
 3. Delete
 	- DeleteNormalTest
@@ -74,6 +73,9 @@
 	- ExportFileNormalTest
 		Fail: An exception of type 'System.IO.DirectoryNotFoundException' occurred in mscorlib.dll but was not handled in user code
 			Additional information: A part of the path "C:\Users\Pascal\Documents\GitHub\ravioli\vfs\vfs.core.tests\bin\Debug\testDirectory\target.txt\vfsSrc.txt" could not be found!
+		
+	- ExportFileRecursive
+		Pass
 		
 	- ExportFileNotExistingTest
 		Pass

@@ -150,11 +150,11 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(InvalidFileException),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "A path to an invalid file(in this case a directory) was discovered.")]
         public void OpenWithInvalidPathTest()
         {
-            testVFS = JCDVFS.Open(TestVariables.TEST_DIRECTORY + @"dir\");
+            testVFS = JCDVFS.Open(TestVariables.TEST_DIRECTORY + @"dir");
             Assert.IsNull(testVFS);
             Assert.Inconclusive("No real direct way to verify the result.");
         }
@@ -204,16 +204,20 @@ namespace vfs.core.tests
         [TestInitialize()]
         public void MountedInitializer()
         {
-            if (File.Exists(TestVariables.FilePath()))
-                File.Delete(TestVariables.FilePath());
-            else if (!Directory.Exists(TestVariables.TEST_DIRECTORY))
-                Directory.CreateDirectory(TestVariables.TEST_DIRECTORY);
+          /*  if (File.Exists(TestVariables.FilePath()))
+                File.Delete(TestVariables.FilePath());*/
 
-            if (File.Exists(TestVariables.SourcePath()))
+            if (Directory.Exists(TestVariables.TEST_DIRECTORY))
+                Directory.Delete(TestVariables.TEST_DIRECTORY, true);
+
+            Directory.CreateDirectory(TestVariables.TEST_DIRECTORY);
+
+
+            /*if (File.Exists(TestVariables.SourcePath()))
                 File.Delete(TestVariables.SourcePath());
 
             if (File.Exists(TestVariables.TargetPath()))
-                File.Delete(TestVariables.TargetPath());
+                File.Delete(TestVariables.TargetPath());*/
 
             testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             testVFS.Close();
@@ -449,6 +453,21 @@ namespace vfs.core.tests
             testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
             testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
             Assert.IsTrue(FileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
+        }
+
+        [TestMethod()]
+        public void ExportFileRecursive()
+        {
+            string source = Path.Combine(TestVariables.TEST_DIRECTORY, "source");
+            string target = Path.Combine(TestVariables.TEST_DIRECTORY, "target");
+
+            Directory.CreateDirectory(source);
+            createFile(Path.Combine(source, "file.txt"), TestVariables.SIZE_SMALL);
+            testVFS.ImportFile(source, @"/dir");
+
+            testVFS.ExportFile(@"/dir", target);
+
+            Assert.IsTrue(FileCompare(Path.Combine(source, "file.txt"), Path.Combine(target, "file.txt")));
         }
 
 
