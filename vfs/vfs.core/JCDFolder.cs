@@ -43,7 +43,7 @@ namespace vfs.core {
 
             // Check that the given index goes at most one block beyond the number of blocks currently allocated.
             var numBlocks = Helpers.ruid(this.entry.Size, JCDFAT.blockSize);
-            var blocksRequired = Helpers.ruid(index, JCDFAT.dirEntriesPerBlock);
+            var blocksRequired = Helpers.ruid(index + 1, JCDFAT.dirEntriesPerBlock);
             if (blocksRequired > numBlocks + 1)
             {
                 // TODO: Throw proper exception.
@@ -54,7 +54,7 @@ namespace vfs.core {
             if (index >= numBlocks * JCDFAT.dirEntriesPerBlock)
             {
                 this.ExpandOneBlock();
-                setEntryFinal(index);
+                setEntryFinal(index + 1);
             }
 
             container.Write(entryOffset(index), byteArr);
