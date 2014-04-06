@@ -46,54 +46,19 @@ namespace vfs.core
             return tmp.Substring(tmp.LastIndexOf("/") + 1);
         }
 
-        /*public static bool PathIsValid(Uri path) {
-            if(!path.IsFile) {
-                return false;
-            }
-            return true;
-        }
-
-        public static bool PathIsValid(Uri path, bool isFolder)
-        {
-            if(!PathIsValid(path)) {
-                return false;
-            }
-
-            if(!isFolder && path.ToString().EndsWith("/")) {
-                return false;
-            }
-
-            return true;
-        }*/
-
-        public static bool PathIsValid(string path) {
+        /*public static bool PathIsValid(string path) {
             return true;
         }
         public static bool PathIsValid(string path, bool isFolder) {
             return true;
-        }
+        }*/
 
         public static string TrimLastSlash(string name) {
             return name.TrimEnd(new char[] { '/' });
         }
 
-        /*public static string PathGetFileName(Uri path) {
-            var tmp = TrimLastSlash(path.ToString());
-            return tmp.Substring(tmp.LastIndexOf('/') + 1);
+        public static bool FileNameIsValid(string name) {
+            return (name != "." && name != ".." && name.IndexOf('/') < 0);
         }
-
-        public static string GetContainingPath(Uri path) {
-            var tmp = TrimLastSlash(path.IsAbsoluteUri ? path.AbsolutePath : path.ToString());
-            var slash = tmp.LastIndexOf('/');
-            if(slash > -1) {
-                tmp = tmp.Remove(slash);
-            }
-            else {
-                return ".";
-            }
-
-            return tmp;
-            
-        }*/
     }
 }

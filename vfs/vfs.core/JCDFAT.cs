@@ -852,6 +852,10 @@ namespace vfs.core
             fromFile.DeleteEntry();
         }
 
+        public void tryShrink() {
+            
+        }
+
         public string GetCurrentDirectory() {
             return this.currentFolder.Path;
         }

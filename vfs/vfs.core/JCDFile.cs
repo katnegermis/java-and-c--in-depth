@@ -91,7 +91,12 @@ namespace vfs.core {
         }
 
         protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
-            if(!Helpers.PathIsValid(path, entry.IsFolder))
+            if(entry.Name == "" && (entry.Size != 0 || entry.FirstBlock != 0)) {
+                throw new InvalidFileNameException();
+            }
+
+            //if(!Helpers.PathIsValid(path, entry.IsFolder))
+            if(!Helpers.FileNameIsValid(entry.Name))
             {
                 throw new InvalidFileNameException();
             }
@@ -127,6 +132,8 @@ namespace vfs.core {
             // Remove this dir-entry from parent folder.
             if(!skipEntryDeletion) {
                 DeleteEntry();
+
+                container.tryShrink();
             }
         }
         public void DeleteEntry() {
