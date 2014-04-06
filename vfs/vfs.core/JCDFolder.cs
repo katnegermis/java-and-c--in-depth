@@ -51,7 +51,7 @@ namespace vfs.core {
             }
 
             // Expand folder if `index` points beyond the folder's currently allocated blocks.
-            if (index >= numBlocks * JCDFAT.dirEntriesPerBlock)
+            if (blocksRequired > numBlocks)
             {
                 this.ExpandOneBlock();
                 setEntryFinal(index + 1);
