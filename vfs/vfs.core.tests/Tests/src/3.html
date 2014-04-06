@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\jcdfat.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Linq;
+using System.IO;
+using vfs.exceptions;
+using vfs.core.visitor;
+using System.Collections.Generic;
+
+namespace vfs.core
+{
+    public class JCDFAT : IDisposable
+    {
+        private bool initialized = false;
+
+        private const uint magicNumber = 0x13371337;
+        private const uint freeBlock = 0xFFFFFFFF;
+        private const uint endOfChain = 0xFFFFFFFE;
+
+        public const uint rootDirBlock = 0;
+        private const uint searchFileBlock = 1;
+
+        private const uint readBufferSize = 50 * 1024; //In blocks
+
+        // All sizes in this class are given in bytes unless otherwise specified.
+        private const uint reservedBlockNumbers = 2; // End-of-chain and free
+        // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
+        private const uint availableBlockNumbers = (uint)((1L &lt;&lt; 32) - reservedBlockNumbers); // 32-bit block numbers
+        private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn&#39;t include the FAT)
+        public const uint blockSize = 1 &lt;&lt; 12; // 4KB blocks
+        public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L &lt;&lt; 32) * 4 + metaDataBlocks * blockSize;
+        //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers &lt; blockSize/4.
+        public const uint dirEntrySize = 1 &lt;&lt; 8; // 256B == JCDDirEntry.StructSize();
+        public const uint fatEntriesPerBlock = blockSize / 4;
+        public const uint dirEntriesPerBlock = blockSize / dirEntrySize;
+
+        private const int freeBlocksOffset = 12;
+        private const int firstFreeBlockOffset = 16;
+
+        //currentSize, currentNumBlocks, currentNumDataBlocks are currently not updated! Do not use them!
+        private ulong currentSize, maxSize;
+        private ulong currentNumBlocks; // Can actually exceed a uint!
+        private uint maxNumBlocks;
+        private uint currentNumDataBlocks, maxNumDataBlocks;
+        private uint fatBlocks;
+        private uint dataOffsetBlocks;
+        private uint freeBlocks;
+        private uint firstFreeBlock;
+        private uint[] fat;
+
+        private JCDFolder rootFolder;
+        private JCDFolder currentFolder;
+
+        private FileStream fs;
+        private BinaryWriter bw;
+        private BinaryReader br;
+
+
+        /// &lt;summary&gt;
+        /// Create a new JCDFAT-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;fs&quot;&gt;Stream to a file open with read/write access.&lt;/param&gt;
+        /// &lt;param name=&quot;size&quot;&gt;Maximum size of the new JCDVFS-file.&lt;/param&gt;
+        public JCDFAT(FileStream fs, ulong size)
+        {
+            this.fs = fs;
+
+            // TODO: Make sure that the file is empty??
+
+            NewFSSetSize(size);
+
+            bw = new BinaryWriter(fs);
+            br = new BinaryReader(fs);
+
+            NewFSWriteMetaData();
+            NewFSInitAndWriteFAT();
+            NewFSCreateRootFolder();
+            NewFSCreateSearchFile();
+            // Make sure that the file system is written to disk.
+            bw.Flush();
+
+            initialized = true;
+        }
+
+        /// &lt;summary&gt;
+        /// Open an existing JCDFAT-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;fs&quot;&gt;Stream to a JCDVFS-file, open with read/write access.&lt;/param&gt;
+        public JCDFAT(FileStream fs)
+        {
+            this.fs = fs;
+
+            bw = new BinaryWriter(fs);
+            br = new BinaryReader(fs);
+
+            ParseMetaData();
+            InitSize(false);
+            ReadFAT();
+            InitRootFolder();
+            InitSearchFile();
+
+            initialized = true;
+            var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
+            Console.WriteLine(&quot;Root dir spans {0} blocks&quot;, rootDir.Blocks);
+            var searchFile = (BlockCounterVisitor)WalkFATChain(searchFileBlock, new BlockCounterVisitor());
+            Console.WriteLine(&quot;Search file spans {0} blocks&quot;, searchFile.Blocks);
+        }
+
+        /// &lt;summary&gt;
+        /// Update the meta-data field &quot;free blocks&quot;.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;newVal&quot;&gt;New number of free blocks.&lt;/param&gt;
+        private void SetFreeBlocks(uint newVal)
+        {
+            freeBlocks = newVal;
+            Write(freeBlocksOffset, freeBlocks);
+        }
+
+        /// &lt;summary&gt;
+        /// Update the firstFreeBlock variable and the associated meta-data field.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;newVal&quot;&gt;&lt;/param&gt;
+        private void SetFirstFreeBlock(uint newVal)
+        {
+            firstFreeBlock = newVal;
+            Write(firstFreeBlockOffset, firstFreeBlock);
+        }
+
+        /// &lt;summary&gt;
+        /// Write data to JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;offset&quot;&gt;Absolute offset in to JCDVFS-file at which to start writing data.&lt;/param&gt;
+        /// &lt;param name=&quot;data&quot;&gt;The buffer containing data to write to JCDVFS-file.&lt;/param&gt;
+        /// &lt;param name=&quot;arrOffset&quot;&gt;The zero-based byte offset in data from which to begin copying bytes to JCDVFS-file.&lt;/param&gt;
+        /// &lt;param name=&quot;count&quot;&gt;The maximum number of bytes to write.&lt;/param&gt;
+        public void Write(ulong offset, byte[] data, int arrOffset, int count)
+        {
+            Seek(offset);
+            fs.Write(data, arrOffset, count);
+        }
+
+        /// &lt;summary&gt;
+        /// Write data to JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;offset&quot;&gt;Absolute offset in to JCDVFS-file at which to start writing data.&lt;/param&gt;
+        /// &lt;param name=&quot;data&quot;&gt;Data to write to JCDVFS-file.&lt;/param&gt;
+        public void Write(ulong offset, byte[] data)
+        {
+            Seek(offset);
+            bw.Write(data);
+        }
+
+        /// &lt;summary&gt;
+        /// Write data to JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;offset&quot;&gt;Absolute offset in to JCDVFS-file at which to start writing data.&lt;/param&gt;
+        /// &lt;param name=&quot;data&quot;&gt;Data to write to JCDVFS-file.&lt;/param&gt;
+        public void Write(ulong offset, ushort data)
+        {
+            Seek(offset);
+            bw.Write(data);
+        }
+
+        /// &lt;summary&gt;
+        /// Write data to JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;offset&quot;&gt;Absolute offset in to JCDVFS-file at which to start writing data.&lt;/param&gt;
+        /// &lt;param name=&quot;data&quot;&gt;Data to write to JCDVFS-file.&lt;/param&gt;
+        public void Write(ulong offset, uint data)
+        {
+            Seek(offset);
+            bw.Write(data);
+        }
+
+        private void Seek(ulong offset)
+        {
+            if (fs.Position == (long)offset)
+            {
+                return;
+            }
+            fs.Seek((long)offset, SeekOrigin.Begin);
+        }
+
+        /// &lt;summary&gt;
+        /// Read raw data from the JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;offset&quot;&gt;Byte-offset of point to start reading from.&lt;/param&gt;
+        /// &lt;param name=&quot;length&quot;&gt;Length in bytes.&lt;/param&gt;
+        /// &lt;returns&gt;Byte array of length `length`.&lt;/returns&gt;
+        public byte[] Read(ulong offset, uint length)
+        {
+            Seek(offset);
+            return br.ReadBytes((int)length);
+        }
+
+        /// &lt;summary&gt;
+        /// Get the byte offset in the JCDVFS-file in which the nth index of the FAT is positioned.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;Index in to the FAT.&lt;/param&gt;
+        /// &lt;returns&gt;Byte offset in to JCDVFS-file of the nth index of the FAT.&lt;/returns&gt;
+        private long FatOffset(uint index)
+        {
+            if (index &gt;= this.maxNumDataBlocks)
+            {
+                throw new Exception(&quot;The FAT doesn&#39;t have that many entries!&quot;);
+            }
+
+            return metaDataBlocks * blockSize + index * 4;
+        }
+
+        /// &lt;summary&gt;
+        /// Write new value at index of the FAT.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+        /// &lt;param name=&quot;value&quot;&gt;&lt;/param&gt;
+        public void FatSet(uint index, uint value)
+        {
+            fat[index] = value;
+            Write((ulong)FatOffset(index), value);
+
+            // Update firstFreeBlock if an earlier block was just freed above.
+            // We&#39;re not using GetFreeBlock here since it has the side effect
+            // that it checks whether firstFreeBlock actually is free, and
+            // finds the next free block if it is not. Since we&#39;re possibly
+            // updating firstFreeBlock, this would be wasteful.
+            if (index &lt; firstFreeBlock &amp;&amp; value == freeBlock)
+            {
+                SetFirstFreeBlock(index);
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// Set an entry in the FAT to end-of-cluster.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+        public void FatSetEOC(uint index)
+        {
+            FatSet(index, endOfChain);
+        }
+
+        /// &lt;summary&gt;
+        /// Make an entry in the FAT free.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+        public void FatSetFree(uint index)
+        {
+            if(fat[index] != freeBlock) {
+                SetFreeBlocks(freeBlocks + 1);
+            }
+            FatSet(index, freeBlock);
+        }
+
+        /// &lt;summary&gt;
+        /// Get the FAT-index of the first free block and update the internal firstFreeBlock variable.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public uint GetFreeBlock()
+        {
+            if (!(freeBlocks &gt;= 1))
+            {
+                throw new Exception(&quot;No more free blocks!&quot;);
+            }
+
+            SetFreeBlocks(freeBlocks - 1);
+
+            if (freeBlocks == 0)
+            {
+                SetFirstFreeBlock(endOfChain);
+                return firstFreeBlock;
+            }
+
+            var returnBlock = firstFreeBlock;
+            for (uint i = firstFreeBlock + 1; i &lt; maxNumDataBlocks; i += 1)
+            {
+                if (fat[i] == freeBlock)
+                {
+                    //Console.WriteLine(&quot;Found a free block: fat[{0}] = {1}&quot;, i, fat[i]);
+                    SetFirstFreeBlock(i);
+                    break;
+                }
+            }
+            return returnBlock;
+        }
+
+        /// &lt;summary&gt;
+        /// Get the byte-offset in to the JCDVFS-file in to a block.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;dataBlock&quot;&gt;&lt;/param&gt;
+        /// &lt;param name=&quot;blockOffset&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public ulong BlockGetByteOffset(uint dataBlock, uint blockOffset)
+        {
+            if (dataBlock &gt;= this.maxNumDataBlocks)
+            {
+                throw new Exception(&quot;There aren&#39;t that many data blocks!&quot;);
+            }
+            return (dataOffsetBlocks + (ulong)dataBlock) * blockSize + blockOffset;
+        }
+
+        /// &lt;summary&gt;
+        /// Get the byte-offset in to the blockIndex&#39;th block of a file, using the FAT.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;firstBlock&quot;&gt;First block of the file.&lt;/param&gt;
+        /// &lt;param name=&quot;blockIndex&quot;&gt;Block which you wish to index.&lt;/param&gt;
+        /// &lt;param name=&quot;blockOffset&quot;&gt;Offset in to the block wished to index.&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public ulong FileGetByteOffset(uint firstBlock, uint blockIndex, uint blockOffset)
+        {
+            for (uint i = 0; i &lt; blockIndex; i++)
+            {
+                if (fat[firstBlock] == endOfChain || fat[firstBlock] == freeBlock)
+                {
+                    throw new Exception(&quot;File doesn&#39;t have that many blocks!&quot;);
+                }
+
+                firstBlock = fat[firstBlock];
+            }
+            return BlockGetByteOffset(firstBlock, blockOffset);
+        }
+
+        private void NewFSSetSize(ulong size)
+        {
+            // Adjust size so that it is a multiple of block size.
+            size = Helpers.ruid(size, blockSize); // Round up to whole blocks.
+            size -= metaDataBlocks; // Without metadata blocks.
+            ulong sizeMultiple = 1 + fatEntriesPerBlock; // One FAT block + number of data blocks it represents.
+            fatBlocks = (uint)Helpers.ruid(size, sizeMultiple); // Number of FAT blocks.
+            fat = new uint[fatBlocks * fatEntriesPerBlock];
+
+            InitSize(true);
+
+            // These are written in newFSWriteMetaData()
+
+            // The current number of unused blocks in the FS.
+            // The JCDVFS-file might not yet be big enough to actually hold this many blocks!
+            freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock;
+            firstFreeBlock = 2; // The first free block is after the (initially empty) root dir and search file block.
+
+            fs.SetLength((long)currentSize);
+        }
+
+        /// &lt;summary&gt;
+        /// Initialize FAT (mark all unused blocks free) and write it to the JCDVFS-file.
+        /// &lt;/summary&gt;
+        private void NewFSInitAndWriteFAT()
+        {
+            // Not using fatSet in this function because of performance issues.
+            // (Really. It took me 60 seconds to write 2 MB.)
+            Seek((ulong)FatOffset(0));
+            for (uint i = 0; i &lt; this.fatBlocks * fatEntriesPerBlock; i += 1)
+            {
+                // The array will be initialized with 0&#39;s, so initially, free
+                // entries will (incorrectly) have 0 as value.
+                if (fat[i] == 0)
+                {
+                    fat[i] = freeBlock;
+                }
+                bw.Write(fat[i]);
+            }
+        }
+
+        private void InitSize(bool newFile)
+        {
+            dataOffsetBlocks = metaDataBlocks + fatBlocks;
+            maxNumDataBlocks = Math.Min(fatBlocks * fatEntriesPerBlock, availableBlockNumbers);
+            maxNumBlocks = dataOffsetBlocks + maxNumDataBlocks;
+            if (newFile)
+            {
+                currentNumDataBlocks = 2; // We start with an empty root folder and a empty search file.
+                currentNumBlocks = dataOffsetBlocks + currentNumDataBlocks;
+            }
+            else
+            {
+                currentNumBlocks = (ulong)(fs.Length) / blockSize;
+                currentNumDataBlocks = (uint)(currentNumBlocks - fatBlocks - metaDataBlocks);
+            }
+            // Cast here to get ulong multiplication, to avoid overflow.
+            currentSize = currentNumBlocks * (ulong)blockSize;
+            maxSize = maxNumBlocks * (ulong)blockSize;
+        }
+
+        private void ReadFAT()
+        {
+            // The is FAT placed contiously, starting from the first data block.
+            Seek(metaDataBlocks * blockSize);
+            ByteToUintConverter cnv = new ByteToUintConverter
+            {
+                bytes = br.ReadBytes((int)(fatBlocks * blockSize))
+            };
+            // We&#39;re assuming the FAT size in bytes fits into an int, since that&#39;s what ReadBytes accepts.
+            // This means the FS can&#39;t be more than 2TB. This should probably be changed.
+            fat = cnv.uints; // Don&#39;t trust fat.Length after this.
+            //http://stackoverflow.com/questions/619041/what-is-the-fastest-way-to-convert-a-float-to-a-byte/619307#619307
+        }
+
+        /// &lt;summary&gt;
+        /// Write meta data to JCDVFS-file. Must be called after newFSSetSize, since this function calculates some of the meta data.
+        /// &lt;/summary&gt;
+        private void NewFSWriteMetaData()
+        {
+            // Go to start of JCDVFS-file and write meta data continuously.
+            Seek(0L);
+            bw.Write(magicNumber);
+            bw.Write(blockSize); // Currently set to 4KB fixed size.
+            bw.Write(fatBlocks); // Number of blocks that the FAT spans.
+            bw.Write(freeBlocks); // Number of free blocks.
+            bw.Write(firstFreeBlock); // First free block. Currently statically set to 2.
+            bw.Write(rootDirBlock); // Currently statically set to 0.
+            bw.Write(searchFileBlock); // Currently statically set to 1.
+        }
+
+        private void ParseMetaData()
+        {
+            Seek(0L);
+
+            // Verify that we&#39;re reading a JCDVFS-file.
+            uint tmp = br.ReadUInt32();
+            if (tmp != magicNumber)
+            {
+                throw new InvalidFileException();
+            }
+
+            // Make sure that the block size is 2^12, since this isn&#39;t configurable yet.
+            tmp = br.ReadUInt32();
+            if (tmp != blockSize)
+            {
+                // Only JCDVFS-files with 4KB block sizes are supported.
+                throw new InvalidFileException();
+            }
+
+            fatBlocks = br.ReadUInt32();
+            freeBlocks = br.ReadUInt32();
+            firstFreeBlock = br.ReadUInt32();
+            //rootDirBlock = br.ReadUInt32(); // Unused.
+            //searchFileBlock = br.ReadUInt32(); // Unused.
+        }
+
+        private void NewFSCreateRootFolder()
+        {
+            // The FAT is updated in JCDFolder.createRootFolder, which is why that&#39;s not done here.
+            this.rootFolder = JCDFolder.createRootFolder(this);
+            this.currentFolder = rootFolder;
+        }
+
+        private void InitRootFolder()
+        {
+            this.rootFolder = JCDFolder.rootFolder(this);
+            this.currentFolder = rootFolder;
+        }
+
+        private void NewFSCreateSearchFile()
+        {
+            //Not implemented
+            FatSetEOC(searchFileBlock);
+        }
+
+        private void InitSearchFile()
+        {
+            //Not implemented
+        }
+
+        /// &lt;summary&gt;
+        /// Walk FAT chain starting from firstEntry, and inform `v` of all blocks.
+        /// &lt;/summary&gt;
+        /// &lt;typeparam name=&quot;T&quot;&gt;Instance of IVisitor&lt;/typeparam&gt;
+        /// &lt;param name=&quot;firstBlock&quot;&gt;Index of first FAT entry&lt;/param&gt;
+        /// &lt;param name=&quot;v&quot;&gt;Instance of IVisitor&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public IVisitor WalkFATChain(uint firstEntry, IVisitor v)
+        {
+            // firstBlock didn&#39;t point to a valid starting point of a file.
+            // Assumes that the reserved block numbers are placed continuously from 0.
+            if (fat[firstEntry] == freeBlock || fat[firstEntry] &lt; reservedBlockNumbers)
+            {
+                return v;
+            }
+
+            // Check whether the visitor wants to visit the next block.
+            bool continue_ = true;
+            var entry = endOfChain;
+            var nextEntry = firstEntry;
+            
+            while (continue_ &amp;&amp; nextEntry != endOfChain &amp;&amp; nextEntry != freeBlock)
+            {
+                entry = nextEntry;
+                nextEntry = fat[entry];
+                continue_ = ((IVisitor)(v)).Visit(this, entry);
+            }
+            return v;
+        }
+
+        /// &lt;summary&gt;
+        /// Allocate the minimum amount of blocks in which `size` bytes can be contained.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;Index of first block&lt;/returns&gt;
+        public uint AllocateBlocks(ulong size)
+        {
+            // Make sure that there are enough free blocks.
+            long blocksRequired = Math.Max((uint)Helpers.ruid(size, JCDFAT.blockSize), 1);
+
+            if (!(freeBlocks &gt;= blocksRequired))
+            {
+                throw new NotEnoughSpaceException();
+            }
+
+            uint firstBlock = GetFreeBlock();
+            var nextBlock = firstBlock;
+            uint prevBlock;
+            // Chain blocks in FAT. Make sure that we mark last block as EOC.
+            for (int i = 0; i &lt; blocksRequired - 1; i += 1)
+            {
+                prevBlock = nextBlock;
+                nextBlock = GetFreeBlock();
+                FatSet(prevBlock, nextBlock);
+                if (i % 10000 == 0)
+                {
+                    Console.WriteLine(&quot;Allocated {0} blocks.&quot;, i);
+                }
+            }
+            FatSetEOC(nextBlock);
+            return firstBlock;
+        }
+
+        public void Dispose()
+        {
+            Close();
+        }
+
+        public void Close()
+        {
+            bw.Flush();
+            fs.Flush();
+            bw.Dispose();
+            br.Dispose();
+            fs.Dispose();
+        }
+
+        public ulong GetSize()
+        {
+            return this.maxSize;
+        }
+
+        public ulong GetFreeSpace()
+        {
+            // Cast here to get ulong multiplication, to avoid overflow.
+            return this.freeBlocks * (ulong)JCDFAT.blockSize;
+        }
+
+        private JCDFile BrowseStep(JCDFolder folder, string step) {
+            step = Helpers.TrimLastSlash(step);
+            if(step == &quot;..&quot;) {
+                return folder.Parent;
+            }
+            else if(step == &quot;.&quot;) {
+                return folder;
+            }
+            else {
+                return folder.GetFile(step);
+            }
+        }
+
+        private JCDFile GetFile(string path) {
+            JCDFolder ret;
+            if(path.StartsWith(&quot;/&quot;)) { //Offset folder
+                ret = rootFolder;
+            }
+            else {
+                ret = currentFolder;
+            }
+
+            string[] segments = path.Split(new char[] { &#39;/&#39; }, StringSplitOptions.RemoveEmptyEntries);
+            if(segments.Length == 0) {
+                return ret;
+            }
+
+            /*if(!path.IsAbsoluteUri) {
+                path = new Uri(ret.Path, path);
+            }
+            if(path.Equals(ret.Path)) {
+                return ret;
+            }
+            string[] segments = ret.Path.MakeRelativeUri(path).ToString().Split(new char[] {&#39;/&#39;});*/
+            int i;
+            for(i = 0; i &lt; segments.Length - 1; i++ ) {
+                var tmp = BrowseStep(ret, segments[i]);
+                if(tmp == null || !tmp.IsFolder) {
+                    return null;
+                }
+                ret = (JCDFolder) tmp;
+            }
+
+            return BrowseStep(ret, segments[i]);
+        }
+
+        public void SetCurrentDirectory(string path) {
+            var newDir = GetFile(path);
+            if(newDir == null || !newDir.IsFolder) {
+                //TODO: proper exception
+                throw new Exception(&quot;No such folder!&quot;);
+            }
+            currentFolder = (JCDFolder) newDir;
+        }
+
+        public void CreateFolder(string path) {
+            CreateFile(JCDFAT.blockSize, path, true);
+        }
+
+        private JCDFile CreateFile(ulong size, string path, bool isFolder)
+        {
+            // TODO: Make sure that fileName is not longer than allowed by dirEntry.
+            // This should probably be checked in JCDDirEntry constructor.
+
+            // TODO: We need to use `path` for something.
+
+            var entry = new JCDDirEntry
+            {
+                Name = Helpers.PathGetFileName(path),
+                Size = size,
+                IsFolder = isFolder,
+                FirstBlock = AllocateBlocks(size),
+            };
+
+            // Clear folder in case it holds old data, so that all entries become &quot;final&quot;.
+            if (isFolder)
+            {
+                ZeroBlock(entry.FirstBlock);
+            }
+
+            var container = GetFile(Helpers.PathGetDirectoryName(path));
+            if(container == null || !container.IsFolder) {
+                throw new Exception(&quot;No such folder!&quot;);
+            }
+
+            return ((JCDFolder) container).AddDirEntry(entry);
+        }
+
+        public void ZeroBlock(uint block)
+        {
+            var zeros = new byte[JCDFAT.blockSize];
+            Array.Clear(zeros, 0, zeros.Length);
+            Write(BlockGetByteOffset(block, 0), zeros);
+        }
+
+        public void ImportFolder(string hfsFolderPath, string vfsPath) {
+            /*var parentDirTmp = GetFile(Helpers.PathGetDirectoryName(vfsPath));
+            if(parentDirTmp == null || !parentDirTmp.IsFolder) {
+                //TODO: proper exception
+                throw new Exception(&quot;No such folder!&quot;);
+            }
+            var parentDir = (JCDFolder) parentDirTmp;*/
+            var top = (JCDFolder) CreateFile(JCDFAT.blockSize, vfsPath, true);
+
+            ImportFolderRecursive(top, hfsFolderPath);
+        }
+
+        private void ImportFolderRecursive(JCDFolder parentFolder, string hfsFolderPath)
+        {
+
+            // Import files from hfsFolderPath
+            var files = Directory.GetFiles(hfsFolderPath); // Returns list of full file paths on hfs.
+            foreach (var filePath in files)
+            {
+                FileStream fs = null;
+                try
+                {
+                    fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    ImportFile(fs, parentFolder.FileGetPath(Helpers.PathGetFileName(filePath.Replace(&#39;\\&#39;, &#39;/&#39;)), false));
+                }
+                finally
+                {
+                    fs.Close();
+                }
+            }
+
+            // Import folders from hfsFolderPath
+            var folders = Directory.GetDirectories(hfsFolderPath); // Returns list of full folder paths on hfs.
+            foreach (var folderPath in folders)
+            {
+                // Create folder in vfs.
+                var fPath = folderPath.Replace(&#39;\\&#39;, &#39;/&#39;);
+                var folderName = Helpers.PathGetFileName(Helpers.TrimLastSlash(fPath));
+                var folder = (JCDFolder) CreateFile(JCDFAT.blockSize, parentFolder.FileGetPath(folderName, true), true);
+                ImportFolderRecursive(folder, fPath);
+            }
+        }
+
+        public void ImportFile(FileStream file, string path) {
+            uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
+            uint bufPos = readBufferSize * blockSize;
+            int bufSize = (int)bufPos;
+            byte[] buffer = new byte[bufSize];
+
+            WalkFATChain(firstBlock, new FileWriterVisitor((ulong)file.Length, buffer, () =&gt; {
+                bufPos += blockSize;
+                if (bufPos &gt;= bufSize)
+                {
+                    file.Read(buffer, 0, bufSize);
+                    bufPos = 0;
+                    return bufPos;
+                }
+                return bufPos;
+            }));
+            Console.WriteLine(&quot;Imported {0} to {1}&quot;, path, file.Name);
+        }
+
+        private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
+        {
+            foreach (var file in folder.GetFileEntries()) {
+                // Export folder.
+                if (file.IsFolder) {
+                    string folderPath = Helpers.PathCombine(hfsPath, file.Name);
+                    Directory.CreateDirectory(folderPath);
+                    ExportFolderRecursive((JCDFolder)file, folderPath);
+                }
+                else { // Export file.
+                    ExportFile(hfsPath, file);
+                }
+            }
+        }
+
+        private void ExportFile(string hfsPath, JCDFile file) {
+            FileStream outputFile = null;
+            var filePath = Helpers.PathCombine(hfsPath, file.Name);
+            try {
+                outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                ExportFile(outputFile, file);
+            }
+            finally {
+                outputFile.Close();
+            }
+        }
+
+        public void ExportFile(string vfsPath, string hfsPath)
+        {
+
+            var file = GetFile(vfsPath);
+            if (file == null)
+            {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            // Export folder
+            if (file.IsFolder) {
+                Directory.CreateDirectory(hfsPath);
+                ExportFolderRecursive((JCDFolder)file, hfsPath);
+                return;
+            }
+
+            // Export file
+            ExportFile(hfsPath, file);
+        }
+
+        private void ExportFile(FileStream outputFile, JCDFile file) {
+            int bufSize = (int)(readBufferSize * blockSize);
+            var buffer = new byte[bufSize];
+            int bufPos = 0;
+
+            WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) =&gt; {
+                // If buffer overruns when reading this block, write buffer to file.
+                if (bufPos &gt;= bufSize)
+                {
+                    outputFile.Write(buffer, 0, bufSize);
+                    bufPos = 0;
+                }
+
+                Buffer.BlockCopy(blockData, 0, buffer, bufPos, blockData.Length);
+                bufPos += blockData.Length;
+
+                if (lastBlock)
+                {
+                    outputFile.Write(buffer, 0, bufPos);
+                }
+
+                return true;
+            }));
+        }
+
+        public JCDDirEntry[] ListDirectory(string vfsPath)
+        {
+            var directory = GetFile(vfsPath);
+            if(directory == null || !directory.IsFolder) {
+                throw new Exception(&quot;No such folder!&quot;);
+            }
+            var files = ((JCDFolder)directory).GetFileEntries();
+            var notNulls = files.Where(file =&gt; { return !(file.EntryIsEmpty() || file.EntryIsFinal()); });
+            return notNulls.Select(file =&gt; { return file.Entry; }).ToArray();
+        }
+
+        public void DeleteFile(string path, bool recursive)
+        {
+            // TODO: Check if path is relative/absolute and retrieve parent folder of file.
+
+            //path = Helpers.PathGetDirectoryName(path);
+            var file = GetFile(path);
+            if (file == null)
+            {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if (file.IsFolder &amp;&amp; !recursive)
+            {
+                // TODO: Throw proper exception.
+                throw new Exception(&quot;Can&#39;t delete a folder when the recursive flag is not set!&quot;);
+            }
+            file.Delete(false);
+        }
+
+        public void RenameFile(string vfsPath, string newName) {
+            // TODO: Make sure that newName is a valid name.
+            // TODO: Implement using fat.GetFile.
+            var file = GetFile(vfsPath);
+            if(file == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(file.Parent.GetFile(newName) != null) {
+                //TODO: real exception
+                throw new Exception(&quot;There&#39;s already a file with that name!&quot;);
+            }
+            file.Name = newName;
+        }
+        public void MoveFile(string vfsPath, string newVfsPath) {
+            // TODO: Implement using fat.GetFile.
+
+            // Get original file
+            //var fromFolder = (JCDFolder) null; // fat.GetFile(vfsPath);
+            //var fromFileName = Helpers.PathGetFileName(vfsPath);
+            //var fromFile = fromFolder.GetFile(fromFileName);
+            var fromFile = GetFile(vfsPath);
+
+            // Insert file in to destination.
+            var toFolderTmp = GetFile(Helpers.PathGetDirectoryName(newVfsPath));
+            if(toFolderTmp == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(!toFolderTmp.IsFolder) {
+                //TODO: real exception
+                throw new Exception(&quot;Not a folder!&quot;);
+            }
+            var toFolder = ((JCDFolder) toFolderTmp);
+            var newName = Helpers.PathGetFileName(newVfsPath);
+            if(toFolder.GetFile(newName) != null) {
+                //TODO: real exception
+                throw new Exception(&quot;There&#39;s already a file with that name!&quot;);
+            }
+            if(fromFile.IsFolder) {
+                if(((JCDFolder) fromFile).IsParentOf(toFolder)) { //Also checks equality
+                    //TODO: real exception
+                    throw new Exception(&quot;Cannot copy folder into itself!&quot;);
+                }
+            }
+            var toEntry = fromFile.Entry;
+            toEntry.Name = Helpers.PathGetFileName(newVfsPath);
+            var toFile = toFolder.AddDirEntry(toEntry);
+
+            // Delete original file.
+            fromFile.DeleteEntry();
+        }
+
+        public void tryShrink() {
+            long lastUsedBlock = (fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1;
+            long i;
+            for(i = lastUsedBlock; fat[i] == freeBlock; i--);
+
+            if(i &lt; lastUsedBlock) {
+                fs.SetLength((i + 1 + dataOffsetBlocks) * blockSize);
+            }
+        }
+
+        public string GetCurrentDirectory() {
+            return this.currentFolder.Path;
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,9,12,42,1],[62,9,62,49,1],[63,9,63,10,1],[64,13,64,26,1],[68,13,68,32,1],[70,13,70,39,1],[71,13,71,39,1],[73,13,73,34,1],[74,13,74,36,1],[75,13,75,37,1],[76,13,76,37,1],[78,13,78,24,1],[80,13,80,32,1],[81,9,81,10,1],[12,9,12,42,1],[87,9,87,37,1],[88,9,88,10,1],[89,13,89,26,1],[91,13,91,39,1],[92,13,92,39,1],[94,13,94,29,1],[95,13,95,29,1],[96,13,96,23,1],[97,13,97,30,1],[98,13,98,30,1],[100,13,100,32,1],[101,13,101,102,1],[102,13,102,76,1],[103,13,103,108,1],[104,13,104,82,1],[105,9,105,10,1],[112,9,112,10,1],[113,13,113,33,1],[114,13,114,49,1],[115,9,115,10,1],[122,9,122,10,1],[123,13,123,37,1],[124,13,124,57,1],[125,9,125,10,1],[135,9,135,10,1],[136,13,136,26,1],[137,13,137,46,1],[138,9,138,10,1],[146,9,146,10,1],[147,13,147,26,1],[148,13,148,28,1],[149,9,149,10,1],[168,9,168,10,1],[169,13,169,26,1],[170,13,170,28,1],[171,9,171,10,1],[174,9,174,10,1],[175,13,175,45,1],[176,13,176,14,1],[177,17,177,24,1],[179,13,179,53,1],[180,9,180,10,1],[189,9,189,10,1],[190,13,190,26,1],[191,13,191,46,1],[192,9,192,10,1],[200,9,200,10,1],[201,13,201,48,1],[202,13,202,14,1],[203,17,203,80,1],[206,13,206,59,1],[207,9,207,10,1],[215,9,215,10,1],[216,13,216,32,1],[217,13,217,51,1],[224,13,224,62,1],[225,13,225,14,1],[226,17,226,42,1],[227,13,227,14,1],[228,9,228,10,1],[235,9,235,10,1],[236,13,236,39,1],[237,9,237,10,1],[244,9,244,10,1],[245,13,245,40,1],[245,41,245,42,1],[246,17,246,47,1],[247,13,247,14,1],[248,13,248,38,1],[249,9,249,10,1],[256,9,256,10,1],[257,13,257,36,1],[262,13,262,43,1],[264,13,264,33,1],[270,13,270,46,1],[271,18,271,46,1],[272,13,272,14,1],[273,17,273,41,1],[274,17,274,18,1],[276,21,276,42,1],[277,21,277,27,1],[271,47,271,67,1],[280,13,280,32,1],[281,9,281,10,1],[290,9,290,10,1],[291,13,291,52,1],[295,13,295,84,1],[296,9,296,10,1],[306,9,306,10,1],[307,18,307,29,1],[307,30,307,44,1],[316,13,316,64,1],[317,9,317,10,1],[320,9,320,10,1],[322,13,322,50,1],[323,13,323,36,1],[324,13,324,57,1],[325,13,325,64,1],[326,13,326,60,1],[328,13,328,28,1],[334,13,334,74,1],[335,13,335,32,1],[337,13,337,45,1],[338,9,338,10,1],[344,9,344,10,1],[347,13,347,39,1],[348,18,348,29,1],[349,13,349,14,1],[352,17,352,33,1],[353,17,353,18,1],[354,21,354,40,1],[355,17,355,18,1],[356,17,356,34,1],[357,13,357,14,1],[348,71,348,77,1],[348,30,348,69,1],[358,9,358,10,1],[361,9,361,10,1],[362,13,362,59,1],[363,13,363,96,1],[364,13,364,64,1],[365,13,365,25,1],[366,13,366,14,1],[367,17,367,42,1],[368,17,368,76,1],[369,13,369,14,1],[371,13,371,14,1],[372,17,372,67,1],[373,17,373,94,1],[374,13,374,14,1],[376,13,376,63,1],[377,13,377,55,1],[378,9,378,10,1],[381,9,381,10,1],[383,13,383,46,1],[384,13,387,15,1],[390,13,390,29,1],[392,9,392,10,1],[398,9,398,10,1],[400,13,400,22,1],[401,13,401,35,1],[402,13,402,33,1],[403,13,403,33,1],[404,13,404,34,1],[405,13,405,38,1],[406,13,406,36,1],[407,13,407,39,1],[408,9,408,10,1],[411,9,411,10,1],[412,13,412,22,1],[415,13,415,40,1],[416,13,416,36,1],[422,13,422,35,1],[423,13,423,34,1],[429,13,429,41,1],[430,13,430,42,1],[431,13,431,46,1],[434,9,434,10,1],[437,9,437,10,1],[439,13,439,64,1],[440,13,440,45,1],[441,9,441,10,1],[444,9,444,10,1],[445,13,445,58,1],[446,13,446,45,1],[447,9,447,10,1],[450,9,450,10,1],[452,13,452,40,1],[453,9,453,10,1],[456,9,456,10,1],[458,9,458,10,1],[468,9,468,10,1],[471,13,471,88,1],[477,13,477,35,1],[478,13,478,36,1],[479,13,479,40,1],[482,13,482,14,1],[483,17,483,35,1],[484,17,484,40,1],[485,17,485,64,1],[486,13,486,14,1],[481,13,481,83,1],[487,13,487,22,1],[488,9,488,10,1],[495,9,495,10,1],[497,13,497,91,1],[499,13,499,49,1],[504,13,504,46,1],[505,13,505,40,1],[508,18,508,28,1],[509,13,509,14,1],[510,17,510,39,1],[511,17,511,44,1],[512,17,512,46,1],[513,17,513,36,1],[514,17,514,18,1],[515,21,515,67,1],[516,17,516,18,1],[517,13,517,14,1],[508,53,508,59,1],[508,29,508,51,1],[518,13,518,34,1],[519,13,519,31,1],[520,9,520,10,1],[528,9,528,10,1],[529,13,529,24,1],[530,13,530,24,1],[531,13,531,26,1],[532,13,532,26,1],[533,13,533,26,1],[534,9,534,10,1],[537,9,537,10,1],[538,13,538,33,1],[539,9,539,10,1],[542,9,542,10,1],[544,13,544,62,1],[545,9,545,10,1],[547,67,547,68,1],[548,13,548,48,1],[549,13,549,29,1],[549,30,549,31,1],[550,17,550,38,1],[552,18,552,33,1],[552,34,552,35,1],[553,17,553,31,1],[555,18,555,19,1],[556,17,556,45,1],[558,9,558,10,1],[560,46,560,47,1],[562,13,562,37,1],[562,38,562,39,1],[563,17,563,34,1],[564,13,564,14,1],[565,18,565,19,1],[566,17,566,37,1],[567,13,567,14,1],[569,13,569,103,1],[570,13,570,37,1],[570,38,570,39,1],[571,17,571,28,1],[582,17,582,22,1],[582,24,582,47,1],[590,13,590,49,1],[591,9,591,10,1],[593,54,593,55,1],[594,13,594,40,1],[595,13,595,51,1],[595,52,595,53,1],[597,17,597,56,1],[599,13,599,48,1],[600,9,600,10,1],[602,47,602,48,1],[603,13,603,54,1],[604,9,604,10,1],[607,9,607,10,1],[613,13,619,15,1],[622,13,622,26,1],[623,13,623,14,1],[624,17,624,45,1],[625,13,625,14,1],[627,13,627,73,1],[628,13,628,57,1],[632,13,632,63,1],[633,9,633,10,1],[636,9,636,10,1],[637,13,637,52,1],[638,13,638,49,1],[639,13,639,56,1],[640,9,640,10,1],[642,72,642,73,1],[649,13,649,79,1],[651,13,651,55,1],[652,9,652,10,1],[655,9,655,10,1],[658,13,658,59,1],[659,13,659,20,1],[659,38,659,43,1],[659,22,659,34,1],[660,13,660,14,1],[661,17,661,38,1],[663,17,663,18,1],[664,21,664,99,1],[665,21,665,123,1],[666,17,666,18,1],[668,17,668,18,1],[669,21,669,32,1],[670,17,670,18,1],[671,13,671,14,1],[659,35,659,37,1],[674,13,674,67,1],[675,13,675,20,1],[675,40,675,47,1],[675,37,675,39,1],[683,9,683,10,1],[685,62,685,63,1],[686,13,686,93,1],[687,13,687,54,1],[688,13,688,39,1],[689,13,689,47,1],[691,13,691,94,1],[699,31,700,17,1],[701,13,701,71,1],[702,9,702,10,1],[705,9,705,10,1],[706,13,706,20,1],[706,34,706,57,1],[706,22,706,30,1],[706,59,706,60,1],[708,17,708,35,1],[713,22,713,23,1],[714,21,714,47,1],[715,17,715,18,1],[716,13,716,14,1],[706,31,706,33,1],[717,9,717,10,1],[719,63,719,64,1],[720,13,720,42,1],[721,13,721,68,1],[722,17,722,18,1],[723,17,723,109,1],[724,17,724,46,1],[725,13,725,14,1],[726,21,726,22,1],[727,17,727,36,1],[728,13,728,14,1],[729,9,729,10,1],[732,9,732,10,1],[734,13,734,41,1],[735,13,735,30,1],[736,13,736,14,1],[737,17,737,66,1],[741,13,741,31,1],[741,32,741,33,1],[742,17,742,52,1],[743,17,743,65,1],[744,17,744,24,1],[748,13,748,39,1],[749,9,749,10,1],[751,70,751,71,1],[752,13,752,61,1],[753,13,753,44,1],[754,13,754,28,1],[756,13,756,108,1],[772,29,773,17,1],[774,9,774,10,1],[777,9,777,10,1],[778,13,778,46,1],[779,13,779,57,1],[779,58,779,59,1],[780,17,780,56,1],[782,13,782,65,1],[783,13,783,48,1],[783,103,783,107,1],[784,13,784,44,1],[784,64,784,78,1],[785,9,785,10,1],[788,9,788,10,1],[792,13,792,38,1],[793,13,793,30,1],[794,13,794,14,1],[795,17,795,66,1],[797,13,797,45,1],[802,13,802,32,1],[803,9,803,10,1],[805,64,805,65,1],[808,13,808,41,1],[809,13,809,29,1],[809,30,809,31,1],[810,17,810,66,1],[812,13,812,53,1],[812,54,812,55,1],[814,17,814,79,1],[816,13,816,33,1],[817,9,817,10,1],[818,65,818,66,1],[825,13,825,45,1],[828,13,828,81,1],[829,13,829,36,1],[832,13,832,38,1],[836,13,836,54,1],[837,13,837,63,1],[838,13,838,50,1],[838,51,838,52,1],[840,17,840,79,1],[842,13,842,34,1],[848,13,848,42,1],[849,13,849,64,1],[850,13,850,56,1],[853,13,853,36,1],[854,9,854,10,1],[866,45,866,46,1],[867,13,867,44,1],[868,9,868,10,1],[783,48,783,49,1],[783,50,783,103,1],[784,44,784,45,1],[784,46,784,64,1],[691,94,691,95,1],[692,17,692,37,1],[693,17,693,39,1],[694,17,694,18,1],[695,21,695,51,1],[696,21,696,32,1],[697,21,697,35,1],[699,17,699,31,1],[756,108,756,109,1],[758,17,758,39,1],[764,17,764,82,1],[765,17,765,44,1],[767,17,767,31,1],[768,17,768,18,1],[769,21,769,57,1],[770,17,770,18,1],[772,17,772,29,1],[157,9,157,10,0],[158,13,158,26,0],[159,13,159,28,0],[160,9,160,10,0],[258,13,258,14,0],[259,17,259,61,0],[265,13,265,14,0],[266,17,266,47,0],[267,17,267,39,0],[279,13,279,14,0],[271,69,271,75,0],[292,13,292,14,0],[293,17,293,76,0],[308,13,308,14,0],[309,17,309,83,0],[310,17,310,18,0],[311,21,311,80,0],[314,17,314,46,0],[315,13,315,14,0],[307,46,307,49,0],[417,13,417,14,0],[418,17,418,50,0],[424,13,424,14,0],[426,17,426,50,0],[472,13,472,14,0],[473,17,473,26,0],[500,13,500,14,0],[501,17,501,53,0],[523,9,523,10,0],[524,13,524,21,0],[525,9,525,10,0],[582,55,582,56,0],[583,17,583,56,0],[584,17,584,49,0],[584,50,584,51,0],[585,21,585,33,0],[587,17,587,39,0],[588,13,588,14,0],[582,49,582,52,0],[628,58,628,59,0],[629,17,629,56,0],[675,22,675,36,0],[676,13,676,14,0],[678,17,678,59,0],[679,17,679,88,0],[680,17,680,121,0],[681,17,681,54,0],[682,13,682,14,0],[708,36,708,37,0],[709,21,709,81,0],[710,21,710,59,0],[711,21,711,72,0],[712,17,712,18,0],[798,13,798,14,0],[800,17,800,98,0],[829,37,829,38,0],[830,17,830,66,0],[832,39,832,40,0],[834,17,834,54,0],[842,35,842,36,0],[843,17,843,64,0],[843,65,843,66,0],[845,21,845,76,0],[847,13,847,14,0],[856,33,856,34,0],[857,13,857,93,0],[859,17,859,34,0],[859,57,859,60,0],[859,36,859,55,0],[861,13,861,34,0],[861,35,861,36,0],[862,17,862,70,0],[863,13,863,14,0],[864,9,864,10,0],[759,17,759,18,0],[760,21,760,58,0],[761,21,761,32,0],[762,17,762,18,0]]);
+    </script>
+  </body>
+</html>

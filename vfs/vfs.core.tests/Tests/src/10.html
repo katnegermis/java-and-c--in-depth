@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\visitor\filereadervisitor.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using vfs.core;
+
+namespace vfs.core.visitor
+{
+    class FileReaderVisitor : IVisitor
+    {
+        /// &lt;summary&gt;
+        /// Called with contents of file, one block at a time.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;data&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;True if next block is wanted, false otherwise&lt;/returns&gt;
+        public delegate bool GetFileContents(byte[] data, bool lastBlock);
+
+        private GetFileContents f;
+        private ulong bytesLeft;
+
+        public FileReaderVisitor(ulong size, GetFileContents f)
+        {
+            this.f = f;
+            bytesLeft = size;
+        }
+
+        public bool Visit(JCDFAT vfs, uint block)
+        {
+            ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
+
+            var bytesToRead = (uint) Math.Min(bytesLeft, (ulong)JCDFAT.blockSize);
+            bytesLeft -= bytesToRead;
+            // Pass contents of block on to f and inform caller whether f wants 
+            // the contents of the next block.
+            return f(vfs.Read(vfsOffset, bytesToRead), bytesLeft == 0);
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,9,18,64,1],[19,9,19,10,1],[20,13,20,24,1],[21,13,21,30,1],[22,9,22,10,1],[25,9,25,10,1],[26,13,26,64,1],[28,13,28,83,1],[29,13,29,38,1],[32,13,32,72,1],[33,9,33,10,1]]);
+    </script>
+  </body>
+</html>
