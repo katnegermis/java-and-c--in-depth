@@ -35,6 +35,7 @@ namespace vfs.core
         private const int freeBlocksOffset = 12;
         private const int firstFreeBlockOffset = 16;
 
+        //currentSize, currentNumBlocks, currentNumDataBlocks are currently not updated! Do not use them!
         private ulong currentSize, maxSize;
         private ulong currentNumBlocks; // Can actually exceed a uint!
         private uint maxNumBlocks;
@@ -860,7 +861,13 @@ namespace vfs.core
         }
 
         public void tryShrink() {
-            
+            uint lastUsedBlock = (uint)((fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1);
+            uint i;
+            for(i = lastUsedBlock; fat[i] == freeBlock; i--);
+
+            if(i < lastUsedBlock) {
+                fs.SetLength((i + 1 + dataOffsetBlocks) * blockSize);
+            }
         }
 
         public string GetCurrentDirectory() {

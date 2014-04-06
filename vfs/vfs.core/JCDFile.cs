@@ -133,7 +133,7 @@ namespace vfs.core {
             if(!skipEntryDeletion) {
                 DeleteEntry();
 
-                container.tryShrink();
+                //container.tryShrink();
             }
         }
         public void DeleteEntry() {
