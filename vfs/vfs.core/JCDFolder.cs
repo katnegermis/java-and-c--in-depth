@@ -63,8 +63,7 @@ namespace vfs.core {
             }
 
             container.Write(entryOffset(index), byteArr);
-            Console.WriteLine("Supposed to have written file '{0}' to disk.", JCDDirEntry.FromByteArr(byteArr).Name);
-            // TODO: Make sure that this is reflected in the dirEntry in memory.
+            Console.WriteLine("Wrote entry for '{0}' on disk.", JCDDirEntry.FromByteArr(byteArr).Name);
         }
 
         public void setEntry(uint index, JCDDirEntry entry) {
