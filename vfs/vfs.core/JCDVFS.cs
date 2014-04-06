@@ -151,28 +151,11 @@ namespace vfs.core
         }
         public void RenameFile(string vfsPath, string newName)
         {
-            // TODO: Make sure that newName is a valid name.
-            // TODO: Implement using fat.GetFile.
-            var file = (JCDFile)null; // fat.GetFile(vfsPath);
-            file.Name = newName;
+            fat.RenameFile(vfsPath, newName);
         }
         public void MoveFile(string vfsPath, string newVfsPath)
         {
-            // TODO: Implement using fat.GetFile.
-
-            // Get original file
-            var fromFolder = (JCDFolder)null; // fat.GetFile(vfsPath);
-            var fromFileName = Helpers.PathGetFileName(vfsPath);
-            var fromFile = fromFolder.GetFile(fromFileName);
-
-            // Insert file in to destination.
-            var toFolder = (JCDFolder)null; // fat.GetFile(newVfsPath);
-            toFolder.AddDirEntry(fromFile.Entry);
-            var toFile = toFolder.GetFile(fromFileName);
-            toFile.Name = Helpers.PathGetFileName(newVfsPath);
-
-            // Delete original file.
-            fromFile.Delete();
+            fat.MoveFile(vfsPath, newVfsPath);
         }
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
