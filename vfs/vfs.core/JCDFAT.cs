@@ -16,12 +16,12 @@ namespace vfs.core
         private const uint endOfChain = 0xFFFFFFFE;
 
         public const uint rootDirBlock = 0;
-        private const uint searchFileBlock = 1;
+        public const uint searchFileBlock = 1;
 
         private const uint readBufferSize = 50 * 1024; //In blocks
 
         // All sizes in this class are given in bytes unless otherwise specified.
-        private const uint reservedBlockNumbers = 2; // End-of-chain and free
+        public const uint reservedBlockNumbers = 2; // End-of-chain and free
         // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
@@ -607,8 +607,6 @@ namespace vfs.core
         {
             // TODO: Make sure that fileName is not longer than allowed by dirEntry.
             // This should probably be checked in JCDDirEntry constructor.
-
-            // TODO: We need to use `path` for something.
 
             var entry = new JCDDirEntry
             {

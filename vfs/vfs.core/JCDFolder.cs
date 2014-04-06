@@ -96,8 +96,9 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryEmpty(uint index) {
-            var emptyEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = true, FirstBlock = 0 };
             setFileEntry(index, emptyFile(index, false));
+
+            var emptyEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = true, FirstBlock = 0 };
             setEntry(index, emptyEntry);
         }
 
@@ -106,8 +107,9 @@ namespace vfs.core {
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
         public void setEntryFinal(uint index) {
-            var finalEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = false, FirstBlock = 0 };
             setFileEntry(index, emptyFile(index, true));
+
+            var finalEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = false, FirstBlock = 0 };
             setEntry(index, finalEntry);
         }
 
