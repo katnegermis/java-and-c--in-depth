@@ -108,7 +108,7 @@ namespace vfs.core {
         /// Delete file and all potential subdirectories.
         /// Subdirectories are deleted in a depth-first manner.
         /// </summary>
-        public void Delete()
+        public void Delete(bool skipEntryDeletion)
         {
             // If this is a folder, delete all dir entries recursively.
             if (entry.IsFolder)
@@ -116,7 +116,7 @@ namespace vfs.core {
                 var files = ((JCDFolder)this).GetFileEntries();
                 foreach (var file in files)
                 {
-                    file.Delete();
+                    file.Delete(true);
                 }
             }
 
@@ -125,7 +125,9 @@ namespace vfs.core {
             container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
 
             // Remove this dir-entry from parent folder.
-            DeleteEntry();
+            if(!skipEntryDeletion) {
+                DeleteEntry();
+            }
         }
         public void DeleteEntry() {
             parent.DeleteEntry((uint) parentIndex);

@@ -241,6 +241,9 @@ namespace vfs.core
         /// <param name="index"></param>
         public void FatSetFree(uint index)
         {
+            if(fat[index] != freeBlock) {
+                SetFreeBlocks(freeBlocks + 1);
+            }
             FatSet(index, freeBlock);
         }
 
@@ -794,7 +797,7 @@ namespace vfs.core
                 // TODO: Throw proper exception.
                 throw new Exception("Can't delete a folder when the recursive flag is not set!");
             }
-            file.Delete();
+            file.Delete(false);
         }
 
         public void RenameFile(string vfsPath, string newName) {
