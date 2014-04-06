@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace vfs.core.exceptions
+namespace vfs.exceptions
 {
     public class FileNotFoundException : Exception
     {

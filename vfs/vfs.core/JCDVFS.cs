@@ -51,9 +51,9 @@ namespace vfs.core
             {
                 fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
             }
-            catch (FileNotFoundException)
+            catch (vfs.exceptions.FileNotFoundException)
             {
-                throw new FileNotFoundException();
+                throw new vfs.exceptions.FileNotFoundException();
             }
 
             return new JCDVFS(fs);
@@ -66,9 +66,9 @@ namespace vfs.core
             {
                 fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             }
-            catch (FileNotFoundException)
+            catch (System.IO.FileNotFoundException)
             {
-                throw new FileNotFoundException();
+                throw new vfs.exceptions.FileNotFoundException();
             }
             // Open JCDVFS-file to make sure it actually is a VFS-file. If it is, we delete it.
             var vfs = new JCDVFS(fs);
@@ -142,16 +142,7 @@ namespace vfs.core
 
         public void ExportFile(string vfsPath, string hfsPath)
         {
-            FileStream outputFile = null; 
-            try
-            {
-                outputFile = new FileStream(hfsPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                fat.ExportFile(outputFile, vfsPath);
-            }
-            finally
-            {
-                outputFile.Close();
-            }
+            fat.ExportFile(vfsPath, hfsPath);
         }
 
         public void DeleteFile(string vfsPath, bool recursive)
@@ -195,7 +186,7 @@ namespace vfs.core
         }
         public string GetCurrentDirectory()
         {
-            return null;
+            return fat.GetCurrentDirectory();
         }
 
         /// <summary>

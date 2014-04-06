@@ -4,7 +4,6 @@ using System.IO;
 using vfs.exceptions;
 using vfs.core.visitor;
 using System.Collections.Generic;
-using vfs.core.exceptions;
 
 namespace vfs.core
 {
@@ -694,21 +693,60 @@ namespace vfs.core
                 }
                 return bufPos;
             }));
+            Console.WriteLine("Imported {0} to {1}", path, file.Name);
         }
 
-        public void ExportFile(FileStream outputFile, string path)
+        private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
         {
+            foreach (var file in folder.GetFileEntries()) {
+                // Export folder.
+                if (file.IsFolder) {
+                    string folderPath = Helpers.PathCombine(hfsPath, file.Name);
+                    Directory.CreateDirectory(folderPath);
+                    ExportFolderRecursive((JCDFolder)file, folderPath);
+                }
+                else { // Export file.
+                    ExportFile(hfsPath, file);
+                }
+            }
+        }
+
+        private void ExportFile(string hfsPath, JCDFile file) {
+            FileStream outputFile = null;
+            var filePath = Helpers.PathCombine(hfsPath, file.Name);
+            try {
+                outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                ExportFile(outputFile, file);
+            }
+            finally {
+                outputFile.Close();
+            }
+        }
+
+        public void ExportFile(string vfsPath, string hfsPath)
+        {
+
+            var file = GetFile(vfsPath);
+            if (file == null)
+            {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            // Export folder
+            if (file.IsFolder) {
+                Directory.CreateDirectory(hfsPath);
+                ExportFolderRecursive((JCDFolder)file, hfsPath);
+                return;
+            }
+
+            // Export file
+            ExportFile(hfsPath, file);
+        }
+
+        private void ExportFile(FileStream outputFile, JCDFile file) {
             int bufSize = (int)(readBufferSize * blockSize);
             var buffer = new byte[bufSize];
             int bufPos = 0;
-
-            // Find vfs file
-            // TODO: Actually look for the file in the directory tree, instead of just looking in current directory.
-            var file = GetFile(path);
-            if (file == null)
-            {
-                throw new vfs.core.exceptions.FileNotFoundException();
-            }
 
             WalkFATChain(file.Entry.FirstBlock, new FileReaderVisitor(file.Size, (blockData, lastBlock) => {
                 // If buffer overruns when reading this block, write buffer to file.
@@ -749,7 +787,7 @@ namespace vfs.core
             var file = GetFile(path);
             if (file == null)
             {
-                throw new vfs.core.exceptions.FileNotFoundException();
+                throw new vfs.exceptions.FileNotFoundException();
             }
             if (file.IsFolder && !recursive)
             {
@@ -757,6 +795,10 @@ namespace vfs.core
                 throw new Exception("Can't delete a folder when the recursive flag is not set!");
             }
             file.Delete();
+        }
+
+        public string GetCurrentDirectory() {
+            return this.currentFolder.Path;
         }
     }
 }

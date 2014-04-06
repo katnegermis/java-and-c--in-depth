@@ -184,7 +184,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(FileNotFoundException),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file is not existing was discovered.")]
         public void DeleteNotExistingFileTest()
         {
@@ -508,7 +508,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(FileNotFoundException),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to delete does not exist was discovered.")]
         public void DeleteFileNotExistingTest()
         {
@@ -543,7 +543,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(FileNotFoundException),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to rename does not exist was discovered.")]
         public void RenameFileNotExistingTest()
         {
@@ -591,7 +591,7 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(FileNotFoundException),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to move does not exist was discovered.")]
         public void MoveFileNotExistingTest()
         {

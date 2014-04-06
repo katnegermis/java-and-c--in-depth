@@ -374,6 +374,7 @@ namespace console.client
 
                 try
                 {
+                    // TODO: This doesn't accept file names with spaces.
                     path = args[0];
                     valid = true;
                 }
@@ -402,6 +403,7 @@ namespace console.client
                 try
                 {
                     console.mountedJCDVFS.SetCurrentDirectory(path);
+                    Console.WriteLine("Current folder: " + console.mountedJCDVFS.GetCurrentDirectory());
                 }
                 catch (Exception e)
                 {
