@@ -661,7 +661,7 @@ namespace vfs.core
                 try
                 {
                     fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    ImportFile(fs, parentFolder.FileGetPath(Helpers.PathGetFileName(filePath.Replace('\\', '/')), false));
+                    ImportFile(fs, parentFolder.FileGetPath(Helpers.PathGetFileName(filePath.Replace('\\', '/')), false), fs.Name);
                 }
                 finally
                 {
@@ -681,7 +681,7 @@ namespace vfs.core
             }
         }
 
-        public void ImportFile(FileStream file, string path) {
+        public void ImportFile(Stream file, string path, string fileName) {
             uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
@@ -697,7 +697,9 @@ namespace vfs.core
                 }
                 return bufPos;
             }));
-            Console.WriteLine("Imported {0} to {1}", file.Name, path);
+            if(fileName != null) {
+                Console.WriteLine("Imported {0} to {1}", fileName, path);
+            }
         }
 
         private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
@@ -747,7 +749,7 @@ namespace vfs.core
             ExportFile(hfsPath, file);
         }
 
-        private void ExportFile(FileStream outputFile, JCDFile file) {
+        private void ExportFile(Stream outputFile, JCDFile file) {
             int bufSize = (int)(readBufferSize * blockSize);
             var buffer = new byte[bufSize];
             int bufPos = 0;

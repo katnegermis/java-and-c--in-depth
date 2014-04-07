@@ -133,7 +133,7 @@ namespace vfs.core
                 try
                 {
                     fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    fat.ImportFile(fileToImport, vfsPath);
+                    fat.ImportFile(fileToImport, vfsPath, fileToImport.Name);
                 }
                 finally
                 {
