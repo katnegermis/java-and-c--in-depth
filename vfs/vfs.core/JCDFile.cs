@@ -13,9 +13,9 @@ namespace vfs.core {
         public string Name; // 240B
         public ulong Size; // 8B
         public bool IsFolder; // 4B
-        public uint FirstBlock; // 4B
+        internal uint FirstBlock; // 4B
 
-        public static JCDDirEntry FromByteArr(byte[] byteArr) {
+        internal static JCDDirEntry FromByteArr(byte[] byteArr) {
             int size = StructSize();
             if(byteArr.Length != size) {
                 throw new InvalidCastException();
@@ -28,16 +28,16 @@ namespace vfs.core {
             return ret;
         }
 
-        public static int StructSize() {
+        internal static int StructSize() {
             return Marshal.SizeOf(typeof(JCDDirEntry));   
         }
 
-        public bool IsEmpty()
+        internal bool IsEmpty()
         {
             return (Name.Length == 0 && IsFolder);
         }
 
-        public bool IsFinal()
+        internal bool IsFinal()
         {
             return (Name.Length == 0 && !IsFolder);
         }
@@ -51,7 +51,7 @@ namespace vfs.core {
         protected string path;
         protected uint level;
 
-        public string Name {
+        internal string Name {
             get { return this.entry.Name; }
             set {
                 this.entry.Name = value;
@@ -59,7 +59,7 @@ namespace vfs.core {
             }
         }
 
-        public ulong Size
+        internal ulong Size
         {
             get { return this.entry.Size; }
             set {
@@ -68,20 +68,20 @@ namespace vfs.core {
             }
         }
 
-        public bool IsFolder
+        internal bool IsFolder
         {
             get { return this.entry.IsFolder; }
         }
 
-        public JCDDirEntry Entry { get { return this.entry; } }
-        public string Path { get { return this.path; } }
-        public JCDFolder Parent { get { return this.parent; } }
-        public uint Level { get { return this.level; } }
+        internal JCDDirEntry Entry { get { return this.entry; } }
+        internal string Path { get { return this.path; } }
+        internal JCDFolder Parent { get { return this.parent; } }
+        internal uint Level { get { return this.level; } }
 
-        //public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
-        //public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
+        //internal static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
+        //internal static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
 
-        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
+        internal static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
             if(entry.IsFolder) {
                 return new JCDFolder(container, entry, parent, parentIndex, path, level);
             }
@@ -114,7 +114,7 @@ namespace vfs.core {
         /// Delete file and all potential subdirectories.
         /// Subdirectories are deleted in a depth-first manner.
         /// </summary>
-        public void Delete(bool skipEntryDeletion)
+        internal void Delete(bool skipEntryDeletion)
         {
             //Don't want to delete empty entries...
             if(EntryIsEmpty() || EntryIsFinal()) {
@@ -142,16 +142,16 @@ namespace vfs.core {
                 //container.tryShrink();
             }
         }
-        public void DeleteEntry() {
+        internal void DeleteEntry() {
             parent.DeleteEntry((uint) parentIndex);
         }
 
-        public bool EntryIsEmpty()
+        internal bool EntryIsEmpty()
         {
             return this.entry.IsEmpty();
         }
 
-        public bool EntryIsFinal()
+        internal bool EntryIsFinal()
         {
             return this.entry.IsFinal();
         }

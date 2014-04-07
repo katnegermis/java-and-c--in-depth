@@ -13,12 +13,12 @@ namespace vfs.core {
         // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
         private uint firstEmptyEntry;
 
-        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level)
+        internal JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level)
             : base(container, entry, parent, parentIndex, path, level) {
             entries = new List<JCDFile>();
         }
 
-        public static JCDFolder rootFolder(JCDFAT vfs) {
+        internal static JCDFolder rootFolder(JCDFAT vfs) {
             var blockCounter = (BlockCounterVisitor)vfs.WalkFATChain(JCDFAT.rootDirBlock, new BlockCounterVisitor());
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
@@ -26,7 +26,7 @@ namespace vfs.core {
             return new JCDFolder(vfs, entry, null, 0, "/", 0);
         }
 
-        public static JCDFolder createRootFolder(JCDFAT vfs) {
+        internal static JCDFolder createRootFolder(JCDFAT vfs) {
             vfs.FatSetEOC(JCDFAT.rootDirBlock);
             JCDFolder root = rootFolder(vfs);
             root.setEntryFinal(0);
@@ -38,7 +38,7 @@ namespace vfs.core {
                 (index % JCDFAT.dirEntriesPerBlock) * JCDFAT.dirEntrySize);
         }
 
-        public void setEntry(uint index, byte[] byteArr)
+        internal void setEntry(uint index, byte[] byteArr)
         {
 
             // Check that the given index goes at most one block beyond the number of blocks currently allocated.
@@ -61,7 +61,7 @@ namespace vfs.core {
             //Console.WriteLine("Wrote entry for '{0}' on disk.", JCDDirEntry.FromByteArr(byteArr).Name);
         }
 
-        public void setEntry(uint index, JCDDirEntry entry) {
+        internal void setEntry(uint index, JCDDirEntry entry) {
             // Assuming any corresponding entry in the entries List is already set
             int size = JCDDirEntry.StructSize();
             byte[] byteArr = new byte[size];
@@ -95,7 +95,7 @@ namespace vfs.core {
         /// Mark an entry as Empty.
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
-        public void setEntryEmpty(uint index) {
+        internal void setEntryEmpty(uint index) {
             setFileEntry(index, emptyFile(index, false));
 
             var emptyEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = true, FirstBlock = 0 };
@@ -106,7 +106,7 @@ namespace vfs.core {
         /// Mark an entry as the final entry in the folder.
         /// </summary>
         /// <param name="index">Index of the entry to be marked.</param>
-        public void setEntryFinal(uint index) {
+        internal void setEntryFinal(uint index) {
             setFileEntry(index, emptyFile(index, true));
 
             var finalEntry = new JCDDirEntry { Name = "", Size = 0, IsFolder = false, FirstBlock = 0 };
@@ -153,7 +153,7 @@ namespace vfs.core {
             return dirEntries;
         }
 
-        public List<JCDFile> GetFileEntries()
+        internal List<JCDFile> GetFileEntries()
         {
             if (!this.populated)
             {
@@ -162,7 +162,7 @@ namespace vfs.core {
             return this.entries;
         }
 
-        public JCDFile GetFile(string name)
+        internal JCDFile GetFile(string name)
         {
             if (!this.populated)
             {
@@ -183,7 +183,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="dirEntry">Entry to be added.</param>
         /// <returns>Index of the newly added entry.</returns>
-        public JCDFile AddDirEntry(JCDDirEntry dirEntry)
+        internal JCDFile AddDirEntry(JCDDirEntry dirEntry)
         {
             // Verify that a file with that name doesn't already exist.
             if (this.GetFile(dirEntry.Name) != null)
@@ -202,7 +202,7 @@ namespace vfs.core {
         /// Delete dir entry from folder structure.
         /// </summary>
         /// <param name="index"></param>
-        public void DeleteEntry(uint index)
+        internal void DeleteEntry(uint index)
         {
             this.setEntryEmpty(index);
         }
@@ -239,7 +239,7 @@ namespace vfs.core {
         /// Allocates another block if there are no more entries left in the currently allocated blocks.
         /// </summary>
         /// <returns></returns>
-        public uint GetEmptyEntryIndex()
+        internal uint GetEmptyEntryIndex()
         {
             if (!this.populated)
             {
@@ -277,7 +277,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public bool IsParentOf(JCDFile file) {
+        internal bool IsParentOf(JCDFile file) {
             if(level > file.Level) {
                 return false;
             }
@@ -292,13 +292,13 @@ namespace vfs.core {
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        /*public string FileGetPath(JCDFile file)
+        /*internal string FileGetPath(JCDFile file)
         {
             // Check whether dirEntry is in entries. If it is not
             return Helpers.PathCombine(this.path, file.Name);
         }*/
 
-        public string FileGetPath(string name, bool isFolder)
+        internal string FileGetPath(string name, bool isFolder)
         {
             /*if(isFolder) {
                 return new Uri(this.path, name + "/");

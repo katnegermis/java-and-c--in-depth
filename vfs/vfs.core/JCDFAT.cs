@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace vfs.core
 {
-    public class JCDFAT : IDisposable
+    internal class JCDFAT : IDisposable
     {
         private bool initialized = false;
 
@@ -15,22 +15,22 @@ namespace vfs.core
         private const uint freeBlock = 0xFFFFFFFF;
         private const uint endOfChain = 0xFFFFFFFE;
 
-        public const uint rootDirBlock = 0;
-        public const uint searchFileBlock = 1;
+        internal const uint rootDirBlock = 0;
+        internal const uint searchFileBlock = 1;
 
         private const uint readBufferSize = 50 * 1024; //In blocks
 
         // All sizes in this class are given in bytes unless otherwise specified.
-        public const uint reservedBlockNumbers = 2; // End-of-chain and free
+        internal const uint reservedBlockNumbers = 2; // End-of-chain and free
         // See this stackoverflow answer for bit shifting behaviour in c#: http://stackoverflow.com/questions/9210373/why-do-shift-operations-always-result-in-a-signed-int-when-operand-is-32-bits
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
-        public const uint blockSize = 1 << 12; // 4KB blocks
-        public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
+        internal const uint blockSize = 1 << 12; // 4KB blocks
+        internal const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
-        public const uint dirEntrySize = 1 << 8; // 256B == JCDDirEntry.StructSize();
-        public const uint fatEntriesPerBlock = blockSize / 4;
-        public const uint dirEntriesPerBlock = blockSize / dirEntrySize;
+        internal const uint dirEntrySize = 1 << 8; // 256B == JCDDirEntry.StructSize();
+        internal const uint fatEntriesPerBlock = blockSize / 4;
+        internal const uint dirEntriesPerBlock = blockSize / dirEntrySize;
 
         private const int freeBlocksOffset = 12;
         private const int firstFreeBlockOffset = 16;
@@ -59,7 +59,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="fs">Stream to a file open with read/write access.</param>
         /// <param name="size">Maximum size of the new JCDVFS-file.</param>
-        public JCDFAT(FileStream fs, ulong size)
+        internal JCDFAT(FileStream fs, ulong size)
         {
             this.fs = fs;
 
@@ -84,7 +84,7 @@ namespace vfs.core
         /// Open an existing JCDFAT-file.
         /// </summary>
         /// <param name="fs">Stream to a JCDVFS-file, open with read/write access.</param>
-        public JCDFAT(FileStream fs)
+        internal JCDFAT(FileStream fs)
         {
             this.fs = fs;
 
@@ -131,7 +131,7 @@ namespace vfs.core
         /// <param name="data">The buffer containing data to write to JCDVFS-file.</param>
         /// <param name="arrOffset">The zero-based byte offset in data from which to begin copying bytes to JCDVFS-file.</param>
         /// <param name="count">The maximum number of bytes to write.</param>
-        public void Write(ulong offset, byte[] data, int arrOffset, int count)
+        internal void Write(ulong offset, byte[] data, int arrOffset, int count)
         {
             Seek(offset);
             fs.Write(data, arrOffset, count);
@@ -142,7 +142,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="offset">Absolute offset in to JCDVFS-file at which to start writing data.</param>
         /// <param name="data">Data to write to JCDVFS-file.</param>
-        public void Write(ulong offset, byte[] data)
+        internal void Write(ulong offset, byte[] data)
         {
             Seek(offset);
             bw.Write(data);
@@ -153,7 +153,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="offset">Absolute offset in to JCDVFS-file at which to start writing data.</param>
         /// <param name="data">Data to write to JCDVFS-file.</param>
-        public void Write(ulong offset, ushort data)
+        internal void Write(ulong offset, ushort data)
         {
             Seek(offset);
             bw.Write(data);
@@ -164,7 +164,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="offset">Absolute offset in to JCDVFS-file at which to start writing data.</param>
         /// <param name="data">Data to write to JCDVFS-file.</param>
-        public void Write(ulong offset, uint data)
+        internal void Write(ulong offset, uint data)
         {
             Seek(offset);
             bw.Write(data);
@@ -185,7 +185,7 @@ namespace vfs.core
         /// <param name="offset">Byte-offset of point to start reading from.</param>
         /// <param name="length">Length in bytes.</param>
         /// <returns>Byte array of length `length`.</returns>
-        public byte[] Read(ulong offset, uint length)
+        internal byte[] Read(ulong offset, uint length)
         {
             Seek(offset);
             return br.ReadBytes((int)length);
@@ -211,7 +211,7 @@ namespace vfs.core
         /// </summary>
         /// <param name="index"></param>
         /// <param name="value"></param>
-        public void FatSet(uint index, uint value)
+        internal void FatSet(uint index, uint value)
         {
             fat[index] = value;
             Write((ulong)FatOffset(index), value);
@@ -231,7 +231,7 @@ namespace vfs.core
         /// Set an entry in the FAT to end-of-cluster.
         /// </summary>
         /// <param name="index"></param>
-        public void FatSetEOC(uint index)
+        internal void FatSetEOC(uint index)
         {
             FatSet(index, endOfChain);
         }
@@ -240,7 +240,7 @@ namespace vfs.core
         /// Make an entry in the FAT free.
         /// </summary>
         /// <param name="index"></param>
-        public void FatSetFree(uint index)
+        internal void FatSetFree(uint index)
         {
             if(fat[index] != freeBlock) {
                 SetFreeBlocks(freeBlocks + 1);
@@ -252,7 +252,7 @@ namespace vfs.core
         /// Get the FAT-index of the first free block and update the internal firstFreeBlock variable.
         /// </summary>
         /// <returns></returns>
-        public uint GetFreeBlock()
+        internal uint GetFreeBlock()
         {
             if (!(freeBlocks >= 1))
             {
@@ -286,7 +286,7 @@ namespace vfs.core
         /// <param name="dataBlock"></param>
         /// <param name="blockOffset"></param>
         /// <returns></returns>
-        public ulong BlockGetByteOffset(uint dataBlock, uint blockOffset)
+        internal ulong BlockGetByteOffset(uint dataBlock, uint blockOffset)
         {
             if (dataBlock >= this.maxNumDataBlocks)
             {
@@ -302,7 +302,7 @@ namespace vfs.core
         /// <param name="blockIndex">Block which you wish to index.</param>
         /// <param name="blockOffset">Offset in to the block wished to index.</param>
         /// <returns></returns>
-        public ulong FileGetByteOffset(uint firstBlock, uint blockIndex, uint blockOffset)
+        internal ulong FileGetByteOffset(uint firstBlock, uint blockIndex, uint blockOffset)
         {
             for (uint i = 0; i < blockIndex; i++)
             {
@@ -464,7 +464,7 @@ namespace vfs.core
         /// <param name="firstBlock">Index of first FAT entry</param>
         /// <param name="v">Instance of IVisitor</param>
         /// <returns></returns>
-        public IVisitor WalkFATChain(uint firstEntry, IVisitor v)
+        internal IVisitor WalkFATChain(uint firstEntry, IVisitor v)
         {
             // firstBlock didn't point to a valid starting point of a file.
             // Assumes that the reserved block numbers are placed continuously from 0.
@@ -491,7 +491,7 @@ namespace vfs.core
         /// Allocate the minimum amount of blocks in which `size` bytes can be contained.
         /// </summary>
         /// <returns>Index of first block</returns>
-        public uint AllocateBlocks(ulong size)
+        internal uint AllocateBlocks(ulong size)
         {
             // Make sure that there are enough free blocks.
             long blocksRequired = Math.Max((uint)Helpers.ruid(size, JCDFAT.blockSize), 1);
@@ -525,7 +525,7 @@ namespace vfs.core
             Close();
         }
 
-        public void Close()
+        internal void Close()
         {
             bw.Flush();
             fs.Flush();
@@ -534,12 +534,12 @@ namespace vfs.core
             fs.Dispose();
         }
 
-        public ulong GetSize()
+        internal ulong GetSize()
         {
             return this.maxSize;
         }
 
-        public ulong GetFreeSpace()
+        internal ulong GetFreeSpace()
         {
             // Cast here to get ulong multiplication, to avoid overflow.
             return this.freeBlocks * (ulong)JCDFAT.blockSize;
@@ -591,7 +591,7 @@ namespace vfs.core
             return BrowseStep(ret, segments[i]);
         }
 
-        public void SetCurrentDirectory(string path) {
+        internal void SetCurrentDirectory(string path) {
             var newDir = GetFile(path);
             if(newDir == null || !newDir.IsFolder) {
                 //TODO: proper exception
@@ -600,7 +600,7 @@ namespace vfs.core
             currentFolder = (JCDFolder) newDir;
         }
 
-        public void CreateFolder(string path) {
+        internal void CreateFolder(string path) {
             CreateFile(JCDFAT.blockSize, path, true);
         }
 
@@ -631,14 +631,14 @@ namespace vfs.core
             return ((JCDFolder) container).AddDirEntry(entry);
         }
 
-        public void ZeroBlock(uint block)
+        internal void ZeroBlock(uint block)
         {
             var zeros = new byte[JCDFAT.blockSize];
             Array.Clear(zeros, 0, zeros.Length);
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
-        public void ImportFolder(string hfsFolderPath, string vfsPath) {
+        internal void ImportFolder(string hfsFolderPath, string vfsPath) {
             /*var parentDirTmp = GetFile(Helpers.PathGetDirectoryName(vfsPath));
             if(parentDirTmp == null || !parentDirTmp.IsFolder) {
                 //TODO: proper exception
@@ -681,7 +681,7 @@ namespace vfs.core
             }
         }
 
-        public void ImportFile(Stream file, string path, string fileName) {
+        internal void ImportFile(Stream file, string path, string fileName) {
             uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
@@ -705,6 +705,9 @@ namespace vfs.core
         private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
         {
             foreach (var file in folder.GetFileEntries()) {
+                if(file.EntryIsEmpty() || file.EntryIsFinal()) {
+                    continue;
+                }
                 // Export folder.
                 if (file.IsFolder) {
                     string folderPath = Helpers.PathCombine(hfsPath, file.Name);
@@ -729,7 +732,7 @@ namespace vfs.core
             }
         }
 
-        public void ExportFile(string vfsPath, string hfsPath)
+        internal void ExportFile(string vfsPath, string hfsPath)
         {
 
             var file = GetFile(vfsPath);
@@ -774,7 +777,7 @@ namespace vfs.core
             }));
         }
 
-        public JCDDirEntry[] ListDirectory(string vfsPath)
+        internal JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var directory = GetFile(vfsPath);
             if(directory == null || !directory.IsFolder) {
@@ -785,7 +788,7 @@ namespace vfs.core
             return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
-        public void DeleteFile(string path, bool recursive)
+        internal void DeleteFile(string path, bool recursive)
         {
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
@@ -803,7 +806,7 @@ namespace vfs.core
             file.Delete(false);
         }
 
-        public void RenameFile(string vfsPath, string newName) {
+        internal void RenameFile(string vfsPath, string newName) {
             // TODO: Make sure that newName is a valid name.
             // TODO: Implement using fat.GetFile.
             var file = GetFile(vfsPath);
@@ -816,7 +819,7 @@ namespace vfs.core
             }
             file.Name = newName;
         }
-        public void MoveFile(string vfsPath, string newVfsPath) {
+        internal void MoveFile(string vfsPath, string newVfsPath) {
             // TODO: Implement using fat.GetFile.
 
             // Get original file
@@ -854,7 +857,35 @@ namespace vfs.core
             fromFile.DeleteEntry();
         }
 
-        public void tryShrink() {
+        internal void CopyFile(JCDFile oldFile, string newVfsPath) {
+            if(oldFile.IsFolder) {
+                var newFolder = (JCDFolder)CreateFile(oldFile.Size, newVfsPath, true);
+                var files = ((JCDFolder) oldFile).GetFileEntries();
+                foreach(var file in files) {
+                    if(file.EntryIsEmpty() || file.EntryIsFinal()) {
+                        continue;
+                    }
+                    string path = newFolder.FileGetPath(file.Name, false); //Doesn't matter if it's a folder
+                    CopyFile(file, path);
+                }
+            }
+            else {
+                MemoryStream ms = new MemoryStream((int)Math.Min(oldFile.Size, (ulong) Int32.MaxValue));
+                ExportFile(ms, oldFile);
+                ImportFile(ms, newVfsPath, null);
+            }
+        }
+
+        public void CopyFile(string vfsPath, string newVfsPath) {
+            var fromFile = GetFile(vfsPath);
+            if(fromFile == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            CopyFile(fromFile, newVfsPath);
+        }
+
+        internal void tryShrink() {
             long lastUsedBlock = (fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1;
             long i;
             for(i = lastUsedBlock; fat[i] == freeBlock; i--);
@@ -864,7 +895,7 @@ namespace vfs.core
             }
         }
 
-        public string GetCurrentDirectory() {
+        internal string GetCurrentDirectory() {
             return this.currentFolder.Path;
         }
     }

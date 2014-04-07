@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace vfs.core.visitor
 {
-    public interface IVisitor
+    internal interface IVisitor
     {
         bool Visit(JCDFAT vfs, uint block);
     }
