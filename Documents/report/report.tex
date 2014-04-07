@@ -63,8 +63,8 @@ There is no bound on the size of individual files, except the size of the file s
 The two blocks following the FAT are reserved for the root directory and the search file. The root directory is the root folder of the file system. The search file is the file in which we wish to store meta data for indexing the file system, allowing us to implement file search in milestone 2 of the project.
 \begin{figure}[ht]
     \begin{verbatim}
-        File system structure
-  (`|` represents a block boundary)
+                File system structure
+          (`|` represents a block boundary)
 
 | Meta data | FAT block(s) | Root directory | Search file |
 | data | data | data | data | data | data | data |  data  |
@@ -78,7 +78,7 @@ The two blocks following the FAT are reserved for the root directory and the sea
 \begin{figure}[ht]
     \begin{verbatim}
 Meta data
-                  Size
+                         Size
 +-----------------------+
 | Magic number          | 4B
 +-----------------------+
@@ -110,7 +110,7 @@ As can be seen on Figure \ref{fig:directory_entry}, the maximum length of a file
 \begin{figure}[ht]
     \begin{verbatim}
 JCDDirEntry
-              Size
+                 Size
 +---------------+
 | Name          | 240B
 +---------------+
