@@ -35,7 +35,6 @@ The most important task in the process of creating the VFS Core is the design of
 \subsection{Requirements}
 In this part we indicate and describe what requirements we have implemented. We also list the main software elements involved in the respective implementation.
 
-
 \begin{enumerate}
 	\item The virtual disk is stored in a single file in the host file system. The creation happens in the creators of \texttt{JCDVFS}, which are creating a FileStream for the new file that is then written to in the creators of \texttt{JCDFAT}.
 	\item The creation of virtual disk files happens in method \texttt{Create(string hfsPath, ulong size)} of class \texttt{JCDVFS}. The parameters specify the location and the initial size.
@@ -48,6 +47,10 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item Exporting of files and directories from the virtual to the host file system is done in methods \texttt{ExportFile(Stream outputFile, JCDFile file)} and \texttt{ExportFolderRecursive(JCDFolder folder, string hfsPath)} in \texttt{JCDFAT}.
 	\item How much space is free in the virtual disk can be queried and is calculated in method \texttt{GetFreeSpace()} in \texttt{JCDFAT}, which is multiplying the number of free blocks times the block size. The occupied space can be queried too and is calculated in method \texttt{OccupiedSpace()} in \texttt{JCDVFS} which is subtracting the free space from the virtual disk size.
 \end{enumerate}
+
+\subsection{Bonus points}
+We've implemented two of the bonus features of this milestone. The first one is "Elastic disk". Our virtual disk initially takes up only the space required by the meta data (and FAT), and hereafter expands itself as needed when importing files. We currently have an untested implementation of automatic shrinking of the virtual disk.\\
+The second bonus feature we've implemented is "Large data". This feature is implemented by using buffers of a predefined, constant size, when reading/writing files to/from the file system, instead of having the whole VFS in memory. The current implementation uses quite big buffers (20 MB), trying to mitigate the problem of constantly reading and writing from different parts of the harddisk.
 
 \subsection{Design}
 We decided to take a lot of inspiration from the FAT file system
