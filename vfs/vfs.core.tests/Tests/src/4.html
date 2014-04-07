@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\jcdvfs.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using vfs.exceptions;
+
+namespace vfs.core
+{
+    public class JCDVFS : IJCDBasicVFS
+    {
+        private JCDFAT fat;
+
+        public static JCDVFS Create(string hfsPath, ulong size)
+        {
+            // Make sure the directory exists.
+             if (File.Exists(Path.GetDirectoryName(hfsPath)))
+             {
+                 throw new DirectoryNotFoundException();
+             }
+
+            // Make sure the file doesn&#39;t already exist.
+            if (File.Exists(hfsPath))
+            {
+                throw new FileAlreadyExistsException();
+            }
+
+            if (size &gt;= JCDFAT.globalMaxFSSize)
+            {
+                Console.Write(&quot;Global Max FS Size {0}&quot;, JCDFAT.globalMaxFSSize);
+                throw new InvalidSizeException();
+            }
+
+            // Create fsfile.
+            try
+            {
+                var fs = new FileStream(hfsPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                return new JCDVFS(fs, size);
+            }
+            catch (IOException)
+            {
+                // The file possibly already exists or the stream has been unexpectedly closed
+                throw new FileAlreadyExistsException(); //throw not enough space in parent fs
+            }
+        }
+
+        public static JCDVFS Open(string hfsPath)
+        {
+            FileStream fs;
+            try
+            {
+                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            return new JCDVFS(fs);
+        }
+
+        public static void Delete(string hfsPath)
+        {
+            FileStream fs;
+            try
+            {
+                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            // Open JCDVFS-file to make sure it actually is a VFS-file. If it is, we delete it.
+            var vfs = new JCDVFS(fs);
+            vfs.Close();
+            File.Delete(hfsPath);
+            return;
+        }
+
+        /// &lt;summary&gt;
+        /// Create a new JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;fs&quot;&gt;Stream to an empty read/write accessible VFS-file.&lt;/param&gt;
+        /// &lt;param name=&quot;size&quot;&gt;Maximum size of the new VFS file, in bytes.&lt;/param&gt;
+        public JCDVFS(FileStream fs, ulong size)
+        {
+            fat = new JCDFAT(fs, size);
+        }
+
+        /// &lt;summary&gt;
+        /// Open an existing JCDVFS-file.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;fs&quot;&gt;&lt;/param&gt;
+        public JCDVFS(FileStream fs)
+        {
+            fat = new JCDFAT(fs);
+        }
+
+        public void Close()
+        {
+            fat.Close();
+        }
+
+        //Interface methods
+        public ulong Size()
+        {
+            return fat.GetSize();
+        }
+
+        public ulong OccupiedSpace()
+        {
+            return fat.GetSize() - fat.GetFreeSpace();
+        }
+
+        public ulong FreeSpace()
+        {
+            return fat.GetFreeSpace();
+        }
+
+        public void CreateDirectory(string vfsPath, bool createParents)
+        {
+            //Implement relative paths, e.g. fat.Walk(Helpers.PathGetDirName(vfsPath));
+            fat.CreateFolder(vfsPath);
+        }
+
+        public void ImportFile(string hfsPath, string vfsPath)
+        {
+            FileStream fileToImport = null;
+            if (Directory.Exists(hfsPath))
+            {
+                fat.ImportFolder(hfsPath, vfsPath);
+            }
+            else
+            {
+                try
+                {
+                    fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    fat.ImportFile(fileToImport, vfsPath);
+                }
+                finally
+                {
+                    fileToImport.Close();
+                }
+            }
+        }
+
+        public void ExportFile(string vfsPath, string hfsPath)
+        {
+            fat.ExportFile(vfsPath, hfsPath);
+        }
+
+        public void DeleteFile(string vfsPath, bool recursive)
+        {
+            fat.DeleteFile(vfsPath, recursive);
+        }
+        public void RenameFile(string vfsPath, string newName)
+        {
+            fat.RenameFile(vfsPath, newName);
+        }
+        public void MoveFile(string vfsPath, string newVfsPath)
+        {
+            fat.MoveFile(vfsPath, newVfsPath);
+        }
+        public JCDDirEntry[] ListDirectory(string vfsPath)
+        {
+            var dirEntries = fat.ListDirectory(vfsPath);
+            Console.WriteLine(&quot;Number of entries: {0}&quot;, dirEntries.Length);
+            return dirEntries;
+        }
+        public void SetCurrentDirectory(string vfsPath)
+        {
+            fat.SetCurrentDirectory(vfsPath);
+        }
+        public string GetCurrentDirectory()
+        {
+            return fat.GetCurrentDirectory();
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct ByteToUintConverter
+    {
+        [FieldOffset(0)]
+        public byte[] bytes;
+
+        [FieldOffset(0)]
+        public uint[] uints;
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,9,13,10,1],[15,14,15,62,1],[21,13,21,38,1],[22,13,22,14,1],[23,17,23,56,1],[26,13,26,48,1],[27,13,27,14,1],[28,17,28,81,1],[29,17,29,50,1],[34,13,34,14,1],[35,17,35,108,1],[36,17,36,45,1],[38,13,38,32,1],[39,13,39,14,1],[41,17,41,56,1],[43,9,43,10,1],[46,9,46,10,1],[49,13,49,14,1],[50,17,50,99,1],[51,13,51,14,1],[52,13,52,52,1],[53,13,53,14,1],[54,17,54,66,1],[57,13,57,35,1],[58,9,58,10,1],[61,9,61,10,1],[64,13,64,14,1],[65,17,65,99,1],[66,13,66,14,1],[67,13,67,52,1],[68,13,68,14,1],[69,17,69,66,1],[72,13,72,38,1],[73,13,73,25,1],[74,13,74,34,1],[75,13,75,20,1],[76,9,76,10,1],[83,9,83,49,1],[84,9,84,10,1],[85,13,85,40,1],[86,9,86,10,1],[92,9,92,37,1],[93,9,93,10,1],[94,13,94,34,1],[95,9,95,10,1],[98,9,98,10,1],[99,13,99,25,1],[100,9,100,10,1],[104,9,104,10,1],[105,13,105,34,1],[106,9,106,10,1],[109,9,109,10,1],[110,13,110,55,1],[111,9,111,10,1],[114,9,114,10,1],[115,13,115,39,1],[116,9,116,10,1],[119,9,119,10,1],[121,13,121,39,1],[122,9,122,10,1],[125,9,125,10,1],[126,13,126,44,1],[127,13,127,43,1],[128,13,128,14,1],[129,17,129,52,1],[130,13,130,14,1],[132,13,132,14,1],[134,17,134,18,1],[135,21,135,108,1],[136,21,136,59,1],[137,17,137,18,1],[139,17,139,18,1],[140,21,140,42,1],[141,17,141,18,1],[142,13,142,14,1],[143,9,143,10,1],[146,9,146,10,1],[147,13,147,46,1],[148,9,148,10,1],[151,9,151,10,1],[152,13,152,48,1],[153,9,153,10,1],[155,9,155,10,1],[156,13,156,46,1],[157,9,157,10,1],[159,9,159,10,1],[160,13,160,47,1],[161,9,161,10,1],[163,9,163,10,1],[164,13,164,57,1],[165,13,165,76,1],[166,13,166,31,1],[167,9,167,10,1],[169,9,169,10,1],[170,13,170,46,1],[171,9,171,10,1],[173,9,173,10,1],[174,13,174,46,1],[175,9,175,10,1],[16,14,16,15,0],[17,18,17,57,0]]);
+    </script>
+  </body>
+</html>

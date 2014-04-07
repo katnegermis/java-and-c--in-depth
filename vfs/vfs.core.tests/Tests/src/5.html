@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\jcdfile.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using vfs.core.visitor;
+using vfs.exceptions;
+
+namespace vfs.core {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct JCDDirEntry {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 120)]
+        // Name and Size should be updated on an instance of JCDFile if
+        // you want them to be updated automatically on disk.
+        public string Name; // 240B
+        public ulong Size; // 8B
+        public bool IsFolder; // 4B
+        public uint FirstBlock; // 4B
+
+        public static JCDDirEntry FromByteArr(byte[] byteArr) {
+            int size = StructSize();
+            if(byteArr.Length != size) {
+                throw new InvalidCastException();
+            }
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.Copy(byteArr, 0, ptr, size);
+            var ret = (JCDDirEntry)Marshal.PtrToStructure(ptr, typeof(JCDDirEntry));
+            Marshal.FreeHGlobal(ptr);
+            return ret;
+        }
+
+        public static int StructSize() {
+            return Marshal.SizeOf(typeof(JCDDirEntry));   
+        }
+
+        public bool IsEmpty()
+        {
+            return (Name.Length == 0 &amp;&amp; IsFolder);
+        }
+
+        public bool IsFinal()
+        {
+            return (Name.Length == 0 &amp;&amp; !IsFolder);
+        }
+    }
+
+    internal class JCDFile {
+        protected JCDDirEntry entry;
+        protected JCDFAT container;
+        protected JCDFolder parent;
+        protected uint parentIndex;
+        protected string path;
+        protected uint level;
+
+        public string Name {
+            get { return this.entry.Name; }
+            set {
+                this.entry.Name = value;
+                this.UpdateEntry(this.entry);
+            }
+        }
+
+        public ulong Size
+        {
+            get { return this.entry.Size; }
+            set {
+                this.entry.Size = value;
+                this.UpdateEntry(this.entry);
+            }
+        }
+
+        public bool IsFolder
+        {
+            get { return this.entry.IsFolder; }
+        }
+
+        public JCDDirEntry Entry { get { return this.entry; } }
+        public string Path { get { return this.path; } }
+        public JCDFolder Parent { get { return this.parent; } }
+        public uint Level { get { return this.level; } }
+
+        //public static byte[] EmptyEntry = { 0x00, 0xFF }; // 0x00FF
+        //public static byte[] FinalEntry = { 0x00, 0x00 }; // 0x0000
+
+        public static JCDFile FromDirEntry(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
+            if(entry.IsFolder) {
+                return new JCDFolder(container, entry, parent, parentIndex, path, level);
+            }
+            else {
+                return new JCDFile(container, entry, parent, parentIndex, path, level);
+            }
+        }
+
+        protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
+            if(parent != null) {
+                if(entry.Name == &quot;&quot; &amp;&amp; (entry.Size != 0 || entry.FirstBlock != 0)) {
+                    throw new InvalidFileNameException();
+                }
+
+                //if(!Helpers.PathIsValid(path, entry.IsFolder))
+                if(!Helpers.FileNameIsValid(entry.Name)) {
+                    throw new InvalidFileNameException();
+                }
+            }
+
+            this.entry = entry;
+            this.container = container;
+            this.parent = parent;
+            this.parentIndex = parentIndex;
+            this.path = path;
+            this.level = level;
+        }
+
+        /// &lt;summary&gt;
+        /// Delete file and all potential subdirectories.
+        /// Subdirectories are deleted in a depth-first manner.
+        /// &lt;/summary&gt;
+        public void Delete(bool skipEntryDeletion)
+        {
+            // If this is a folder, delete all dir entries recursively.
+            if (entry.IsFolder)
+            {
+                var files = ((JCDFolder)this).GetFileEntries();
+                foreach (var file in files)
+                {
+                    file.Delete(true);
+                }
+            }
+
+            // Delete blocks for this file.
+            // All (potential) sub-entries will have been deleted at this point.
+            container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
+
+            // Remove this dir-entry from parent folder.
+            if(!skipEntryDeletion) {
+                DeleteEntry();
+
+                //container.tryShrink();
+            }
+        }
+        public void DeleteEntry() {
+            parent.DeleteEntry((uint) parentIndex);
+        }
+
+        public bool EntryIsEmpty()
+        {
+            return this.entry.IsEmpty();
+        }
+
+        public bool EntryIsFinal()
+        {
+            return this.entry.IsFinal();
+        }
+
+        protected uint GetLastBlockId()
+        {
+            var blockVisitor = (LastBlockIdVisitor)container.WalkFATChain(entry.FirstBlock, new LastBlockIdVisitor());
+            return blockVisitor.Block;
+        }
+
+        private void UpdateEntry(JCDDirEntry entry)
+        {
+            if (this.parent == null)
+            {
+                return;
+            }
+            this.parent.setEntry(this.parentIndex, this.entry);
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,63,18,64,1],[19,13,19,37,1],[20,13,20,39,1],[24,13,24,53,1],[25,13,25,49,1],[26,13,26,85,1],[27,13,27,38,1],[28,13,28,24,1],[29,9,29,10,1],[31,40,31,41,1],[32,13,32,56,1],[33,9,33,10,1],[36,9,36,10,1],[37,13,37,51,1],[38,9,38,10,1],[41,9,41,10,1],[42,13,42,52,1],[43,9,43,10,1],[55,17,55,18,1],[55,19,55,42,1],[55,43,55,44,1],[56,17,56,18,1],[57,17,57,41,1],[58,17,58,46,1],[59,13,59,14,1],[64,17,64,18,1],[64,19,64,42,1],[64,43,64,44,1],[73,17,73,18,1],[73,19,73,46,1],[73,47,73,48,1],[76,40,76,41,1],[76,42,76,60,1],[76,61,76,62,1],[77,34,77,35,1],[77,36,77,53,1],[77,54,77,55,1],[78,39,78,40,1],[78,41,78,60,1],[78,61,78,62,1],[84,142,84,143,1],[85,13,85,31,1],[85,32,85,33,1],[86,17,86,90,1],[88,18,88,19,1],[89,17,89,88,1],[91,9,91,10,1],[93,9,93,124,1],[93,125,93,126,1],[94,13,94,31,1],[94,32,94,33,1],[95,17,95,83,1],[100,17,100,57,1],[103,13,103,14,1],[105,13,105,32,1],[106,13,106,40,1],[107,13,107,34,1],[108,13,108,44,1],[109,13,109,30,1],[110,13,110,32,1],[111,9,111,10,1],[118,9,118,10,1],[120,13,120,32,1],[131,13,131,80,1],[134,13,134,35,1],[134,36,134,37,1],[135,17,135,31,1],[138,13,138,14,1],[139,9,139,10,1],[140,35,140,36,1],[141,13,141,52,1],[142,9,142,10,1],[145,9,145,10,1],[146,13,146,41,1],[147,9,147,10,1],[150,9,150,10,1],[151,13,151,41,1],[152,9,152,10,1],[161,9,161,10,1],[162,13,162,37,1],[166,13,166,64,1],[167,9,167,10,1],[20,40,20,41,0],[21,17,21,50,0],[65,17,65,18,0],[66,17,66,41,0],[67,17,67,46,0],[68,13,68,14,0],[79,33,79,34,0],[79,35,79,53,0],[79,54,79,55,0],[95,84,95,85,0],[96,21,96,58,0],[100,58,100,59,0],[101,21,101,58,0],[121,13,121,14,0],[122,17,122,64,0],[123,17,123,24,0],[123,38,123,43,0],[123,26,123,34,0],[124,17,124,18,0],[125,21,125,39,0],[126,17,126,18,0],[123,35,123,37,0],[127,13,127,14,0],[155,9,155,10,0],[156,13,156,119,0],[157,13,157,39,0],[158,9,158,10,0],[163,13,163,14,0],[164,17,164,24,0]]);
+    </script>
+  </body>
+</html>

@@ -76,13 +76,13 @@ namespace vfs.core
         ///        Compress(input, fileStream);
         ///    }
         /// </example>
-        private static void Compress(Stream input, Stream output)
+       /* private static void Compress(Stream input, Stream output)
         {
             using (var compressor = new DeflateStream(output, CompressionMode.Compress))
             {
                 input.CopyTo(compressor);
             }
-        }
+        }*/
 
         /// <summary>
         /// Method to decompress the input Stream and write the result into the output Stream
@@ -96,26 +96,26 @@ namespace vfs.core
         ///        Decompress(input, fileStream);
         ///    }
         /// </example>
-        private static void Decompress(Stream input, Stream output)
+      /*  private static void Decompress(Stream input, Stream output)
         {
             using (var decompressor = new DeflateStream(input, CompressionMode.Decompress))
             {
                 decompressor.CopyTo(output);
             }
-        }
+        }*/
 
         /// <summary>
         /// Generates a AESCryptoServiceProvider with Key and IV, which can then be used to encrypt
         /// </summary>
         /// <returns>AESCryptoServiceProvider contianing Key and IV</returns>
-        private static AesCryptoServiceProvider GenerateAESCryptoServiceProvider()
+       /* private static AesCryptoServiceProvider GenerateAESCryptoServiceProvider()
         {
             AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
             AES.GenerateKey();
             AES.GenerateIV();
 
             return AES;
-        }
+        }*/
 
         /// <summary>
         /// Encryptes the contents of the input to the output Stream with the given Key and IV
@@ -124,7 +124,7 @@ namespace vfs.core
         /// <param name="output">Stream to write to</param>
         /// <param name="key">AES Key to use</param>
         /// <param name="iv">AES IV to use</param>
-        private static void Encrypt(Stream input, Stream output, byte[] key, byte[] iv)
+      /*  private static void Encrypt(Stream input, Stream output, byte[] key, byte[] iv)
         {
             AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
             AES.Key = key;
@@ -134,7 +134,7 @@ namespace vfs.core
             {
                 input.CopyTo(encryptor);
             }
-        }
+        }*/
 
         /// <summary>
         /// Decryptes the contents of the input to the output Stream with the given Key and IV
@@ -143,7 +143,7 @@ namespace vfs.core
         /// <param name="output">Stream to write to</param>
         /// <param name="key">AES Key to use</param>
         /// <param name="iv">AES IV to use</param>
-        private static void Decrypt(Stream input, Stream output, byte[] key, byte[] iv)
+       /* private static void Decrypt(Stream input, Stream output, byte[] key, byte[] iv)
         {
             AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
             AES.Key = key;
@@ -153,7 +153,7 @@ namespace vfs.core
             {
                 input.CopyTo(decryptor);
             }
-        }
+        }*/
 
         /// <summary>
         /// Compresses and directly also encryptes the input Stream to the output Stream by using the given AES Key and IV
@@ -162,7 +162,7 @@ namespace vfs.core
         /// <param name="output">Stream to write the data to</param>
         /// <param name="key">AES Key to encrypt with</param>
         /// <param name="iv">AES IV to use for the encryption</param>
-        private static void CompressAndEncrypt(Stream input, Stream output, byte[] key, byte[] iv)
+       /* private static void CompressAndEncrypt(Stream input, Stream output, byte[] key, byte[] iv)
         {
             AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
             AES.Key = key;
@@ -175,7 +175,7 @@ namespace vfs.core
                     input.CopyTo(compressor);
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Decrypts and directly decompresses the given input to the output Stream by using the given AES Key and IV
@@ -184,7 +184,7 @@ namespace vfs.core
         /// <param name="output">Stream to write to</param>
         /// <param name="key">AES Key to decrypt with</param>
         /// <param name="iv">AES IV to use for the decryption</param>
-        private static void DecryptAndDecompress(Stream input, Stream output, byte[] key, byte[] iv)
+        /*private static void DecryptAndDecompress(Stream input, Stream output, byte[] key, byte[] iv)
         {
             AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
             AES.Key = key;
@@ -197,6 +197,6 @@ namespace vfs.core
                     decompressor.CopyTo(output);
                 }
             }
-        }
+        }*/
     }
 }

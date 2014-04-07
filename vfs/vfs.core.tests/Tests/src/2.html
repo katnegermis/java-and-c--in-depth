@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\helpers.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace vfs.core
+{
+    class Helpers
+    {
+        /// &lt;summary&gt;
+        /// Round up integer divison
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;num&quot;&gt;Numerator&lt;/param&gt;
+        /// &lt;param name=&quot;den&quot;&gt;Denominator&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public static ulong ruid(ulong num, ulong den)
+        {
+            return (num + den - 1) / den;
+        }
+
+        public static string PathCombine(string path, string fileName)
+        {
+            return System.IO.Path.Combine(path, fileName);
+        }
+
+        public static string PathGetDirectoryName(string path)
+        {
+            //return System.IO.Path.GetDirectoryName(path);
+            var tmp = TrimLastSlash(path);
+            var slash = tmp.LastIndexOf(&#39;/&#39;);
+            if(slash &gt; -1) {
+                tmp = tmp.Remove(slash + 1);
+            }
+            else {
+                return &quot;.&quot;;
+            }
+
+            return tmp;
+        }
+
+        public static string PathGetFileName(string path)
+        {
+            //return System.IO.Path.GetFileName(path);
+            var tmp = TrimLastSlash(path);
+            return tmp.Substring(tmp.LastIndexOf(&quot;/&quot;) + 1);
+        }
+
+        /*public static bool PathIsValid(string path) {
+            return true;
+        }
+        public static bool PathIsValid(string path, bool isFolder) {
+            return true;
+        }*/
+
+        public static string TrimLastSlash(string name) {
+            return name.TrimEnd(new char[] { &#39;/&#39; });
+        }
+
+        public static bool FileNameIsValid(string name) {
+            return (name != &quot;.&quot; &amp;&amp; name != &quot;..&quot; &amp;&amp; name.IndexOf(&#39;/&#39;) &lt; 0);
+        }
+
+        /// &lt;summary&gt;
+        /// Method to compress the input Stream and write the result into the output Stream 
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream where the bytes to compress come from&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream where the compressed bytes go to&lt;/param&gt;
+        /// &lt;example&gt;
+        /// using (FileStream input = File.Open(@&quot;C:\source.txt&quot;, FileMode.Open))
+        ///    using (FileStream fileStream = File.Create(@&quot;C:\temp.txt&quot;))
+        ///    { 
+        ///        Compress(input, fileStream);
+        ///    }
+        /// &lt;/example&gt;
+       /* private static void Compress(Stream input, Stream output)
+        {
+            using (var compressor = new DeflateStream(output, CompressionMode.Compress))
+            {
+                input.CopyTo(compressor);
+            }
+        }*/
+
+        /// &lt;summary&gt;
+        /// Method to decompress the input Stream and write the result into the output Stream
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream where the bytes to decompress come from&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream where the decompressed bytes go to&lt;/param&gt;
+        /// &lt;example&gt;
+        /// using (FileStream input = File.Open(@&quot;C:\temp.txt&quot;, FileMode.Open))
+        ///    using (FileStream fileStream = File.Create(@&quot;C:\target.txt&quot;))
+        ///    {
+        ///        Decompress(input, fileStream);
+        ///    }
+        /// &lt;/example&gt;
+      /*  private static void Decompress(Stream input, Stream output)
+        {
+            using (var decompressor = new DeflateStream(input, CompressionMode.Decompress))
+            {
+                decompressor.CopyTo(output);
+            }
+        }*/
+
+        /// &lt;summary&gt;
+        /// Generates a AESCryptoServiceProvider with Key and IV, which can then be used to encrypt
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;AESCryptoServiceProvider contianing Key and IV&lt;/returns&gt;
+       /* private static AesCryptoServiceProvider GenerateAESCryptoServiceProvider()
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.GenerateKey();
+            AES.GenerateIV();
+
+            return AES;
+        }*/
+
+        /// &lt;summary&gt;
+        /// Encryptes the contents of the input to the output Stream with the given Key and IV
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream to encrypt&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream to write to&lt;/param&gt;
+        /// &lt;param name=&quot;key&quot;&gt;AES Key to use&lt;/param&gt;
+        /// &lt;param name=&quot;iv&quot;&gt;AES IV to use&lt;/param&gt;
+      /*  private static void Encrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.Key = key;
+            AES.IV = iv;
+
+            using (var encryptor = new CryptoStream(output, AES.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                input.CopyTo(encryptor);
+            }
+        }*/
+
+        /// &lt;summary&gt;
+        /// Decryptes the contents of the input to the output Stream with the given Key and IV
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream to decrypt from&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream to write to&lt;/param&gt;
+        /// &lt;param name=&quot;key&quot;&gt;AES Key to use&lt;/param&gt;
+        /// &lt;param name=&quot;iv&quot;&gt;AES IV to use&lt;/param&gt;
+       /* private static void Decrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.Key = key;
+            AES.IV = iv;
+
+            using (var decryptor = new CryptoStream(output, AES.CreateDecryptor(), CryptoStreamMode.Write))
+            {
+                input.CopyTo(decryptor);
+            }
+        }*/
+
+        /// &lt;summary&gt;
+        /// Compresses and directly also encryptes the input Stream to the output Stream by using the given AES Key and IV
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream to take the data from&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream to write the data to&lt;/param&gt;
+        /// &lt;param name=&quot;key&quot;&gt;AES Key to encrypt with&lt;/param&gt;
+        /// &lt;param name=&quot;iv&quot;&gt;AES IV to use for the encryption&lt;/param&gt;
+       /* private static void CompressAndEncrypt(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.Key = key;
+            AES.IV = iv;
+
+            using (var encryptor = new CryptoStream(output, AES.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                using (var compressor = new DeflateStream(encryptor, CompressionMode.Compress))
+                {
+                    input.CopyTo(compressor);
+                }
+            }
+        }*/
+
+        /// &lt;summary&gt;
+        /// Decrypts and directly decompresses the given input to the output Stream by using the given AES Key and IV
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;input&quot;&gt;Stream to take the data from&lt;/param&gt;
+        /// &lt;param name=&quot;output&quot;&gt;Stream to write to&lt;/param&gt;
+        /// &lt;param name=&quot;key&quot;&gt;AES Key to decrypt with&lt;/param&gt;
+        /// &lt;param name=&quot;iv&quot;&gt;AES IV to use for the decryption&lt;/param&gt;
+        /*private static void DecryptAndDecompress(Stream input, Stream output, byte[] key, byte[] iv)
+        {
+            AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
+            AES.Key = key;
+            AES.IV = iv;
+
+            using (var decryptor = new CryptoStream(input, AES.CreateDecryptor(), CryptoStreamMode.Read))
+            {
+                using (var decompressor = new DeflateStream(decryptor, CompressionMode.Decompress))
+                {
+                    decompressor.CopyTo(output);
+                }
+            }
+        }*/
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[21,9,21,10,1],[22,13,22,42,1],[23,9,23,10,1],[26,9,26,10,1],[27,13,27,59,1],[28,9,28,10,1],[31,9,31,10,1],[33,13,33,43,1],[34,13,34,46,1],[35,13,35,27,1],[35,28,35,29,1],[36,17,36,45,1],[37,13,37,14,1],[38,18,38,19,1],[39,17,39,28,1],[42,13,42,24,1],[43,9,43,10,1],[46,9,46,10,1],[48,13,48,43,1],[49,13,49,60,1],[50,9,50,10,1],[59,57,59,58,1],[60,13,60,53,1],[61,9,61,10,1],[63,57,63,58,1],[64,13,64,75,1],[65,9,65,10,1]]);
+    </script>
+  </body>
+</html>

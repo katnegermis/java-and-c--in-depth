@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\users\pascal\documents\github\ravioli\vfs\vfs.core\jcdfolder.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using vfs.core.visitor;
+using vfs.exceptions;
+
+namespace vfs.core {
+    internal class JCDFolder : JCDFile {
+
+        private bool populated = false;
+        private List&lt;JCDFile&gt; entries;
+
+        // This variable is for internal use only! Use GetEmptyEntryIndex if you want the correct value.
+        private uint firstEmptyEntry;
+
+        public JCDFolder(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level)
+            : base(container, entry, parent, parentIndex, path, level) {
+            entries = new List&lt;JCDFile&gt;();
+        }
+
+        public static JCDFolder rootFolder(JCDFAT vfs) {
+            var blockCounter = (BlockCounterVisitor)vfs.WalkFATChain(JCDFAT.rootDirBlock, new BlockCounterVisitor(true));
+            var entry = new JCDDirEntry {
+                Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
+            };
+            return new JCDFolder(vfs, entry, null, 0, &quot;/&quot;, 0);
+        }
+
+        public static JCDFolder createRootFolder(JCDFAT vfs) {
+            vfs.FatSetEOC(JCDFAT.rootDirBlock);
+            JCDFolder root = rootFolder(vfs);
+            root.setEntryFinal(0);
+            return root;
+        }
+
+        private ulong entryOffset(uint index) {
+            return container.FileGetByteOffset(this.entry.FirstBlock, index / JCDFAT.dirEntriesPerBlock,
+                (index % JCDFAT.dirEntriesPerBlock) * JCDFAT.dirEntrySize);
+        }
+
+        public void setEntry(uint index, byte[] byteArr)
+        {
+
+            // Check that the given index goes at most one block beyond the number of blocks currently allocated.
+            var numBlocks = Helpers.ruid(this.entry.Size, JCDFAT.blockSize);
+            var blocksRequired = Helpers.ruid(index + 1, JCDFAT.dirEntriesPerBlock);
+            if (blocksRequired &gt; numBlocks + 1)
+            {
+                // TODO: Throw proper exception.
+                throw new Exception(&quot;Folders are only allowed to expand by one block at a time!&quot;);
+            }
+
+            // Expand folder if `index` points beyond the folder&#39;s currently allocated blocks.
+            if (index &gt;= numBlocks * JCDFAT.dirEntriesPerBlock)
+            {
+                this.ExpandOneBlock();
+                setEntryFinal(index + 1);
+            }
+
+            container.Write(entryOffset(index), byteArr);
+            Console.WriteLine(&quot;Wrote entry for &#39;{0}&#39; on disk.&quot;, JCDDirEntry.FromByteArr(byteArr).Name);
+        }
+
+        public void setEntry(uint index, JCDDirEntry entry) {
+            // Assuming any corresponding entry in the entries List is already set
+            int size = JCDDirEntry.StructSize();
+            byte[] byteArr = new byte[size];
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(entry, ptr, false);
+            Marshal.Copy(ptr, byteArr, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            setEntry(index, byteArr);     
+        }
+
+        private void setFileEntry(uint index, JCDFile file) {
+            //index must not be &gt; Count, i.e. not more than 1 beyond the end of entries
+            if(index &lt; this.entries.Count) {
+                entries[(int)index] = file;
+
+                // Update firstEmptyEntry if we mark an &#39;earlier&#39; entry empty.
+                if(file.EntryIsEmpty() &amp;&amp; index &lt; firstEmptyEntry) {
+                    firstEmptyEntry = index;
+                }
+            }
+            else {
+                entries.Add(file);
+
+                if(firstEmptyEntry == index) {
+                    firstEmptyEntry++;
+                }
+            }
+        }
+
+        /// &lt;summary&gt;
+        /// Mark an entry as Empty.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;Index of the entry to be marked.&lt;/param&gt;
+        public void setEntryEmpty(uint index) {
+            var emptyEntry = new JCDDirEntry { Name = &quot;&quot;, Size = 0, IsFolder = true, FirstBlock = 0 };
+            setFileEntry(index, emptyFile(index, false));
+            setEntry(index, emptyEntry);
+        }
+
+        /// &lt;summary&gt;
+        /// Mark an entry as the final entry in the folder.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;Index of the entry to be marked.&lt;/param&gt;
+        public void setEntryFinal(uint index) {
+            var finalEntry = new JCDDirEntry { Name = &quot;&quot;, Size = 0, IsFolder = false, FirstBlock = 0 };
+            setFileEntry(index, emptyFile(index, true));
+            setEntry(index, finalEntry);
+        }
+
+        private JCDFile emptyFile(uint index, bool isFinal) {
+            var entry = new JCDDirEntry {Name = &quot;&quot;, Size = 0, IsFolder = !isFinal, FirstBlock = 0};
+            return JCDFile.FromDirEntry(this.container, entry, this, index, this.path, level + 1);
+        }
+
+        /// &lt;summary&gt;
+        /// Get list of dir entries read from firstBlock and continuing in the FAT chain.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;firstBlock&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        private List&lt;JCDDirEntry&gt; GetDirEntries(uint firstBlock)
+        {
+            var dirEntries = new List&lt;JCDDirEntry&gt;();
+
+            // Get the contents of a block and create dir entries from it.
+            // The function defined below is called once for each block in the folder.
+            container.WalkFATChain(firstBlock, new FileReaderVisitor(this.Size, (blockData, lastBlock) =&gt;
+            {
+                int size = JCDDirEntry.StructSize();
+                var entriesInBlock = Math.Min(JCDFAT.dirEntriesPerBlock, blockData.Length / JCDFAT.dirEntrySize);
+                for (int i = 0; i &lt; entriesInBlock; i += 1)
+                {
+                    var dst = new byte[size];
+                    Buffer.BlockCopy(blockData, i * size, dst, 0, size);
+                    var entry = JCDDirEntry.FromByteArr(dst);
+
+                    // If this is final entry we don&#39;t want to read the contents of the next block.
+                    // In fact, there should be no more blocks to read.
+                    if (entry.IsFinal())
+                    {
+                        return false;
+                    }
+                    dirEntries.Add(entry);
+                }
+                return true;
+            }));
+
+            return dirEntries;
+        }
+
+        public List&lt;JCDFile&gt; GetFileEntries()
+        {
+            if (!this.populated)
+            {
+                this.Populate();
+            }
+            return this.entries;
+        }
+
+        public JCDFile GetFile(string name)
+        {
+            if (!this.populated)
+            {
+                this.Populate();
+            }
+            foreach (var file in this.entries)
+            {
+                if (file.Name == name)
+                {
+                    return file;
+                }
+            }
+            return null;
+        }
+        
+        /// &lt;summary&gt;
+        /// Add JCDDirEntry to folder.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;dirEntry&quot;&gt;Entry to be added.&lt;/param&gt;
+        /// &lt;returns&gt;Index of the newly added entry.&lt;/returns&gt;
+        public JCDFile AddDirEntry(JCDDirEntry dirEntry)
+        {
+            // Verify that a file with that name doesn&#39;t already exist.
+            if (this.GetFile(dirEntry.Name) != null)
+            {
+                throw new FileAlreadyExistsException();
+            }
+            uint index = GetEmptyEntryIndex();
+            var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
+            var newFile = JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath, level + 1);
+            setFileEntry(index, newFile);
+            setEntry(index, dirEntry);
+            return newFile;
+        }
+
+        /// &lt;summary&gt;
+        /// Delete dir entry from folder structure.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+        public void DeleteEntry(uint index)
+        {
+            this.setEntryEmpty(index);
+        }
+
+        /// &lt;summary&gt;
+        /// Populate this.entries list with JCDFiles.
+        /// &lt;/summary&gt;
+        private void Populate() {
+            bool emptyEntrySet = false;
+            var dirEntries = GetDirEntries(this.entry.FirstBlock);
+            for (uint i = 0; i &lt; dirEntries.Count; i += 1)
+            {
+                var dirEntry = dirEntries[(int)i];
+                var entryPath = FileGetPath(dirEntry.Name, dirEntry.IsFolder);
+                var newFile = JCDFile.FromDirEntry(this.container, dirEntry, this, i, entryPath, level + 1);
+                this.entries.Add(newFile);
+
+                // Set firstEmptyEntry if not already set.
+                if (!emptyEntrySet &amp;&amp; (dirEntry.IsEmpty() || dirEntry.IsFinal()))
+                {
+                    this.firstEmptyEntry = i;
+                    emptyEntrySet = true;
+                }
+            }
+            if (!emptyEntrySet)
+            {
+                this.firstEmptyEntry = (uint)dirEntries.Count;
+            }
+            this.populated = true;
+        }
+
+        /// &lt;summary&gt;
+        /// Get the first empty entry index of the folder.
+        /// Allocates another block if there are no more entries left in the currently allocated blocks.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public uint GetEmptyEntryIndex()
+        {
+            if (!this.populated)
+            {
+                this.Populate();
+            }
+
+            if (this.firstEmptyEntry &gt;= this.entries.Count)
+            {
+                return this.firstEmptyEntry;
+            }
+
+            var firstEmpty = this.entries[(int)this.firstEmptyEntry];
+
+            if (firstEmpty.EntryIsEmpty() || firstEmpty.EntryIsFinal())
+            {
+                return this.firstEmptyEntry;
+            }
+
+            int i;
+            for (i = (int)firstEmptyEntry + 1; i &lt; this.entries.Count; i += 1)
+            {
+                if (this.entries[i].EntryIsEmpty())
+                {
+                    this.firstEmptyEntry = (uint)i;
+                }
+            }
+            this.firstEmptyEntry = (uint)i;
+            this.setEntryEmpty((uint)i);
+            return this.firstEmptyEntry;
+        }
+
+        /// &lt;summary&gt;
+        /// Whether the give file is equal to, os a descendant of, this folder.
+        /// Usually used when JCDFiles are initialized.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;file&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        public bool IsParentOf(JCDFile file) {
+            if(level &gt; file.Level) {
+                return false;
+            }
+            JCDFile rec;
+            for(rec = file; level &lt; rec.Level; rec = rec.Parent);
+            return (rec == this);
+        }
+
+        /// &lt;summary&gt;
+        /// Get the path of a child of this folder.
+        /// Usually used when JCDFiles are initialized.
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;file&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        /*public string FileGetPath(JCDFile file)
+        {
+            // Check whether dirEntry is in entries. If it is not
+            return Helpers.PathCombine(this.path, file.Name);
+        }*/
+
+        public string FileGetPath(string name, bool isFolder)
+        {
+            /*if(isFolder) {
+                return new Uri(this.path, name + &quot;/&quot;);
+            }
+            else {
+                return new Uri(this.path, name);
+                
+            }*/
+
+            if(isFolder) {
+                return Helpers.PathCombine(this.path, name) + &quot;/&quot;;
+            }
+            else {
+                return Helpers.PathCombine(this.path, name);
+
+            }
+            
+            // TODO: Throw proper exception.
+            throw new Exception(&quot;A file with that name is not a child of this folder!&quot;);
+        }
+
+        /// &lt;summary&gt;
+        /// Expand folder by one block.
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;FAT index of newly allocated block.&lt;/returns&gt;
+        protected uint ExpandOneBlock()
+        {
+            var prevLastBlock = GetLastBlockId();
+            var newLastBlock = container.GetFreeBlock();
+
+            // Update FAT entries.
+            container.FatSet(prevLastBlock, newLastBlock);
+            container.FatSetEOC(newLastBlock);
+
+            // Clear the newly allocated block in case it has old data.
+            container.ZeroBlock(newLastBlock);
+
+            // Update the file&#39;s current size.
+            // Make sure to reflect this change on disk.
+            this.Size += JCDFAT.blockSize;
+            return newLastBlock;
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[10,9,10,40,1],[16,9,17,71,1],[17,72,17,73,1],[18,13,18,43,1],[19,9,19,10,1],[21,56,21,57,1],[22,13,22,122,1],[23,13,25,15,1],[26,13,26,63,1],[27,9,27,10,1],[29,62,29,63,1],[30,13,30,48,1],[31,13,31,46,1],[32,13,32,35,1],[33,13,33,25,1],[34,9,34,10,1],[36,47,36,48,1],[37,13,38,76,1],[39,9,39,10,1],[42,9,42,10,1],[45,13,45,77,1],[46,13,46,85,1],[47,13,47,48,1],[54,13,54,64,1],[60,13,60,58,1],[61,13,61,104,1],[62,9,62,10,1],[64,61,64,62,1],[66,13,66,49,1],[67,13,67,45,1],[68,13,68,53,1],[69,13,69,55,1],[70,13,70,49,1],[71,13,71,38,1],[72,13,72,38,1],[73,9,73,10,1],[75,61,75,62,1],[77,13,77,43,1],[77,44,77,45,1],[78,17,78,44,1],[81,17,81,67,1],[81,68,81,69,1],[82,21,82,45,1],[83,17,83,18,1],[84,13,84,14,1],[85,18,85,19,1],[86,17,86,35,1],[88,17,88,45,1],[88,46,88,47,1],[89,21,89,39,1],[90,17,90,18,1],[91,13,91,14,1],[92,9,92,10,1],[98,47,98,48,1],[99,13,99,103,1],[100,13,100,58,1],[101,13,101,41,1],[102,9,102,10,1],[108,47,108,48,1],[109,13,109,104,1],[110,13,110,57,1],[111,13,111,41,1],[112,9,112,10,1],[114,61,114,62,1],[115,13,115,100,1],[116,13,116,99,1],[117,9,117,10,1],[125,9,125,10,1],[126,13,126,54,1],[130,13,131,13,1],[148,29,149,17,1],[151,13,151,31,1],[152,9,152,10,1],[155,9,155,10,1],[156,13,156,33,1],[157,13,157,14,1],[158,17,158,33,1],[159,13,159,14,1],[160,13,160,33,1],[161,9,161,10,1],[164,9,164,10,1],[165,13,165,33,1],[166,13,166,14,1],[167,17,167,33,1],[168,13,168,14,1],[169,13,169,20,1],[169,34,169,46,1],[169,22,169,30,1],[170,13,170,14,1],[171,17,171,39,1],[172,17,172,18,1],[173,21,173,33,1],[175,13,175,14,1],[169,31,169,33,1],[176,13,176,25,1],[177,9,177,10,1],[185,9,185,10,1],[187,13,187,53,1],[191,13,191,47,1],[192,13,192,75,1],[193,13,193,104,1],[194,13,194,42,1],[195,13,195,39,1],[196,13,196,28,1],[197,9,197,10,1],[204,9,204,10,1],[205,13,205,39,1],[206,9,206,10,1],[211,33,211,34,1],[212,13,212,40,1],[213,13,213,67,1],[214,18,214,29,1],[214,30,214,50,1],[228,13,228,32,1],[229,13,229,14,1],[230,17,230,63,1],[231,13,231,14,1],[232,13,232,35,1],[233,9,233,10,1],[241,9,241,10,1],[242,13,242,33,1],[247,13,247,60,1],[248,13,248,14,1],[249,17,249,45,1],[270,9,270,10,1],[300,9,300,10,1],[309,13,309,25,1],[309,26,309,27,1],[310,17,310,67,1],[312,18,312,19,1],[313,17,313,61,1],[319,9,319,10,1],[131,13,131,14,1],[132,17,132,53,1],[133,17,133,114,1],[134,22,134,32,1],[135,17,135,18,1],[136,21,136,46,1],[137,21,137,73,1],[138,21,138,62,1],[142,21,142,41,1],[143,21,143,22,1],[144,25,144,38,1],[134,33,134,51,1],[48,13,48,14,0],[50,17,50,99,0],[55,13,55,14,0],[56,17,56,39,0],[57,17,57,42,0],[58,13,58,14,0],[188,13,188,14,0],[189,17,189,56,0],[215,13,215,14,0],[216,17,216,51,0],[217,17,217,79,0],[218,17,218,109,0],[219,17,219,43,0],[222,17,222,82,0],[223,17,223,18,0],[224,21,224,46,0],[225,21,225,42,0],[226,17,226,18,0],[227,13,227,14,0],[214,52,214,58,0],[243,13,243,14,0],[244,17,244,33,0],[245,13,245,14,0],[252,13,252,70,0],[254,13,254,72,0],[255,13,255,14,0],[256,17,256,45,0],[260,18,260,46,0],[261,13,261,14,0],[262,17,262,52,0],[263,17,263,18,0],[264,21,264,52,0],[265,17,265,18,0],[266,13,266,14,0],[260,72,260,78,0],[260,48,260,70,0],[267,13,267,44,0],[268,13,268,41,0],[269,13,269,41,0],[278,46,278,47,0],[279,13,279,35,0],[279,36,279,37,0],[280,17,280,30,0],[283,17,283,27,0],[283,48,283,64,0],[283,29,283,46,0],[284,13,284,34,0],[285,9,285,10,0],[326,9,326,10,0],[327,13,327,50,0],[328,13,328,57,0],[331,13,331,59,0],[332,13,332,47,0],[335,13,335,47,0],[339,13,339,43,0],[340,13,340,33,0],[341,9,341,10,0],[146,21,146,43,0],[147,17,147,18,0],[134,53,134,59,0],[148,17,148,29,0]]);
+    </script>
+  </body>
+</html>
