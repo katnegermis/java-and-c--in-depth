@@ -24,10 +24,6 @@ The two blocks following the FAT are reserved for the root directory and the sea
 | data | data | data | data | data | data | data |  data  |
 ~~~~~
 
-\\
-\\
-\\
-
 ~~~~~
      Meta data
                           Size
@@ -73,12 +69,35 @@ JCDDirEntry
 Total size: 256B
 ~~~~~
 
+File system events
+--------------------
 
-Implementation
-----------------
+The following is an explanation of how the implementation of our file system behaves in different scenarios.
 
-In the implementation of JCDFAT we've used the visitor pattern.
+In the following we assume that there is always enough free space, and that the source and destination files and folders exist/don't exist as required.
 
+Creating a file or folder
+-----------------
+- Allocate enough blocks to store the file. This is done by finding free entries in the FAT and chaining them.
+- Store the file in the newly allocated blocks.
+- Write a directory entry in the destination folder.
+
+
+Deleting a file (or folder)
+-----------------
+- (Loop over all files/folders and perform delete file.)
+- Starting from the first block of the file, walk the FAT chain and delete all entries.
+- Delete the directory entry from the parent folder.
+
+
+Moving a file or folder
+---------------
+- Move the file entry from the source folder to the destination folder. File contents are not actually moved.
+
+
+Renaming a file or folder
+-----------------
+- Rewrite the name in the file's directory entry.
 
 
 
