@@ -600,15 +600,23 @@ namespace vfs.core.tests
             testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
             testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
             testVFS.MoveFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
-            var list = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
+            var targetList = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
             bool found = false;
-            foreach (var entry in list)
+            foreach (var entry in targetList)
                 if (entry.Name == name)
                 {
                     found = true;
                     break;
                 }
-            Assert.IsTrue(found);
+            var sourceList = testVFS.ListDirectory(Path.Combine(currentDir, name));
+            bool stillThere = false;
+            foreach (var entry in sourceList)
+                if (entry.Name == name)
+                {
+                    stillThere = true;
+                    break;
+                }
+            Assert.IsTrue(found && !stillThere);
         }
 
         [TestMethod()]
@@ -618,6 +626,50 @@ namespace vfs.core.tests
         {
             testVFS.CreateDirectory("dir", false);
             testVFS.MoveFile("file", "dir");
+            Assert.Inconclusive("Should throw some exception");
+        }
+
+        #endregion
+
+        #region CopyFile Tests
+
+        [TestMethod()]
+        public void CopyFileNormalTest()
+        {
+            string currentDir = testVFS.GetCurrentDirectory();
+            string name = @"vfsSrc.txt";
+            string targetDir = "target";
+            createFile(TestVariables.TEST_DIRECTORY + @"file.txt", TestVariables.SIZE_SMALL);
+
+            testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
+            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
+            testVFS.CopyFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
+            var targetList = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
+            bool found = false;
+            foreach (var entry in targetList)
+                if (entry.Name == name)
+                {
+                    found = true;
+                    break;
+                }
+            var sourceList = testVFS.ListDirectory(Path.Combine(currentDir, name));
+            bool stillThere = false;
+            foreach (var entry in sourceList)
+                if (entry.Name == name)
+                {
+                    stillThere = true;
+                    break;
+                }
+            Assert.IsTrue(found && stillThere);
+        }
+
+        [TestMethod()]
+        [ExpectedException(typeof(Exception),
+        "The fact that the file to copy does not exist was discovered.")]
+        public void CopyFileNotExistingTest()
+        {
+            testVFS.CreateDirectory("dir", false);
+            testVFS.CopyFile("file", "dir");
             Assert.Inconclusive("Should throw some exception");
         }
 
