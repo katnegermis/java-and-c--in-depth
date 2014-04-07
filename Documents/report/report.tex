@@ -2,6 +2,7 @@
 
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{float}
 %\usepackage{ETHlogo}
 
 \title{Project Report\\Group Ravioli}
@@ -14,7 +15,7 @@
 \begin{center}
 
 
-%\includegraphics[width=0.15\textwidth]{./logo}\\[1cm]    
+%\includegraphics[width=0.15\textwidth]{./logo}\\[1cm]
 
 \LARGE Project Report\\Group Ravioli \\[0.5cm]
 
@@ -31,15 +32,157 @@
 %\end{titlepage}
 
 \section{Introduction}
-This document describes the design and implementation of the Personal Virtual File System of group ravioli. The project is part of the course Java and C\# in depth at ETH Zurich. The following sections describe each project phase, listing the requirements that were implemented and the design decisions taken. The last section describes a use case of using the Personal File System.
+    This document describes the design and implementation of the Personal Virtual File System of group ravioli. The project is part of the course Java and C\# in depth at ETH Zurich. The following sections describe each project phase, listing the requirements that were implemented and the design decisions taken. The last section describes a use case of using the Personal File System.
 
 \section{VFS Core}
-VFS Core is the first step towards a Personal Virtual File System. It operates on virtual disks, of which each one is stored in a single file in the host file system. Its API not only offers functionalities to create, mount and delete virtual disks, but also to operate inside opened disks. This ranges from basic console operations, like navigating through directories, renaming and removing, to the virtual disk operations of importing and exporting, both on directories, files or both together.\newline
-The most important task in the process of creating the VFS Core is the design of the storage structure in the virtual disk files. The main aspect in this is efficiency. Not mainly in speed, but in usage of the available space. Two basic approaches are storing the files in one block, which of course could result in lots of space lost due to fragmentation, or splitting files into parts of predefined size that are always linking to the next part, resulting in a very space efficient but most likely slower system.
+    VFS Core is the first step towards a Personal Virtual File System. It operates on virtual disks, of which each one is stored in a single file in the host file system. Its API not only offers functionalities to create, mount and delete virtual disks, but also to operate inside opened disks. This ranges from basic console operations, like navigating through directories, renaming and removing, to the virtual disk operations of importing and exporting, both on directories, files or both together.\newline
+    The most important task in the process of creating the VFS Core is the design of the storage structure in the virtual disk files. The main aspect in this is efficiency. Not mainly in speed, but in usage of the available space. Two basic approaches are storing the files in one block, which of course could result in lots of space lost due to fragmentation, or splitting files into parts of predefined size that are always linking to the next part, resulting in a very space efficient but most likely slower system.
 
-\subsection{Requirements}
+    \subsection{Requirements}
 
-\subsection{Design}
+    \subsection{Design}
+        We decided to take a lot of inspiration from the FAT file system
+        \footnote{http://en.wikipedia.org/wiki/File\_Allocation\_Table}, also naming our file system JCDFAT. The overall structure of JCDFAT can be seen on Figure \ref{fig:block_structure}.\\
+        \\
+        The smallest unit of allocation in JCDFAT is one block, which currently
+        is $2^{12}$ bytes (4KB).\\
+        \\
+        The first block of the file system contains meta data (see Figure \ref{fig:meta_data}). Even though the meta data currently only is 28 bytes, it has a full block allocated to it, as described above.\\
+        \\
+        The next block(s) contain(s) the File Allocation Table (FAT). Depending
+        on how large the file system is, the FAT will span one or more blocks.
+        Since we're using 32 bit integers, and blocks of size 4KB, each FAT
+        block allows us to address 4MB. This means that the smallest JCDFAT file system allowed is 4MB. It also means that the largest JCDFAT file system possible theoretically is 16 TB, but due to an implementation detail, it currently is 2 TB. The size of the FAT is \emph{included} in the size of the file system. The FAT takes up around 1/1024th of the file system; this means that if the file system is 16 TB, the FAT will be 16 GB.\\
+        There is no bound on the size of individual files, except the size of
+        the file system.\\
+        \\
+        The two blocks following the FAT are reserved for the root directory and the search file. The root directory is the root folder of the file
+        system. The search file is the file in which we wish to store meta data
+        for indexing the file system, allowing us to implement file search in
+        milestone 2 of the project.
+        \begin{figure}[ht]
+            \begin{verbatim}
+                File system structure
+          (`|` represents a block boundary)
+
+| Meta data | FAT block(s) | Root directory | Search file |
+| data | data | data | data | data | data | data |  data  |
+                        . . .
+| data | data | data | data | data | data | data |  data  |
+            \end{verbatim}
+            \caption{Block structure of the JCDFAT file system.}
+            \label{fig:block_structure}
+        \end{figure}
+
+        \begin{figure}[ht]
+            \begin{verbatim}
+     Meta data
+                          Size
++-----------------------+
+| Magic number          | 4B
++-----------------------+
+| Block size in         | 4B
+| power-of-2 bytes      |
++-----------------------+
+| Number of FAT blocks  | 4B
++-----------------------+
+| Free blocks           | 4B
+| (without expanding)   |
++-----------------------+
+| First free block      | 4B
++-----------------------+
+| Root directory block  | 4B
++-----------------------+
+| Search file block     | 4B
++-----------------------+
+
+Total size: 28 B
+            \end{verbatim}
+            \caption{Meta data for the JCDFAT file system.}
+            \label{fig:meta_data}
+        \end{figure}
+
+        We use a structure called JCDDirEntry (see Figure \ref{fig:directory_entry}) to represent files on disk. Each directory entry is 256KB, meaning that we can have $\frac{2^{12}}{2^8} = 16$ entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $ceil(text{entries} / 16) * 2^{12}$ bytes.\\
+        \\
+        As can be seen on Figure \ref{fig:directory_entry}, the maximum length of a file name is 240 bytes. The string is interpreted as unicode, though, which means
+        that the length of the file name is at most 120 characters.
+
+        \begin{figure}[ht]
+            \begin{verbatim}
+    JCDDirEntry
+                      Size
+    +---------------+
+    | Name          | 240B
+    +---------------+
+    | Size          | 8B
+    +---------------+
+    | isFolder      | 4B
+    +---------------+
+    | First block   | 4B
+    +---------------+
+
+    Total size: 256B
+            \end{verbatim}
+            \caption{Structure of a directory entry stored on disk in JCDFAT.}
+            \label{fig:directory_entry}
+        \end{figure}
+
+    \subsection{File system events}\label{file-system-events}
+        The following is an explanation of how the implementation of our file
+        system behaves in different scenarios.\\
+        \\
+        In the following we assume that there is always enough free space, and
+        that the source and destination files and folders exist/don't exist as
+        required.\\
+
+        \subsubsection{Finding a specific folder or file}\label{finding-a-specific-folder-or-file}
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{Starting at the root folder, recursively identify the directory entry}
+                  of the next folder specified by the given path.
+                \item{Once the parent folder of the specified file or folder has been found,}
+                  find the specified file or folder.
+            \end{itemize}
+
+        \subsubsection{Allocating space for a file}\label{allocating-space-for-a-file}
+
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{Figure out how many blocks the file requires,}
+                  $ceil(\frac{size in bytes}{2^{12}})$.
+                \item{Starting from the first free block, walk the FAT in increments of 1, chaining free blocks.}
+                \item{Mark the last used block as `end of chain'.}
+            \end{itemize}
+
+        \subsubsection{Creating a file or folder}\label{creating-a-file-or-folder}
+
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{Allocate enough blocks to store the file. This is done by finding free entries in the FAT and chaining them.}
+                \item{Store the file in the newly allocated blocks.}
+                \item{Write a directory entry in the destination folder.}
+            \end{itemize}
+
+        \subsubsection{Deleting a file (or folder)}\label{deleting-a-file-or-folder}
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{(Loop over all files/folders and perform delete file.)}
+                \item{Starting from the first block of the file, walk the FAT chain and delete all entries.}
+                \item{Delete the directory entry from the parent folder.}
+            \end{itemize}
+
+        \subsubsection{Moving a file or folder}\label{moving-a-file-or-folder}
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{Move the file entry from the source folder to the destination folder. (File contents are not actually moved.)}
+            \end{itemize}
+
+        \subsubsection{Renaming a file or folder}\label{renaming-a-file-or-folder}
+            \begin{itemize}
+                \itemsep1pt\parskip0pt\parsep0pt
+                \item{Rewrite the name in the file's directory entry.}
+            \end{itemize}
+
 
 \setcounter{section}{4}
 
