@@ -1,0 +1,6 @@
+*.aux
+*.fdb_latexmk
+*.out
+*.pdf.orig
+*.synctex.gz
+*.tex.orig
