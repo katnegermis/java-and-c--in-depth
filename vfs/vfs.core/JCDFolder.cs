@@ -19,7 +19,7 @@ namespace vfs.core {
         }
 
         public static JCDFolder rootFolder(JCDFAT vfs) {
-            var blockCounter = (BlockCounterVisitor)vfs.WalkFATChain(JCDFAT.rootDirBlock, new BlockCounterVisitor(true));
+            var blockCounter = (BlockCounterVisitor)vfs.WalkFATChain(JCDFAT.rootDirBlock, new BlockCounterVisitor());
             var entry = new JCDDirEntry {
                 Name = null, Size = blockCounter.Blocks * JCDFAT.blockSize, IsFolder = true, FirstBlock = JCDFAT.rootDirBlock
             };
@@ -58,7 +58,7 @@ namespace vfs.core {
             }
 
             container.Write(entryOffset(index), byteArr);
-            Console.WriteLine("Wrote entry for '{0}' on disk.", JCDDirEntry.FromByteArr(byteArr).Name);
+            //Console.WriteLine("Wrote entry for '{0}' on disk.", JCDDirEntry.FromByteArr(byteArr).Name);
         }
 
         public void setEntry(uint index, JCDDirEntry entry) {

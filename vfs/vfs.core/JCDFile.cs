@@ -116,6 +116,11 @@ namespace vfs.core {
         /// </summary>
         public void Delete(bool skipEntryDeletion)
         {
+            //Don't want to delete empty entries...
+            if(EntryIsEmpty() || EntryIsFinal()) {
+                return;
+            }
+
             // If this is a folder, delete all dir entries recursively.
             if (entry.IsFolder)
             {
