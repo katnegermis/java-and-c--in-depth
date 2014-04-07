@@ -175,3 +175,4 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 *.swp
+*.fuse_hidden*
