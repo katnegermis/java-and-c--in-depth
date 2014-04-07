@@ -493,10 +493,11 @@ namespace console.client
             private bool valid;
             private string path;
             private bool parents = false;
+            private ulong size;
 
             public MkCommand(List<string> args)
             {
-                if (args.Count < 1)
+                if (args.Count < 2)
                 {
                     valid = false;
                     return;
@@ -514,11 +515,13 @@ namespace console.client
 
                         parents = true;
                         path = args[1];
+                        size = Convert.ToUInt64(args[2]);
                         valid = true;
                     }
                     else
                     {
                         path = args[0];
+                        size = Convert.ToUInt64(args[1]);
                         valid = true;
                     }
                 }
@@ -546,7 +549,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.DeleteFile(path, parents);
+                    console.mountedJCDVFS.CreateFile(path, size, parents);
                     Console.WriteLine(String.Format("Created file {0} successfully.", path));
                 }
                 catch (Exception e)
@@ -719,6 +722,65 @@ namespace console.client
                     }
                     else
                         Console.WriteLine("Invalid mv mode, only -hv, -vh and -vv are supported.");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    return 0;
+                }
+
+                return 0;
+            }
+
+        }
+
+        public class CpCommand : ICommand
+        {
+            private bool valid;
+            private string sourcePath;
+            private string targetPath;
+
+            public CpCommand(List<string> args)
+            {
+                if (args.Count < 2)
+                {
+                    valid = false;
+                    return;
+                }
+
+                try
+                {
+                    sourcePath = args[0];
+                    targetPath = args[1];
+
+                    valid = true;
+                }
+                catch (Exception e)
+                {
+                    valid = false;
+                    Console.WriteLine(e.ToString());
+                    return;
+                }
+            }
+
+            public int Execute(VFSConsole console)
+            {
+                if (!valid)
+                {
+                    Console.WriteLine("Invalid command, check help for more details.");
+                    return 0;
+                }
+
+                if (!console.mounted)
+                {
+                    Console.WriteLine("No VFS mounted.");
+                    return 0;
+                }
+
+                try
+                {
+                    console.mountedJCDVFS.CopyFile(sourcePath, targetPath);
+                    Console.WriteLine(String.Format("Copied successfully from {0} to {1}.", targetPath, sourcePath));
                 }
                 catch (Exception e)
                 {

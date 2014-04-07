@@ -121,6 +121,12 @@ namespace vfs.core
             fat.CreateFolder(vfsPath);
         }
 
+        public void CreateFile(string vfsPath, ulong size,  bool createParents)
+        {
+            //TODO do something here..
+            //fat.
+        }
+
         public void ImportFile(string hfsPath, string vfsPath)
         {
             FileStream fileToImport = null;
@@ -159,6 +165,12 @@ namespace vfs.core
         {
             fat.MoveFile(vfsPath, newVfsPath);
         }
+
+        public void CopyFile(string vfsPath, string newVfsPath)
+        {
+            fat.CopyFile(vfsPath, newVfsPath);
+        }
+
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var dirEntries = fat.ListDirectory(vfsPath);

@@ -209,11 +209,11 @@ To facilitate debugging we have created a console client. The available commands
 		\item close: Close the mounted VFS.
 		\item ls [path]: List the files/directories in the current or in the given directory.
 		\item cd path: Change to the given directory.
-		\item rm path [-r]: Remove the given file/directory (recursively with -r).
-		\item mk path [-p]: Make a new file (and parents with -p).
-		\item mkdir path [-p]: Make a new directory (and parents with -p).
+		\item rm [-r] path: Remove the given file/directory (recursively with -r).
+		\item mk [-p] path size: Make a new file (and parents with -p) of the given size.
+		\item mkdir [-p] path: Make a new directory (and parents with -p).
 		\item cp source target: Copy the source to the target, both on the VFS.
-		\item 	mv -hv/-vh/-vv source target: Move the source to the target. In the first parameter the first letter indicates the source and the second the target file system.  ‘h’ stands for host and ‘v’ for the virtual. Therefore -hv means import, -vh export and -vv inside the VFS.
+		\item mv -hv/-vh/-vv source target: Move the source to the target. In the first parameter the first letter indicates the source and the second the target file system.  ‘h’ stands for host and ‘v’ for the virtual. Therefore -hv means import, -vh export and -vv inside the VFS.
 		\item rn path newName: Rename the file/directory to the given new name.
 		\item size: Show the size of the hole VFS file.
 		\item free: Show the free space.

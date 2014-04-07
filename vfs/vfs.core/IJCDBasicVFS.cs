@@ -76,6 +76,18 @@ namespace vfs.core
         void CreateDirectory(string vfsPath, bool createParents);
 
         /// <summary>
+        /// Create a file on a mounted VFS of the given size.
+        /// Optionally create parents (like mkdir -p).
+        /// </summary>
+        /// <param name="vfsPath"></param>
+        /// <param name="createParents"></param>
+        // Exceptions:
+        // - no such path (createParents == false).
+        // - too little space available on VFS.
+        // - invalid path string (file name too long/invalid characters).
+        void CreateFile(string vfsPath, ulong size, bool createParents);
+
+        /// <summary>
         /// Import a file or directory from HFS to a mounted VFS.
         /// </summary>
         // Exceptions:
@@ -122,6 +134,15 @@ namespace vfs.core
         // - invalid file name (too long/invalid characters).
         // - no such file on VFS.
         void MoveFile(string vfsPath, string newVfsPath);
+
+        /// <summary>
+        /// Copy file or directory on a mounted VFS.
+        /// </summary>
+        // Exceptions:
+        // - invalid path string (file name too long/invalid characters).
+        // - invalid file name (too long/invalid characters).
+        // - no such file on VFS.
+        void CopyFile(string vfsPath, string newVfsPath);
 
         /// <summary>
         /// List contents of a directory.

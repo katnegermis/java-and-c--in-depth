@@ -42,6 +42,8 @@ namespace console.client
                return new VFSConsole.MkdirCommand(args);
             case "mv":
                 return new VFSConsole.MvCommand(args);
+             case "cp":
+                return new VFSConsole.CpCommand(args);
              case "rn":
                  return new VFSConsole.RnCommand(args);
             case "free":
