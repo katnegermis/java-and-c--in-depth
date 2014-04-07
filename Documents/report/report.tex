@@ -68,7 +68,7 @@ The two blocks following the FAT are reserved for the root directory and the sea
 
 | Meta data | FAT block(s) | Root directory | Search file |
 | data | data | data | data | data | data | data |  data  |
-                . . .
+                        . . .
 | data | data | data | data | data | data | data |  data  |
     \end{verbatim}
     \caption{Block structure of the JCDFAT file system.}
@@ -103,7 +103,7 @@ Total size: 28 B
     \label{fig:meta_data}
 \end{figure}
 ~\\
-We use a structure called JCDDirEntry (see Figure \ref{fig:directory_entry}) to represent files on disk. Each directory entry is 256KB, meaning that we can have $\frac{2^{12}}{2^8} = 16$ entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $ceil(text{entries} / 16) * 2^{12}$ bytes.\\
+We use a structure called JCDDirEntry (see Figure \ref{fig:directory_entry}) to represent files on disk. Each directory entry is 256 bytes, meaning that we can have $\frac{2^{12}}{2^8} = 16$ entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $ceil(text{entries} / 16) * 2^{12}$ bytes.\\
 \\
 As can be seen on Figure \ref{fig:directory_entry}, the maximum length of a file name is 240 bytes. The string is interpreted as unicode, though, which means that the length of the file name is at most 120 characters.
 
