@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+%\usepackage{ETHlogo}
+
+\title{Project Report\\Group Ravioli}
+\author{\large Michal Bang\\\small\href{mailto:mbang@student.ethz.ch}{mbang@student.ethz.ch}\\\large Pascal Fischli\\\small\texttt{fischlip@student.ethz.ch}\\\large Vladimir Grozman\\\small\texttt{grozmanv@student.ethz.ch}}
+\date{\today}
+
+\begin{document}
+
+
+\begin{center}
+
+
+%\includegraphics[width=0.15\textwidth]{./logo}\\[1cm]    
+
+\LARGE Project Report\\Group Ravioli \\[0.5cm]
+
+\Large Java and C\# in depth, Spring 2014 \\[0.5cm]
+
+\large Michal Bang\\\small\texttt{mbang@student.ethz.ch}\\[0.05cm]
+\large Pascal Fischli\\\small\texttt{fischlip@student.ethz.ch}\\[0.05cm]
+\large Vladimir Grozman\\\small\texttt{grozmanv@student.ethz.ch}\\[0.5cm]
+
+{\large \today}\\[1.5cm]
+
+\end{center}
+
+%\end{titlepage}
+
+\section{Introduction}
+This document describes the design and implementation of the Personal Virtual File System of group ravioli. The project is part of the course Java and C\# in depth at ETH Zurich. The following sections describe each project phase, listing the requirements that were implemented and the design decisions taken. The last section describes a use case of using the Personal File System.
+
+\section{VFS Core}
+VFS Core is the first step towards a Personal Virtual File System. It operates on virtual disks, of which each one is stored in a single file in the host file system. Its API not only offers functionalities to create, mount and delete virtual disks, but also to operate inside opened disks. This ranges from basic console operations, like navigating through directories, renaming and removing, to the virtual disk operations of importing and exporting, both on directories, files or both together.\newline
+The most important task in the process of creating the VFS Core is the design of the storage structure in the virtual disk files. The main aspect in this is efficiency. Not mainly in speed, but in usage of the available space. Two basic approaches are storing the files in one block, which of course could result in lots of space lost due to fragmentation, or splitting files into parts of predefined size that are always linking to the next part, resulting in a very space efficient but most likely slower system.
+
+\subsection{Requirements}
+
+\subsection{Design}
+
+\setcounter{section}{4}
+
+\section{Quick Start Guide}
+
+\begin{thebibliography}{99}
+
+\end{thebibliography}
+
+\end{document}
