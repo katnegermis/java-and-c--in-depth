@@ -45,6 +45,7 @@
     <Compile Include="exceptions\InvalidFileException.cs" />
     <Compile Include="exceptions\InvalidSizeException.cs" />
     <Compile Include="exceptions\NotEnoughSpaceException.cs" />
+    <Compile Include="exceptions\RootDeletionException.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
