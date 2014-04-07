@@ -708,17 +708,17 @@ namespace console.client
                     if (sourceOnVFS && targetOnVFS)
                     {
                         console.mountedJCDVFS.MoveFile(sourcePath, targetPath);
-                        Console.WriteLine(String.Format("Moved successfully from {0} to {1}.", targetPath, sourcePath));
+                        Console.WriteLine(String.Format("Moved successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else if (sourceOnVFS && !targetOnVFS)
                     {
                         console.mountedJCDVFS.ExportFile(sourcePath, targetPath);
-                        Console.WriteLine(String.Format("Exported successfully from {0} to {1}.", targetPath, sourcePath));
+                        Console.WriteLine(String.Format("Exported successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else if (!sourceOnVFS && targetOnVFS)
                     {
                         console.mountedJCDVFS.ImportFile(sourcePath, targetPath);
-                        Console.WriteLine(String.Format("Imported successfully from {0} to {1}.", targetPath, sourcePath));
+                        Console.WriteLine(String.Format("Imported successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else
                         Console.WriteLine("Invalid mv mode, only -hv, -vh and -vv are supported.");
