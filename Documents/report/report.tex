@@ -2,6 +2,7 @@
 
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{amsmath}
 %\usepackage{ETHlogo}
 
 \begin{document}
@@ -103,7 +104,7 @@ Total size: 28 B
     \label{fig:meta_data}
 \end{figure}
 ~\\
-We use a structure called JCDDirEntry (see Figure \ref{fig:directory_entry}) to represent files on disk. Each directory entry is 256 bytes, meaning that we can have $\frac{2^{12}}{2^8} = 16$ entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $ceil(text{entries} / 16) * 2^{12}$ bytes.\\
+We use a structure called JCDDirEntry (see Figure \ref{fig:directory_entry}) to represent files on disk. Each directory entry is 256 bytes, meaning that we can have $\frac{2^{12}}{2^8} = 16$ entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $\text{ceil}(\text{entries} / 16) * 2^{12}$ bytes.\\
 \\
 As can be seen on Figure \ref{fig:directory_entry}, the maximum length of a file name is 240 bytes. The string is interpreted as unicode, though, which means that the length of the file name is at most 120 characters.
 
@@ -145,7 +146,7 @@ In the following we assume that there is always enough free space, and that the 
     \begin{itemize}
         \itemsep1pt\parskip0pt\parsep0pt
         \item{Figure out how many blocks the file requires,}
-          $ceil(\frac{size in bytes}{2^{12}})$.
+          $ceil(\frac{\text{size in bytes}}{2^{12}})$.
         \item{Starting from the first free block, walk the FAT in increments of 1, chaining free blocks.}
         \item{Mark the last used block as `end of chain'.}
     \end{itemize}
