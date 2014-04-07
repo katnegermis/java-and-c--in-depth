@@ -25,10 +25,10 @@ namespace console.client
 
             Console.WriteLine("The functions that can be called only when mounted:");
             Console.WriteLine("close \t\t\t\t Close the opened VFS");
-            Console.WriteLine("ls \t [path] \t\t\t List the files/dirs in the current or given directory");
+            Console.WriteLine("ls \t [path] \t\t List the files/dirs in the current or given directory");
             Console.WriteLine("cd \t path \t\t\t Change to the given directory");
             Console.WriteLine("rm \t [-r] path  \t\t Remove the given file/dir (recursively if set)");
-            Console.WriteLine("mk \t [-p] path size \t\t Make a new file (and parents if set) of the given size");
+            Console.WriteLine("mk \t [-p] path size \t Make a new file of size (and parents if set)");
             Console.WriteLine("mkdir \t [-p] path \t\t Make a new directory (and parents if set)");
             Console.WriteLine("mv \t -hv/vh/vv source target Move the source to the target");
             Console.WriteLine("cp \t -hv/vh/vv source target Copy the source to the target");
