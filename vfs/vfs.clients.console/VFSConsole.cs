@@ -780,7 +780,7 @@ namespace console.client
                 try
                 {
                     console.mountedJCDVFS.CopyFile(sourcePath, targetPath);
-                    Console.WriteLine(String.Format("Copied successfully from {0} to {1}.", targetPath, sourcePath));
+                    Console.WriteLine(String.Format("Copied successfully from {0} to {1}.", sourcePath, targetPath));
                 }
                 catch (Exception e)
                 {
