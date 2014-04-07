@@ -48,7 +48,7 @@ The two blocks following the FAT are reserved for the root directory and the sea
 Total size: 28 B
 ~~~~~
 
-We use the structure called JCDDirEntry (described below) to represent files on disk. Each directory entry is 256KB, meaning that we can have 2^12/2^8 = 16 entries in each block. A folder, therefore, takes up at least 4 KB of space. In general, a folder takes up $ceil(entries / 16) * 2^12$ bytes.
+We use the structure called JCDDirEntry (described below) to represent files on disk. Each directory entry is 256KB, meaning that we can have 2^12/2^8 = 16 entries in each block. Since the smallest unit of allocation is 4 KB, a folder takes up at least 4 KB of space. More generally, a folder takes up $\text{ceil}(text{entries} / 16) * 2^12$ bytes.
 
 As can be seen on the figure below, the maximum length of a file name is 240 bytes. The string is interpreted as unicode, though, which means that the length of the file name is at most 120 characters.
 
@@ -76,15 +76,29 @@ The following is an explanation of how the implementation of our file system beh
 
 In the following we assume that there is always enough free space, and that the source and destination files and folders exist/don't exist as required.
 
+
+Finding a specific folder or file
+---------------------------
+- Starting at the root folder, recursively identify the directory entry of the next folder specified by the given path.
+- Once the parent folder of the specified file or folder has been found, find the specified file or folder.
+
+
+Allocating space for a file
+-----------------------------
+- Figure out how many blocks the file requires, $\text{ceil}(\frac{\text{size in bytes}}{2^12})$.
+- Starting from the first free block, walk the FAT in increments of 1, chaining free blocks.
+- Mark the last used block as 'end of chain'.
+
+
 Creating a file or folder
------------------
+---------------------------
 - Allocate enough blocks to store the file. This is done by finding free entries in the FAT and chaining them.
 - Store the file in the newly allocated blocks.
 - Write a directory entry in the destination folder.
 
 
 Deleting a file (or folder)
------------------
+-----------------------------
 - (Loop over all files/folders and perform delete file.)
 - Starting from the first block of the file, walk the FAT chain and delete all entries.
 - Delete the directory entry from the parent folder.
@@ -99,32 +113,6 @@ Renaming a file or folder
 -----------------
 - Rewrite the name in the file's directory entry.
 
-
-
-Implementation
-----------------
-
-1. The virtual disk must be stored in a single file in the working directory in the host file system.
-    - Check
-2. VFS must support the creation of a new disk with the specified maximum size at the specified location in the host file system.
-    - Check
-3. VFS must support several virtual disks in the host file system.
-    - Check
-4. VFS must support disposing of the virtual disk.
-    - Check
-5. VFS must support creating/deleting/renaming directories and files.
-    - creating/renaming: Check
-    - deleting?
-6. VFS must support navigation: listing of files and folders, and going to a location expressed by a concrete path.
-    - Check
-7. VFS must support moving/copying directories and files, including hierarchy.
-    - copying?
-8. VFS must support importing files and directories from the host file system.
-    - Check
-9. VFS must support exporting files and directories to the host file system.
-    - Check
-10. VFS must support querying of free/occupied space in the virtual disk.
-    - Not quite correct yet.
 
 Bonus features
 ----------------
@@ -141,7 +129,6 @@ Bonus features
 
 
 Features that would be nice to have, but haven't been implemented:
-
-- Don't decrease size of vfs when deleting
+- (Don't decrease size of vfs when deleting)
 - Don't decrease size of folder when the number of entries in it decreases below a multiple of 16.
 
