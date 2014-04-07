@@ -98,10 +98,10 @@ namespace vfs.core
             InitSearchFile();
 
             initialized = true;
-            var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
+            /*var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
             Console.WriteLine("Root dir spans {0} blocks", rootDir.Blocks);
             var searchFile = (BlockCounterVisitor)WalkFATChain(searchFileBlock, new BlockCounterVisitor());
-            Console.WriteLine("Search file spans {0} blocks", searchFile.Blocks);
+            Console.WriteLine("Search file spans {0} blocks", searchFile.Blocks);*/
         }
 
         /// <summary>
@@ -505,17 +505,18 @@ namespace vfs.core
             var nextBlock = firstBlock;
             uint prevBlock;
             // Chain blocks in FAT. Make sure that we mark last block as EOC.
-            for (int i = 0; i < blocksRequired - 1; i += 1)
-            {
+            for (int i = 2; i <= blocksRequired; i++) {
                 prevBlock = nextBlock;
                 nextBlock = GetFreeBlock();
                 FatSet(prevBlock, nextBlock);
-                if (i % 10000 == 0)
-                {
+                if (i % 10000 == 0) {
                     Console.WriteLine("Allocated {0} blocks.", i);
                 }
             }
             FatSetEOC(nextBlock);
+            if(blocksRequired >= 10000) {
+                Console.WriteLine("Done allocating space.");
+            }
             return firstBlock;
         }
 
@@ -696,7 +697,7 @@ namespace vfs.core
                 }
                 return bufPos;
             }));
-            Console.WriteLine("Imported {0} to {1}", path, file.Name);
+            Console.WriteLine("Imported {0} to {1}", file.Name, path);
         }
 
         private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
