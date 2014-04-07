@@ -54,7 +54,7 @@ namespace vfs.core {
             if (index >= numBlocks * JCDFAT.dirEntriesPerBlock)
             {
                 this.ExpandOneBlock();
-                setEntryFinal(index + 1);
+                //setEntryFinal(index + 1);
             }
 
             container.Write(entryOffset(index), byteArr);
