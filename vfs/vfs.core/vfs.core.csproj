@@ -41,19 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="exceptions\FileNotFoundException.cs" />
-    <Compile Include="exceptions\InvalidFileException.cs" />
-    <Compile Include="exceptions\InvalidSizeException.cs" />
-    <Compile Include="exceptions\NotEnoughSpaceException.cs" />
-    <Compile Include="exceptions\RootDeletionException.cs" />
+    <Compile Include="exceptions\EmptyExceptions.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
     <Compile Include="JCDFile.cs" />
     <Compile Include="JCDFolder.cs" />
-    <Compile Include="exceptions\FileAlreadyExistsException.cs" />
-    <Compile Include="exceptions\FileSystemNotOpenException.cs" />
-    <Compile Include="exceptions\InvalidFileNameException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="visitor\BlockCounterVisitor.cs" />
     <Compile Include="visitor\FileDeleterVisitor.cs" />

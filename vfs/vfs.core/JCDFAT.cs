@@ -264,7 +264,7 @@ namespace vfs.core
         {
             if (index >= this.maxNumDataBlocks)
             {
-                throw new Exception("The FAT doesn't have that many entries!");
+                throw new InvalidFATIndexException();
             }
 
             return metaDataBlocks * blockSize + index * 4;
@@ -320,7 +320,7 @@ namespace vfs.core
         {
             if (!(freeBlocks >= 1))
             {
-                throw new Exception("No more free blocks!");
+                throw new NotEnoughSpaceException();
             }
 
             SetFreeBlocks(freeBlocks - 1);
@@ -354,7 +354,7 @@ namespace vfs.core
         {
             if (dataBlock >= this.maxNumDataBlocks)
             {
-                throw new Exception("There aren't that many data blocks!");
+                throw new InvalidFATIndexException();
             }
             return (dataOffsetBlocks + (ulong)dataBlock) * blockSize + blockOffset;
         }
@@ -372,7 +372,7 @@ namespace vfs.core
             {
                 if (fat[firstBlock] == endOfChain || fat[firstBlock] == freeBlock)
                 {
-                    throw new Exception("File doesn't have that many blocks!");
+                    throw new ReachedEndOfFileException();
                 }
 
                 firstBlock = fat[firstBlock];
@@ -661,9 +661,11 @@ namespace vfs.core
 
         public void SetCurrentDirectory(string path) {
             var newDir = GetFile(path);
-            if(newDir == null || !newDir.IsFolder) {
-                //TODO: proper exception
-                throw new Exception("No such folder!");
+            if(newDir == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(!newDir.IsFolder) {
+                throw new NotAFolderException();
             }
             currentFolder = (JCDFolder) newDir;
         }
@@ -693,8 +695,12 @@ namespace vfs.core
             }
 
             var container = GetFile(Helpers.PathGetDirectoryName(path));
-            if(container == null || !container.IsFolder) {
-                throw new Exception("No such folder!");
+
+            if(container == null) {
+                throw new ParentNotFoundException();
+            }
+            if(!container.IsFolder) {
+                throw new NotAFolderException();
             }
 
             return ((JCDFolder) container).AddDirEntry(entry);
@@ -870,8 +876,11 @@ namespace vfs.core
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var directory = GetFile(vfsPath);
-            if(directory == null || !directory.IsFolder) {
-                throw new Exception("No such folder!");
+            if(directory == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            if(!directory.IsFolder) {
+                throw new NotAFolderException();
             }
             var files = ((JCDFolder)directory).GetFileEntries();
             var notNulls = files.Where(file => { return !(file.EntryIsEmpty() || file.EntryIsFinal()); });
@@ -890,8 +899,7 @@ namespace vfs.core
             }
             if (file.IsFolder && !recursive)
             {
-                // TODO: Throw proper exception.
-                throw new Exception("Can't delete a folder when the recursive flag is not set!");
+                throw new NonRecursiveDeletionException();
             }
             file.Delete(false);
         }
@@ -904,8 +912,7 @@ namespace vfs.core
                 throw new vfs.exceptions.FileNotFoundException();
             }
             if(file.Parent.GetFile(newName) != null) {
-                //TODO: real exception
-                throw new Exception("There's already a file with that name!");
+                throw new FileExistsException();
             }
             if(!Helpers.FileNameIsValid(newName)) {
                 throw new InvalidFileNameException();
@@ -921,19 +928,16 @@ namespace vfs.core
                 throw new vfs.exceptions.FileNotFoundException();
             }
             if(!toFolderTmp.IsFolder) {
-                //TODO: real exception
-                throw new Exception("Not a folder!");
+                throw new NotAFolderException();
             }
             var toFolder = ((JCDFolder) toFolderTmp);
             var newName = Helpers.PathGetFileName(newVfsPath);
             if(toFolder.GetFile(newName) != null) {
-                //TODO: real exception
-                throw new Exception("There's already a file with that name!");
+                throw new FileExistsException();
             }
             if(fromFile.IsFolder) {
                 if(((JCDFolder) fromFile).IsParentOf(toFolder)) { //Also checks equality
-                    //TODO: real exception
-                    throw new Exception("Cannot copy folder into itself!");
+                    throw new MoveToSelfException();
                 }
             }
             var toEntry = fromFile.Entry;
