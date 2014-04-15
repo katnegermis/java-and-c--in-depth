@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace vfs.core
 {
-    class Helpers
+    public class Helpers
     {
         /// <summary>
         /// Round up integer divison

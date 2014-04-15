@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.console", "vfs.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.tests", "vfs.core.tests\vfs.core.tests.csproj", "{24E54DF9-B67D-4BB3-919C-A9FE6C79AA1D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.desktop", "vfs.clients.desktop\vfs.clients.desktop.csproj", "{63EBBF00-2BCE-44A0-8E69-EE153D4C849F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,11 +29,12 @@ Global
 		{24E54DF9-B67D-4BB3-919C-A9FE6C79AA1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24E54DF9-B67D-4BB3-919C-A9FE6C79AA1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24E54DF9-B67D-4BB3-919C-A9FE6C79AA1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63EBBF00-2BCE-44A0-8E69-EE153D4C849F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63EBBF00-2BCE-44A0-8E69-EE153D4C849F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63EBBF00-2BCE-44A0-8E69-EE153D4C849F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63EBBF00-2BCE-44A0-8E69-EE153D4C849F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
