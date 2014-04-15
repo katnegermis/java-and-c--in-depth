@@ -19,7 +19,7 @@ namespace vfs.clients.desktop
         /// The currently mounted VFS.
         /// If none is mounted, then null.
         /// </summary>
-        JCDVFS mountedVFS;
+        JCDFAT mountedVFS;
 
         /// <summary>
         /// The name of the currently mounted VFS.
@@ -61,7 +61,7 @@ namespace vfs.clients.desktop
                     var size = form.size;
                     try
                     {
-                        JCDVFS.Create(file, size).Close();
+                        JCDFAT.Create(file, size).Close();
                     }
                     catch (Exception ex)
                     {
@@ -85,12 +85,12 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    var jcdvfs = JCDVFS.Open(file);
-                    if (jcdvfs != null)
+                    var jcdfat = JCDFAT.Open(file);
+                    if (jcdfat != null)
                     {
-                        mountedVFS = jcdvfs;
+                        mountedVFS = jcdfat;
                         vfsName = (new FileInfo(file)).Name;
-                        currentDir = jcdvfs.GetCurrentDirectory();
+                        currentDir = jcdfat.GetCurrentDirectory();
 
                         ChangeFormToMounted();
                         updateForm();
@@ -117,7 +117,7 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    JCDVFS.Delete(file);
+                    JCDFAT.Delete(file);
                 }
                 catch (Exception ex)
                 {

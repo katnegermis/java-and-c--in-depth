@@ -12,7 +12,7 @@ namespace console.client
     {
         private string directory;
         private bool mounted = false;
-        private JCDVFS mountedJCDVFS;
+        private JCDFAT mountedJCDFAT;
 
         public VFSConsole()
         {
@@ -34,7 +34,7 @@ namespace console.client
             {
                 //TODO write the current path if mounted
                 /*if (mounted)
-                    Console.Write(mountedJCDVFS.GetCurrentDirectory() + ">");*/
+                    Console.Write(mountedJCDFAT.GetCurrentDirectory() + ">");*/
                 var command = Parser.Parse(Console.ReadLine());
                 res = command.Execute(this);
                 Console.WriteLine("");
@@ -64,9 +64,9 @@ namespace console.client
                 {
                     if (console.mounted)
                     {
-                        console.mountedJCDVFS.Close();
+                        console.mountedJCDFAT.Close();
                         console.mounted = false;
-                        console.mountedJCDVFS = null;
+                        console.mountedJCDFAT = null;
                     }
                 }
                 catch (Exception)
@@ -137,7 +137,7 @@ namespace console.client
 
                 try
                 {
-                    JCDVFS fat = JCDVFS.Create(path, size);
+                    JCDFAT fat = JCDFAT.Create(path, size);
                     fat.Close();
                 }
                 catch (Exception e)
@@ -196,10 +196,10 @@ namespace console.client
 
                 try
                 {
-                    JCDVFS fat = JCDVFS.Open(path);
+                    JCDFAT fat = JCDFAT.Open(path);
                     if (fat != null)
                     {
-                        console.mountedJCDVFS = fat;
+                        console.mountedJCDFAT = fat;
                         console.mounted = true;
                     }
                     else
@@ -264,7 +264,7 @@ namespace console.client
 
                 try
                 {
-                    JCDVFS.Delete(path);
+                    JCDFAT.Delete(path);
                 }
                 catch (Exception e)
                 {
@@ -297,8 +297,8 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.Close();
-                    console.mountedJCDVFS = null;
+                    console.mountedJCDFAT.Close();
+                    console.mountedJCDFAT = null;
                     console.mounted = false;
                 }
                 catch (Exception e)
@@ -340,7 +340,8 @@ namespace console.client
 
                 try
                 {
-                    var list = console.mountedJCDVFS.ListDirectory(path);
+                    var list = console.mountedJCDFAT.ListDirectory(path);
+                    Console.WriteLine("Number of entries: {0}", list.Length);
                     //TODO make output
                     Console.WriteLine("Name\tSize\tType");
                     foreach (var file in list)
@@ -402,8 +403,8 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.SetCurrentDirectory(path);
-                    Console.WriteLine("Current folder: " + console.mountedJCDVFS.GetCurrentDirectory());
+                    console.mountedJCDFAT.SetCurrentDirectory(path);
+                    Console.WriteLine("Current folder: " + console.mountedJCDFAT.GetCurrentDirectory());
                 }
                 catch (Exception e)
                 {
@@ -474,7 +475,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.DeleteFile(path, recursive);
+                    console.mountedJCDFAT.DeleteFile(path, recursive);
                     Console.WriteLine(String.Format("Deleted {0} successfully.", path));
                 }
                 catch (Exception e)
@@ -549,7 +550,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.CreateFile(path, size, parents);
+                    console.mountedJCDFAT.CreateFile(path, size, parents);
                     Console.WriteLine(String.Format("Created file {0} successfully.", path));
                 }
                 catch (Exception e)
@@ -621,7 +622,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.CreateDirectory(path, parents);
+                    console.mountedJCDFAT.CreateDirectory(path, parents);
                     Console.WriteLine(String.Format("Created directory {0} successfully.", path));
                 }
                 catch (Exception e)
@@ -707,17 +708,17 @@ namespace console.client
                 {
                     if (sourceOnVFS && targetOnVFS)
                     {
-                        console.mountedJCDVFS.MoveFile(sourcePath, targetPath);
+                        console.mountedJCDFAT.MoveFile(sourcePath, targetPath);
                         Console.WriteLine(String.Format("Moved successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else if (sourceOnVFS && !targetOnVFS)
                     {
-                        console.mountedJCDVFS.ExportFile(sourcePath, targetPath);
+                        console.mountedJCDFAT.ExportFile(sourcePath, targetPath);
                         Console.WriteLine(String.Format("Exported successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else if (!sourceOnVFS && targetOnVFS)
                     {
-                        console.mountedJCDVFS.ImportFile(sourcePath, targetPath);
+                        console.mountedJCDFAT.ImportFile(sourcePath, targetPath);
                         Console.WriteLine(String.Format("Imported successfully from {0} to {1}.", sourcePath, targetPath));
                     }
                     else
@@ -779,7 +780,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.CopyFile(sourcePath, targetPath);
+                    console.mountedJCDFAT.CopyFile(sourcePath, targetPath);
                     Console.WriteLine(String.Format("Copied successfully from {0} to {1}.", sourcePath, targetPath));
                 }
                 catch (Exception e)
@@ -837,7 +838,7 @@ namespace console.client
 
                 try
                 {
-                    console.mountedJCDVFS.RenameFile(path, newName);
+                    console.mountedJCDFAT.RenameFile(path, newName);
                     Console.WriteLine(String.Format("Renaming of {0} to {1} done successfully.", path, newName));
                 }
                 catch (Exception e)
@@ -865,7 +866,7 @@ namespace console.client
 
                 try
                 {
-                    ulong free = console.mountedJCDVFS.FreeSpace();
+                    ulong free = console.mountedJCDFAT.FreeSpace();
                     Console.WriteLine(String.Format("The amount of free space on the mounted VFS is: {0} bytes.", free));
                 }
                 catch (Exception e)
@@ -892,7 +893,7 @@ namespace console.client
 
                 try
                 {
-                    ulong occupied = console.mountedJCDVFS.OccupiedSpace();
+                    ulong occupied = console.mountedJCDFAT.OccupiedSpace();
                     Console.WriteLine(String.Format("The amount of occupied space on the mounted VFS is: {0} bytes.", occupied));
                 }
                 catch (Exception e)
@@ -919,7 +920,7 @@ namespace console.client
 
                 try
                 {
-                    ulong size = console.mountedJCDVFS.Size();
+                    ulong size = console.mountedJCDFAT.Size();
                     Console.WriteLine(String.Format("The size of the mounted VFS is: {0} bytes.", size));
                 }
                 catch (Exception e)

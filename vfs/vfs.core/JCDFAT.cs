@@ -4,10 +4,20 @@ using System.IO;
 using vfs.exceptions;
 using vfs.core.visitor;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace vfs.core
 {
-    internal class JCDFAT : IDisposable
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct ByteToUintConverter {
+        [FieldOffset(0)]
+        public byte[] bytes;
+
+        [FieldOffset(0)]
+        public uint[] uints;
+    }
+
+    public class JCDFAT : IJCDBasicVFS, IDisposable
     {
         private bool initialized = false;
 
@@ -53,13 +63,67 @@ namespace vfs.core
         private BinaryWriter bw;
         private BinaryReader br;
 
+        public static JCDFAT Create(string hfsPath, ulong size) {
+            // Make sure the directory exists.
+            if(File.Exists(Path.GetDirectoryName(hfsPath))) {
+                throw new DirectoryNotFoundException();
+            }
+
+            // Make sure the file doesn't already exist.
+            if(File.Exists(hfsPath)) {
+                throw new FileAlreadyExistsException();
+            }
+
+            if(size >= JCDFAT.globalMaxFSSize) {
+                Console.Write("Global Max FS Size {0}", JCDFAT.globalMaxFSSize);
+                throw new InvalidSizeException();
+            }
+
+            // Create fsfile.
+            try {
+                var fs = new FileStream(hfsPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+                return new JCDFAT(fs, size);
+            }
+            catch(IOException) {
+                // The file possibly already exists or the stream has been unexpectedly closed
+                throw new FileAlreadyExistsException(); //throw not enough space in parent fs
+            }
+        }
+
+        public static JCDFAT Open(string hfsPath) {
+            FileStream fs;
+            try {
+                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+            }
+            catch(System.IO.FileNotFoundException) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            return new JCDFAT(fs);
+        }
+
+        public static void Delete(string hfsPath) {
+            FileStream fs;
+            try {
+                fs = new FileStream(hfsPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch(System.IO.FileNotFoundException) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+            // Open JCDVFS-file to make sure it actually is a VFS-file. If it is, we delete it.
+            var vfs = new JCDFAT(fs);
+            vfs.Close();
+            File.Delete(hfsPath);
+            return;
+        }
+
 
         /// <summary>
         /// Create a new JCDFAT-file.
         /// </summary>
         /// <param name="fs">Stream to a file open with read/write access.</param>
         /// <param name="size">Maximum size of the new JCDVFS-file.</param>
-        internal JCDFAT(FileStream fs, ulong size)
+        private JCDFAT(FileStream fs, ulong size)
         {
             this.fs = fs;
 
@@ -84,7 +148,7 @@ namespace vfs.core
         /// Open an existing JCDFAT-file.
         /// </summary>
         /// <param name="fs">Stream to a JCDVFS-file, open with read/write access.</param>
-        internal JCDFAT(FileStream fs)
+        private JCDFAT(FileStream fs)
         {
             this.fs = fs;
 
@@ -525,7 +589,7 @@ namespace vfs.core
             Close();
         }
 
-        internal void Close()
+        public void Close()
         {
             bw.Flush();
             fs.Flush();
@@ -534,15 +598,19 @@ namespace vfs.core
             fs.Dispose();
         }
 
-        internal ulong GetSize()
+        public ulong Size()
         {
             return this.maxSize;
         }
 
-        internal ulong GetFreeSpace()
+        public ulong FreeSpace()
         {
             // Cast here to get ulong multiplication, to avoid overflow.
             return this.freeBlocks * (ulong)JCDFAT.blockSize;
+        }
+
+        public ulong OccupiedSpace() {
+            return Size() - FreeSpace();
         }
 
         private JCDFile BrowseStep(JCDFolder folder, string step) {
@@ -591,7 +659,7 @@ namespace vfs.core
             return BrowseStep(ret, segments[i]);
         }
 
-        internal void SetCurrentDirectory(string path) {
+        public void SetCurrentDirectory(string path) {
             var newDir = GetFile(path);
             if(newDir == null || !newDir.IsFolder) {
                 //TODO: proper exception
@@ -600,7 +668,8 @@ namespace vfs.core
             currentFolder = (JCDFolder) newDir;
         }
 
-        internal void CreateFolder(string path) {
+        public void CreateDirectory(string path, bool createParents) {
+            //TODO: handle createParents
             CreateFile(JCDFAT.blockSize, path, true);
         }
 
@@ -638,7 +707,7 @@ namespace vfs.core
             Write(BlockGetByteOffset(block, 0), zeros);
         }
 
-        internal void ImportFolder(string hfsFolderPath, string vfsPath) {
+        private void ImportFolder(string hfsFolderPath, string vfsPath) {
             /*var parentDirTmp = GetFile(Helpers.PathGetDirectoryName(vfsPath));
             if(parentDirTmp == null || !parentDirTmp.IsFolder) {
                 //TODO: proper exception
@@ -681,7 +750,28 @@ namespace vfs.core
             }
         }
 
-        internal void ImportFile(Stream file, string path, string fileName) {
+        public void CreateFile(string vfsPath, ulong size, bool createParents) {
+            //TODO do something here..
+            //fat.
+        }
+
+        public void ImportFile(string hfsPath, string vfsPath) {
+            FileStream fileToImport = null;
+            if(Directory.Exists(hfsPath)) {
+                ImportFolder(hfsPath, vfsPath);
+            }
+            else {
+                try {
+                    fileToImport = new FileStream(hfsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    ImportFile(fileToImport, vfsPath, fileToImport.Name);
+                }
+                finally {
+                    fileToImport.Close();
+                }
+            }
+        }
+
+        private void ImportFile(Stream file, string path, string fileName) {
             uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
@@ -732,7 +822,7 @@ namespace vfs.core
             }
         }
 
-        internal void ExportFile(string vfsPath, string hfsPath)
+        public void ExportFile(string vfsPath, string hfsPath)
         {
 
             var file = GetFile(vfsPath);
@@ -777,7 +867,7 @@ namespace vfs.core
             }));
         }
 
-        internal JCDDirEntry[] ListDirectory(string vfsPath)
+        public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var directory = GetFile(vfsPath);
             if(directory == null || !directory.IsFolder) {
@@ -788,7 +878,7 @@ namespace vfs.core
             return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
-        internal void DeleteFile(string path, bool recursive)
+        public void DeleteFile(string path, bool recursive)
         {
             // TODO: Check if path is relative/absolute and retrieve parent folder of file.
 
@@ -806,7 +896,7 @@ namespace vfs.core
             file.Delete(false);
         }
 
-        internal void RenameFile(string vfsPath, string newName) {
+        public void RenameFile(string vfsPath, string newName) {
             // TODO: Make sure that newName is a valid name.
             // TODO: Implement using fat.GetFile.
             var file = GetFile(vfsPath);
@@ -817,15 +907,12 @@ namespace vfs.core
                 //TODO: real exception
                 throw new Exception("There's already a file with that name!");
             }
+            if(!Helpers.FileNameIsValid(newName)) {
+                throw new InvalidFileNameException();
+            }
             file.Name = newName;
         }
-        internal void MoveFile(string vfsPath, string newVfsPath) {
-            // TODO: Implement using fat.GetFile.
-
-            // Get original file
-            //var fromFolder = (JCDFolder) null; // fat.GetFile(vfsPath);
-            //var fromFileName = Helpers.PathGetFileName(vfsPath);
-            //var fromFile = fromFolder.GetFile(fromFileName);
+        public void MoveFile(string vfsPath, string newVfsPath) {
             var fromFile = GetFile(vfsPath);
 
             // Insert file in to destination.
@@ -857,7 +944,7 @@ namespace vfs.core
             fromFile.DeleteEntry();
         }
 
-        internal void CopyFile(JCDFile oldFile, string newVfsPath) {
+        private void CopyFile(JCDFile oldFile, string newVfsPath) {
             if(oldFile.IsFolder) {
                 var newFolder = (JCDFolder)CreateFile(oldFile.Size, newVfsPath, true);
                 var files = ((JCDFolder) oldFile).GetFileEntries();
@@ -895,8 +982,8 @@ namespace vfs.core
             }
         }
 
-        internal string GetCurrentDirectory() {
-            return this.currentFolder.Path;
+        public string GetCurrentDirectory() {
+            return currentFolder.Path;
         }
     }
 }

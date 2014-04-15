@@ -35,10 +35,10 @@ namespace vfs.core.tests
     }
 
     [TestClass()]
-    public class UnmountedJCDVFSTests
+    public class UnmountedJCDFATTests
     {
 
-        JCDVFS testVFS = null;
+        JCDFAT testVFS = null;
 
         [TestInitialize()]
         public void UnmountedInitializer()
@@ -60,7 +60,7 @@ namespace vfs.core.tests
 
             /*try
             {
-                //JCDVFS.Delete(TestVariables.FilePath());
+                //JCDFAT.Delete(TestVariables.FilePath());
               //  if (File.Exists(TestVariables.FilePath()))
                 //    File.Delete(TestVariables.FilePath());
             }
@@ -75,7 +75,7 @@ namespace vfs.core.tests
         [TestMethod()]
         public void CreateNormalTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             Assert.IsNotNull(testVFS);
             Assert.IsTrue(File.Exists(TestVariables.FilePath()));
         }
@@ -85,7 +85,7 @@ namespace vfs.core.tests
          "A path to an invalid file(in this case a directory) was discovered.")]
         public void CreateWithInvalidPathTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.TEST_DIRECTORY + @"dir\", TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.TEST_DIRECTORY + @"dir\", TestVariables.SIZE_STANDARD);
             Assert.IsNull(testVFS);
             Assert.IsFalse(File.Exists(TestVariables.TEST_DIRECTORY + @"dir\"));
             Assert.Inconclusive("Verify the correctness of this test method.");
@@ -96,7 +96,7 @@ namespace vfs.core.tests
          "A size of UInt64.MaxValue was rejected.")]
         public void CreateWithSizeTooBigTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_MAX);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_MAX);
             Assert.IsNull(testVFS);
             Assert.IsFalse(File.Exists(TestVariables.FilePath()));
             Assert.Inconclusive("Verify the correctness of this test method.");
@@ -107,7 +107,7 @@ namespace vfs.core.tests
          "A size of 0 was rejected with a unspecified exception.")]
         public void CreateWithSizeTooSmallTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), 0);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), 0);
             Assert.IsNotNull(testVFS);
             Assert.IsFalse(File.Exists(TestVariables.FilePath()));
             Assert.Inconclusive("Verify the correctness of this test method.");
@@ -119,7 +119,7 @@ namespace vfs.core.tests
         public void CreateWithFileExistingTest()
         {
             File.Create(TestVariables.FilePath()).Close();
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             Assert.IsNull(testVFS);
             Assert.IsFalse(File.Exists(TestVariables.FilePath()));
             Assert.Inconclusive("Verify the correctness of this test method.");
@@ -132,9 +132,9 @@ namespace vfs.core.tests
         [TestMethod()]
         public void OpenNormalTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             testVFS.Close();
-            testVFS = JCDVFS.Open(TestVariables.FilePath());
+            testVFS = JCDFAT.Open(TestVariables.FilePath());
             Assert.Inconclusive("No real direct way to verify the result.");
         }
 
@@ -144,7 +144,7 @@ namespace vfs.core.tests
         public void OpenInvalidFileTest()
         {
             File.Create(TestVariables.FilePath()).Close();
-            testVFS = JCDVFS.Open(TestVariables.FilePath());
+            testVFS = JCDFAT.Open(TestVariables.FilePath());
             Assert.IsNull(testVFS);
             Assert.Inconclusive("No real direct way to verify the result.");
         }
@@ -154,7 +154,7 @@ namespace vfs.core.tests
         "A path to an invalid file(in this case a directory) was discovered.")]
         public void OpenWithInvalidPathTest()
         {
-            testVFS = JCDVFS.Open(TestVariables.TEST_DIRECTORY + @"dir");
+            testVFS = JCDFAT.Open(TestVariables.TEST_DIRECTORY + @"dir");
             Assert.IsNull(testVFS);
             Assert.Inconclusive("No real direct way to verify the result.");
         }
@@ -166,9 +166,9 @@ namespace vfs.core.tests
         [TestMethod()]
         public void DeleteNormalTest()
         {
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             testVFS.Close();
-            JCDVFS.Delete(TestVariables.FilePath());
+            JCDFAT.Delete(TestVariables.FilePath());
             testVFS = null;
             Assert.IsFalse(File.Exists(TestVariables.FilePath()));
         }
@@ -179,7 +179,7 @@ namespace vfs.core.tests
         public void DeleteNoVFSFileTest()
         {
             File.Create(TestVariables.FilePath()).Close();
-            JCDVFS.Delete(TestVariables.FilePath());
+            JCDFAT.Delete(TestVariables.FilePath());
             Assert.IsTrue(File.Exists(TestVariables.FilePath()));
         }
 
@@ -188,7 +188,7 @@ namespace vfs.core.tests
         "The fact that the file is not existing was discovered.")]
         public void DeleteNotExistingFileTest()
         {
-            JCDVFS.Delete(TestVariables.FilePath());
+            JCDFAT.Delete(TestVariables.FilePath());
             Assert.Inconclusive("No real direct way to verify the result.");
         }
 
@@ -199,7 +199,7 @@ namespace vfs.core.tests
     [TestClass()]
     public class MountedJCFVFSTests
     {
-        JCDVFS testVFS = null;
+        JCDFAT testVFS = null;
 
         [TestInitialize()]
         public void MountedInitializer()
@@ -219,9 +219,9 @@ namespace vfs.core.tests
             if (File.Exists(TestVariables.TargetPath()))
                 File.Delete(TestVariables.TargetPath());*/
 
-            testVFS = JCDVFS.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
             testVFS.Close();
-            testVFS = JCDVFS.Open(TestVariables.FilePath());
+            testVFS = JCDFAT.Open(TestVariables.FilePath());
         }
 
         [TestCleanup()]

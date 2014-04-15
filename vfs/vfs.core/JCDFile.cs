@@ -139,7 +139,7 @@ namespace vfs.core {
             if(!skipEntryDeletion) {
                 DeleteEntry();
 
-                //container.tryShrink();
+                container.tryShrink();
             }
         }
         internal void DeleteEntry() {

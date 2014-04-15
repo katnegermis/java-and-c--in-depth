@@ -49,7 +49,6 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
-    <Compile Include="JCDVFS.cs" />
     <Compile Include="JCDFile.cs" />
     <Compile Include="JCDFolder.cs" />
     <Compile Include="exceptions\FileAlreadyExistsException.cs" />
