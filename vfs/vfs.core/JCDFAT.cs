@@ -643,13 +643,6 @@ namespace vfs.core
                 return ret;
             }
 
-            /*if(!path.IsAbsoluteUri) {
-                path = new Uri(ret.Path, path);
-            }
-            if(path.Equals(ret.Path)) {
-                return ret;
-            }
-            string[] segments = ret.Path.MakeRelativeUri(path).ToString().Split(new char[] {'/'});*/
             int i;
             for(i = 0; i < segments.Length - 1; i++ ) {
                 var tmp = BrowseStep(ret, segments[i]);
@@ -680,9 +673,6 @@ namespace vfs.core
 
         private JCDFile CreateFile(ulong size, string path, bool isFolder)
         {
-            // TODO: Make sure that fileName is not longer than allowed by dirEntry.
-            // This should probably be checked in JCDDirEntry constructor.
-
             var entry = new JCDDirEntry
             {
                 Name = Helpers.PathGetFileName(path),
@@ -717,12 +707,6 @@ namespace vfs.core
         }
 
         private void ImportFolder(string hfsFolderPath, string vfsPath) {
-            /*var parentDirTmp = GetFile(Helpers.PathGetDirectoryName(vfsPath));
-            if(parentDirTmp == null || !parentDirTmp.IsFolder) {
-                //TODO: proper exception
-                throw new Exception("No such folder!");
-            }
-            var parentDir = (JCDFolder) parentDirTmp;*/
             var top = (JCDFolder) CreateFile(JCDFAT.blockSize, vfsPath, true);
 
             ImportFolderRecursive(top, hfsFolderPath);
@@ -730,7 +714,6 @@ namespace vfs.core
 
         private void ImportFolderRecursive(JCDFolder parentFolder, string hfsFolderPath)
         {
-
             // Import files from hfsFolderPath
             var files = Directory.GetFiles(hfsFolderPath); // Returns list of full file paths on hfs.
             foreach (var filePath in files)
@@ -892,9 +875,6 @@ namespace vfs.core
 
         public void DeleteFile(string path, bool recursive)
         {
-            // TODO: Check if path is relative/absolute and retrieve parent folder of file.
-
-            //path = Helpers.PathGetDirectoryName(path);
             var file = GetFile(path);
             if (file == null)
             {
@@ -908,8 +888,6 @@ namespace vfs.core
         }
 
         public void RenameFile(string vfsPath, string newName) {
-            // TODO: Make sure that newName is a valid name.
-            // TODO: Implement using fat.GetFile.
             var file = GetFile(vfsPath);
             if(file == null) {
                 throw new vfs.exceptions.FileNotFoundException();
@@ -922,6 +900,7 @@ namespace vfs.core
             }
             file.Name = newName;
         }
+
         public void MoveFile(string vfsPath, string newVfsPath) {
             var fromFile = GetFile(vfsPath);
 
