@@ -20,13 +20,13 @@ namespace vfs.core
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
         private bool initialized = false;
-
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
         private const uint endOfChain = 0xFFFFFFFE;
 
         internal const uint rootDirBlock = 0;
-        internal const uint searchFileBlock = 1;
+        internal const uint searchFileTreeBlock = 1;
+        internal const uint searchFileDataBlock = 2;
 
         private const uint readBufferSize = 50 * 1024; //In blocks
 
@@ -396,7 +396,7 @@ namespace vfs.core
             // The current number of unused blocks in the FS.
             // The JCDVFS-file might not yet be big enough to actually hold this many blocks!
             freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock;
-            firstFreeBlock = 2; // The first free block is after the (initially empty) root dir and search file block.
+            firstFreeBlock = 3; // The first free block is after the (initially empty) root dir and search file blocks.
 
             fs.SetLength((long)currentSize);
         }
@@ -468,7 +468,8 @@ namespace vfs.core
             bw.Write(freeBlocks); // Number of free blocks.
             bw.Write(firstFreeBlock); // First free block. Currently statically set to 2.
             bw.Write(rootDirBlock); // Currently statically set to 0.
-            bw.Write(searchFileBlock); // Currently statically set to 1.
+            bw.Write(searchFileTreeBlock); // Currently statically set to 1.
+            bw.Write(searchFileDataBlock); // Currently statically set to 2.
         }
 
         private void ParseMetaData()
@@ -494,7 +495,8 @@ namespace vfs.core
             freeBlocks = br.ReadUInt32();
             firstFreeBlock = br.ReadUInt32();
             //rootDirBlock = br.ReadUInt32(); // Unused.
-            //searchFileBlock = br.ReadUInt32(); // Unused.
+            //searchFileTreeBlock = br.ReadUInt32(); // Unused.
+            //searchFileDataBlock = br.ReadUInt32(); // Unused.
         }
 
         private void NewFSCreateRootFolder()
@@ -513,7 +515,8 @@ namespace vfs.core
         private void NewFSCreateSearchFile()
         {
             //Not implemented
-            FatSetEOC(searchFileBlock);
+            FatSetEOC(searchFileTreeBlock);
+            FatSetEOC(searchFileDataBlock);
         }
 
         private void InitSearchFile()
