@@ -50,7 +50,7 @@
   <ItemGroup>
     <Compile Include="FileAlreadyIndexedException.cs" />
     <Compile Include="FileIndex.cs" />
-    <Compile Include="MyFile.cs" />
+    <Compile Include="IndexedFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -73,7 +73,6 @@
   <ItemGroup>
     <Content Include="lib\BplusDotNet.dll" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>

@@ -54,6 +54,10 @@ namespace vfs.core.indexing {
             return null;
         }
 
+        public void Put(string fileName, string path) {
+            Put(new IndexedFile(fileName, path));
+        }
+
         public void Put(IndexedFile f) {
             var arr = Get(f.Name);
 
@@ -78,6 +82,19 @@ namespace vfs.core.indexing {
             newArr[arr.Length] = f;
             stree.Set(f.Name, newArr);
             //stree.Commit();
+        }
+
+        public void Rename(string fileName, string path, string newName, string newPath) {
+            Rename(new IndexedFile(fileName, path), newName, newPath);
+        }
+
+        public void Rename(IndexedFile f, string newName, string newPath) {
+            Remove(f);
+            Put(newName, newPath);
+        }
+
+        public void Remove(string fileName, string path) {
+            Remove(new IndexedFile(fileName, path));
         }
 
         public void Remove(IndexedFile f) {

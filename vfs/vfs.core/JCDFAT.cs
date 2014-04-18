@@ -5,6 +5,7 @@ using vfs.exceptions;
 using vfs.core.visitor;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using vfs.core.indexing;
 
 namespace vfs.core
 {
@@ -19,6 +20,8 @@ namespace vfs.core
 
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
+        public delegate void FileIndexCallback(string fileName, string path);
+        private FileIndex fileIndex;
         private bool initialized = false;
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
@@ -140,6 +143,7 @@ namespace vfs.core
             NewFSCreateSearchFile();
             // Make sure that the file system is written to disk.
             bw.Flush();
+            InitSearchFile();
 
             initialized = true;
         }
@@ -521,7 +525,7 @@ namespace vfs.core
 
         private void InitSearchFile()
         {
-            //Not implemented
+            fileIndex = new FileIndex("C:/vfs_filetree.txt", "C:/vfs_filedata.txt");
         }
 
         /// <summary>
@@ -599,6 +603,7 @@ namespace vfs.core
             bw.Dispose();
             br.Dispose();
             fs.Dispose();
+            fileIndex.Close();
         }
 
         public ulong Size()
@@ -696,7 +701,8 @@ namespace vfs.core
                 throw new NotAFolderException();
             }
 
-            return ((JCDFolder) container).AddDirEntry(entry);
+            FileIndexCallback cb = (name, p) => { fileIndex.Put(name, p); };
+            return ((JCDFolder) container).AddDirEntry(entry, cb);
         }
 
         internal void ZeroBlock(uint block)
@@ -884,7 +890,8 @@ namespace vfs.core
             {
                 throw new NonRecursiveDeletionException();
             }
-            file.Delete(false);
+            FileIndexCallback cb = (name, p) => { fileIndex.Remove(name, p); };
+            file.Delete(false, cb);
         }
 
         public void RenameFile(string vfsPath, string newName) {
@@ -924,7 +931,8 @@ namespace vfs.core
             }
             var toEntry = fromFile.Entry;
             toEntry.Name = Helpers.PathGetFileName(newVfsPath);
-            var toFile = toFolder.AddDirEntry(toEntry);
+            FileIndexCallback cb = (name, path) => { fileIndex.Put(name, path); };
+            var toFile = toFolder.AddDirEntry(toEntry, cb);
 
             // Delete original file.
             fromFile.DeleteEntry();
@@ -970,6 +978,11 @@ namespace vfs.core
 
         public string GetCurrentDirectory() {
             return currentFolder.Path;
+        }
+
+        public string[] Search(string fileName, bool caseSensitive) {
+            var files = fileIndex.Get(fileName);
+            return files.Select(f => f.Path).ToArray();
         }
     }
 }

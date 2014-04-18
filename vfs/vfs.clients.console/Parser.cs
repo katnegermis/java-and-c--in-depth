@@ -52,6 +52,8 @@ namespace console.client
                 return new VFSConsole.OccupiedCommand();
             case "size":
                 return new VFSConsole.SizeCommand();
+             case "search":
+                return new VFSConsole.SearchCommand(args);
              default:
                  return new VFSConsole.NULLCommand();
          }

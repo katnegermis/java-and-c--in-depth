@@ -933,6 +933,56 @@ namespace console.client
             }
         }
 
+        public class SearchCommand : ICommand {
+            private bool valid;
+            private string fileName;
+
+            public SearchCommand(List<string> args) {
+                if (args.Count < 1) {
+                    valid = false;
+                    return;
+                }
+
+                try {
+                    fileName = args[0];
+                    valid = true;
+                }
+                catch (Exception e) {
+                    valid = false;
+                    Console.WriteLine(e.ToString());
+                    return;
+                }
+            }
+
+            public int Execute(VFSConsole console) {
+                if (!valid) {
+                    Console.WriteLine("Invalid command, check help for more details.");
+                    return 0;
+                }
+
+                if (!console.mounted) {
+                    Console.WriteLine("No VFS mounted.");
+                    return 0;
+                }
+
+                try {
+                    var files = console.mountedJCDFAT.Search(fileName, true);
+                    Console.WriteLine("Found the following files:");
+                    foreach (var file in files) {
+                        Console.WriteLine(file);
+                    }
+                }
+                catch (Exception e) {
+                    Console.WriteLine(e.ToString());
+                    return 0;
+                }
+
+                return 0;
+            }
+
+        }
+
+
         #endregion
 
     }

@@ -55,6 +55,12 @@
     <Compile Include="visitor\LastBlockIdVisitor.cs" />
     <Compile Include="visitor\IVisitor.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\vfs.core.indexing\vfs.core.indexing.csproj">
+      <Project>{d922d70b-31ee-4c36-a2eb-886407fd83c5}</Project>
+      <Name>vfs.core.indexing</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
