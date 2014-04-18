@@ -170,5 +170,26 @@ namespace vfs.core {
             }
             this.parent.setEntry(this.parentIndex, this.entry);
         }
+
+        /// <summary>
+        /// Expand folder by one block.
+        /// </summary>
+        /// <returns>FAT index of newly allocated block.</returns>
+        protected uint ExpandOneBlock() {
+            var prevLastBlock = GetLastBlockId();
+            var newLastBlock = container.GetFreeBlock();
+
+            // Update FAT entries.
+            container.FatSet(prevLastBlock, newLastBlock);
+            container.FatSetEOC(newLastBlock);
+
+            // Clear the newly allocated block in case it has old data.
+            container.ZeroBlock(newLastBlock);
+
+            // Update the file's current size.
+            // Make sure to reflect this change on disk.
+            this.Size += JCDFAT.blockSize;
+            return newLastBlock;
+        }
     }
 }
