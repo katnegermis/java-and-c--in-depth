@@ -39,27 +39,27 @@ namespace vfs.core.indexing {
             this.stree = new SerializedTree((IByteTree)tree);
         }
 
-        public MyFile[] Get(string fileName) {
+        public IndexedFile[] Get(string fileName) {
             var val = stree.Get(fileName, null);
 
             if (val == null) {
                 return null;
             }
 
-            if (val is MyFile[]) {
-                return val as MyFile[];
+            if (val is IndexedFile[]) {
+                return val as IndexedFile[];
             }
 
             // Shut up the compiler.
             return null;
         }
 
-        public void Put(MyFile f) {
+        public void Put(IndexedFile f) {
             var arr = Get(f.Name);
 
             // Key didn't already exist, insert new array.
             if (arr == null) {
-                stree.Set(f.Name, new MyFile[] { f });
+                stree.Set(f.Name, new IndexedFile[] { f });
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace vfs.core.indexing {
             }
 
             // Value didn't already exist, add it.
-            var newArr = new MyFile[arr.Length + 1];
+            var newArr = new IndexedFile[arr.Length + 1];
             for (int i = 0; i < arr.Length; i += 1) {
                 newArr[i] = arr[i];
             }
@@ -80,7 +80,7 @@ namespace vfs.core.indexing {
             //stree.Commit();
         }
 
-        public void Remove(MyFile f) {
+        public void Remove(IndexedFile f) {
             var vals = Get(f.Name);
             if (vals == null) {
                 // TODO: possible throw exception here instead.

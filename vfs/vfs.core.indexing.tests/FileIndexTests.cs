@@ -9,13 +9,13 @@ using vfs.core.indexing;
 namespace vfs.core.indexing.tests {
     [TestClass]
     public class FileIndexTests {
-        private delegate void CorrectFileFound(MyFile x, FileIndex fi);
+        private delegate void CorrectFileFound(IndexedFile x, FileIndex fi);
 
         [TestMethod]
         public void TestSingleFileInsertion() {
             /// Set up
             var fileIndex = GetIndex("single_file_insertion");
-            var file = new MyFile("file", "/path/file");
+            var file = new IndexedFile("file", "/path/file");
             fileIndex.Put(file);
 
             /// Test
@@ -27,7 +27,7 @@ namespace vfs.core.indexing.tests {
         public void TestDuplicateFileInsertion() {
             /// Set up
             var fileIndex = GetIndex("duplicate_file_insertion");
-            var file = new MyFile("file", "/path/file");
+            var file = new IndexedFile("file", "/path/file");
             fileIndex.Put(file);
             fileIndex.Put(file);
 
@@ -59,7 +59,7 @@ namespace vfs.core.indexing.tests {
                 fileIndex.Put(file);
             }
 
-            CorrectFileFound correctFile = (MyFile f, FileIndex fIndex) => {
+            CorrectFileFound correctFile = (IndexedFile f, FileIndex fIndex) => {
                 var val = fIndex.Get(f.Name);
                 Assert.AreEqual(val.Length, 1); // Make sure that only one file is found.
                 Assert.AreEqual(f, val[0]); // Make sure that the file is the correct file.
@@ -75,7 +75,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestSingleFileRetrieval() {
             var fileIndex = GetIndex("single_file_retrieval");
-            fileIndex.Put(new MyFile("file", "/var/file"));
+            fileIndex.Put(new IndexedFile("file", "/var/file"));
             var vals = fileIndex.Get("file");
             Assert.AreEqual(1, vals.Length);
         }
@@ -109,8 +109,8 @@ namespace vfs.core.indexing.tests {
         public void TestRemoveNonExistentFile() {
             /// Set up
             var fileIndex = GetIndex("non_existent_file_removal");
-            var file = new MyFile("file", "/path/file");
-            var file2 = new MyFile("file2", "/path/file2");
+            var file = new IndexedFile("file", "/path/file");
+            var file2 = new IndexedFile("file2", "/path/file2");
             fileIndex.Put(file);
 
             /// Test
@@ -123,7 +123,7 @@ namespace vfs.core.indexing.tests {
         public void TestSingleFileSingleRemoval() {
             /// Set up
             var fileIndex = GetIndex("single_file_removal");
-            var file = new MyFile("file", "/path/file");
+            var file = new IndexedFile("file", "/path/file");
             fileIndex.Put(file);
 
             /// Test
@@ -214,7 +214,7 @@ namespace vfs.core.indexing.tests {
             // Create an array with every other file from `files` in it.
             // This should yield an array with the files that weren't deleted
             // in the loop above.
-            var newFiles = new MyFile[numFiles / 2];
+            var newFiles = new IndexedFile[numFiles / 2];
             for (int i = 0; i < newFiles.Length; i += 1) {
                 newFiles[i] = files[i * 2 + 1];
             }
@@ -228,7 +228,7 @@ namespace vfs.core.indexing.tests {
             }
         }
 
-        private bool FilesAreAllThere(MyFile[] arr1, MyFile[] arr2) {
+        private bool FilesAreAllThere(IndexedFile[] arr1, IndexedFile[] arr2) {
             if (arr1.Length != arr2.Length) {
                 return false;
             }
@@ -260,12 +260,12 @@ namespace vfs.core.indexing.tests {
             }
         }
 
-        private MyFile[] GenerateFilesArray(int numElements, string fileName, bool sameName) {
-            var files = new MyFile[numElements];
+        private IndexedFile[] GenerateFilesArray(int numElements, string fileName, bool sameName) {
+            var files = new IndexedFile[numElements];
             for (var i = 0; i < numElements; i += 1) {
                 var name = sameName ? fileName : fileName + i;
                 // Make sure that files aren't exactly the same, i.e. same name AND path.
-                var file = new MyFile(name, String.Format("/path/{0}/{1}", i, name));
+                var file = new IndexedFile(name, String.Format("/path/{0}/{1}", i, name));
                 files[i] = file;
             }
             return files;
