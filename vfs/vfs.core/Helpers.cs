@@ -22,6 +22,18 @@ namespace vfs.core
             return (num + den - 1) / den;
         }
 
+        public static long ruid(long num, long den) {
+            return (num + den - 1) / den;
+        }
+
+        public static int ruid(int num, int den) {
+            return (num + den - 1) / den;
+        }
+
+        public static uint ruid(uint num, uint den) {
+            return (num + den - 1) / den;
+        }
+
         public static string PathCombine(string path, string fileName)
         {
             return System.IO.Path.Combine(path, fileName);
@@ -63,6 +75,8 @@ namespace vfs.core
         public static bool FileNameIsValid(string name) {
             return (name != "." && name != ".." && name.IndexOf('/') < 0);
         }
+
+        internal delegate JCDFile CreateHiddenFileDelegate(string path, uint firstBlock);
 
         /// <summary>
         /// Method to compress the input Stream and write the result into the output Stream 
