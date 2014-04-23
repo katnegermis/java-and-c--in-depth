@@ -176,7 +176,7 @@ namespace vfs.core {
         /// Expand folder by one block.
         /// </summary>
         /// <returns>FAT index of newly allocated block.</returns>
-        protected uint ExpandOneBlock() {
+        public uint ExpandOneBlock() {
             var prevLastBlock = GetLastBlockId();
             var newLastBlock = container.GetFreeBlock();
 
@@ -184,13 +184,19 @@ namespace vfs.core {
             container.FatSet(prevLastBlock, newLastBlock);
             container.FatSetEOC(newLastBlock);
 
-            // Clear the newly allocated block in case it has old data.
-            container.ZeroBlock(newLastBlock);
+            if (this.IsFolder) {
+                // Clear the newly allocated block in case it has old data.
+                container.ZeroBlock(newLastBlock);
 
-            // Update the file's current size.
-            // Make sure to reflect this change on disk.
-            this.Size += JCDFAT.blockSize;
+                // Update the folder's current size.
+                this.Size += JCDFAT.blockSize;
+            }
+
             return newLastBlock;
+        }
+
+        public JCDFAT GetContainer() {
+            return this.container;
         }
     }
 }
