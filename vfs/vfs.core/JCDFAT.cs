@@ -31,6 +31,9 @@ namespace vfs.core
         internal const uint searchFileTreeBlock = 1;
         internal const uint searchFileDataBlock = 2;
 
+        internal string searchFileTreeName = "/searchfiletree";
+        internal string searchFileDataName = "/searchfiledata";
+
         private const uint readBufferSize = 50 * 1024; //In blocks
 
         // All sizes in this class are given in bytes unless otherwise specified.
@@ -143,7 +146,6 @@ namespace vfs.core
             NewFSCreateSearchFile();
             // Make sure that the file system is written to disk.
             bw.Flush();
-            InitSearchFile();
 
             initialized = true;
         }
@@ -498,9 +500,9 @@ namespace vfs.core
             fatBlocks = br.ReadUInt32();
             freeBlocks = br.ReadUInt32();
             firstFreeBlock = br.ReadUInt32();
-            //rootDirBlock = br.ReadUInt32(); // Unused.
-            //searchFileTreeBlock = br.ReadUInt32(); // Unused.
-            //searchFileDataBlock = br.ReadUInt32(); // Unused.
+            //rootDirBlock = br.ReadUInt32(); // Statically set
+            //searchFileTreeBlock = br.ReadUInt32(); // Statically set.
+            //searchFileDataBlock = br.ReadUInt32(); // Statically set.
         }
 
         private void NewFSCreateRootFolder()
@@ -518,14 +520,36 @@ namespace vfs.core
 
         private void NewFSCreateSearchFile()
         {
-            //Not implemented
-            FatSetEOC(searchFileTreeBlock);
-            FatSetEOC(searchFileDataBlock);
+            Helpers.CreateHiddenFileDelegate f = (fileName, firstBlock) => {
+                
+                FatSetEOC(firstBlock);
+
+                var entry = new JCDDirEntry {
+                    Name = Helpers.PathGetFileName(fileName),
+                    Size = 0,
+                    IsFolder = false,
+                    FirstBlock = firstBlock,
+                };
+                var container = GetFile(Helpers.PathGetDirectoryName(fileName));
+                FileIndexCallback cb = (name, p) => { }; // dummy callback
+                return ((JCDFolder)container).AddDirEntry(entry, cb);
+            };
+
+            var treeFileStream = new JCDFileStream(f(searchFileTreeName, searchFileTreeBlock));
+            var dataFileStream = new JCDFileStream(f(searchFileDataName, searchFileDataBlock));
+
+            fileIndex = FileIndex.Initialize(treeFileStream, dataFileStream);
         }
 
-        private void InitSearchFile()
-        {
-            fileIndex = new FileIndex("C:/vfs_filetree.txt", "C:/vfs_filedata.txt");
+
+        private void InitSearchFile() {
+            var treeFile = GetFile(searchFileTreeName);
+            var dataFile = GetFile(searchFileDataName);
+
+            var treeFileStream = new JCDFileStream(treeFile);
+            var dataFileStream = new JCDFileStream(dataFile);
+
+            fileIndex = FileIndex.Open(treeFileStream, dataFileStream);
         }
 
         /// <summary>
@@ -598,12 +622,12 @@ namespace vfs.core
 
         public void Close()
         {
+            fileIndex.Close();
             bw.Flush();
             fs.Flush();
             bw.Dispose();
             br.Dispose();
             fs.Dispose();
-            fileIndex.Close();
         }
 
         public ulong Size()
@@ -661,6 +685,11 @@ namespace vfs.core
         }
 
         public void SetCurrentDirectory(string path) {
+            if (path == "~") {
+                currentFolder = rootFolder;
+                return;
+            }
+
             var newDir = GetFile(path);
             if(newDir == null) {
                 throw new vfs.exceptions.FileNotFoundException();
@@ -749,8 +778,8 @@ namespace vfs.core
         }
 
         public void CreateFile(string vfsPath, ulong size, bool createParents) {
-            //TODO do something here..
-            //fat.
+            // TODO: create parents.
+            CreateFile(size, vfsPath, false);
         }
 
         public void ImportFile(string hfsPath, string vfsPath) {
@@ -775,7 +804,7 @@ namespace vfs.core
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];
 
-            WalkFATChain(firstBlock, new FileWriterVisitor((ulong)file.Length, buffer, () => {
+            WalkFATChain(firstBlock, new FileImporterVisitor((ulong)file.Length, buffer, () => {
                 bufPos += blockSize;
                 if (bufPos >= bufSize)
                 {
@@ -788,6 +817,27 @@ namespace vfs.core
             if(fileName != null) {
                 Console.WriteLine("Imported {0} to {1}", fileName, path);
             }
+        }
+
+        /// <summary>
+        /// Write `data` in file, starting from `offset` (in bytes).
+        /// 
+        /// Assumes that there are enough blocks available to write the contents of `data` to file.
+        /// </summary>
+        /// <param name="data">Data to be written</param>
+        /// <param name="offset">Offset in to file, in bytes</param>
+        /// <param name="file">The first block of the file to be written.</param>
+        public void WriteFile(byte[] data, long offset, uint firstBlock) {
+            WalkFATChain(firstBlock, new FileWriterVisitor(data, offset));
+        }
+
+        public void ReadFile(byte[] buffer, ulong offset, ulong count, uint firstBlock) {
+            int bufferPos = 0;
+            WalkFATChain(firstBlock, new FileReaderVisitor(count, offset, (data, lastBlock) => {
+                Buffer.BlockCopy(data, 0, buffer, bufferPos, data.Length);
+                bufferPos += data.Length;
+                return true;
+            }));
         }
 
         private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
@@ -875,7 +925,11 @@ namespace vfs.core
                 throw new NotAFolderException();
             }
             var files = ((JCDFolder)directory).GetFileEntries();
-            var notNulls = files.Where(file => { return !(file.EntryIsEmpty() || file.EntryIsFinal()); });
+            var notNulls = files.Where(file => { return !(file.EntryIsEmpty() ||
+                                                          file.EntryIsFinal() ||
+                                                          file.Entry.FirstBlock == searchFileDataBlock||
+                                                          file.Entry.FirstBlock == searchFileTreeBlock);
+            });
             return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
@@ -982,7 +1036,16 @@ namespace vfs.core
 
         public string[] Search(string fileName, bool caseSensitive) {
             var files = fileIndex.Get(fileName);
+            if (files == null) {
+                return new string[0];
+            }
+
             return files.Select(f => f.Path).ToArray();
+        }
+
+        public JCDFileStream GetFileStream(string vfsPath) {
+            var file = GetFile(vfsPath);
+            return new JCDFileStream(file);
         }
     }
 }
