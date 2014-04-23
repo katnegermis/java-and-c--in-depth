@@ -55,17 +55,19 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestOffsetReadData() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_offset_seek_data", MB50);
+            var stream = CreateJCDAndGetFileStream("test_offset_read_data", MB50);
             var bytes = MB5;
+            var outBytes = MB5 - MB1;
             var dataIn = GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
+            stream.Seek(0L, SeekOrigin.Begin);
 
             // Test
             // Read 4 MB data, starting from 1MB.
-            var dataOut = new byte[bytes - MB1];
-            stream.Read(dataOut, MB1, bytes - MB1);
-            for (int i = 0; i < bytes - MB1; i += 1) {
-                Assert.AreEqual(dataIn[i + MB1], dataOut[i]);
+            var dataOut = new byte[bytes - outBytes];
+            stream.Read(dataOut, outBytes, bytes - outBytes);
+            for (int i = 0; i < bytes - outBytes; i += 1) {
+                Assert.AreEqual(dataIn[i + outBytes], dataOut[i]);
             }
         }
 
