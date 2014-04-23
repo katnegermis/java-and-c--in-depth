@@ -228,6 +228,73 @@ namespace vfs.core.indexing.tests {
             }
         }
 
+        [TestMethod]
+        public void TestCreateAndReopenFile() {
+            var testName = "test_and_create_reopen_file";
+            var fileIndex = GetIndex(testName);
+            fileIndex.Close();
+            fileIndex = ReopenIndex(testName);
+        }
+
+        [TestMethod]
+        public void TestCreateAndReopenFileAndReadIndex() {
+            // Set up
+            var testName = "test_and_create_reopen_file_and_read_index";
+            var fileIndex = GetIndex(testName);
+            var fileName = "file";
+            var f1 = new IndexedFile(fileName, "/var/file");
+            fileIndex.Put(f1);
+            fileIndex.Close();
+
+            // Test
+            fileIndex = ReopenIndex(testName);
+            var f2 = fileIndex.Get(fileName)[0];
+            Assert.AreEqual(f1, f2);
+        }
+
+
+        [TestMethod]
+        public void TestCreateAndReopenFileAndReadManyIndexes() {
+            // Set up
+            var testName = "test_and_create_reopen_file_and_read_many_indexes";
+            var fileIndex = GetIndex(testName);
+            var fileName = "file";
+            var files = GenerateFilesArray(50, fileName, false);
+            foreach (var file in files) {
+                fileIndex.Put(file);
+            }
+            fileIndex.Close();
+
+            // Test
+            fileIndex = ReopenIndex(testName);
+
+            foreach (var file in files) {
+                var val = fileIndex.Get(file.Name)[0];
+                Assert.AreEqual(file, val);
+            }
+        }
+
+        [TestMethod]
+        public void TestCreateAndReopenFileAndReadManyIndexesSameName() {
+            // Set up
+            var testName = "test_and_create_reopen_file_and_read_many_indexes_same_name";
+            var fileIndex = GetIndex(testName);
+            var fileName = "file";
+            var files = GenerateFilesArray(50, fileName, true);
+            foreach (var file in files) {
+                fileIndex.Put(file);
+            }
+            fileIndex.Close();
+
+            // Test
+            fileIndex = ReopenIndex(testName);
+            
+            var fetchedFiles= fileIndex.Get(fileName);
+            for (int i = 0; i < files.Length; i += 1) {
+                Assert.AreEqual(files[i], fetchedFiles[i]);
+            }
+        }
+
         private bool FilesAreAllThere(IndexedFile[] arr1, IndexedFile[] arr2) {
             if (arr1.Length != arr2.Length) {
                 return false;
@@ -242,13 +309,22 @@ namespace vfs.core.indexing.tests {
             return true;
         }
 
+        private string[] CreateTestFileNames(string testName) {
+            return new string[] {String.Format("__{0}_tree.test", testName),
+                                 String.Format("__{0}_data.test", testName),};
+        }
+
         private FileIndex GetIndex(string testName) {
             // Expects test names to be unique, so that they will operate on different files.
             // This is necessary because the tests are run in parallel.
-            var files = new string[] {String.Format("{0}_tree", testName),
-                                      String.Format("{0}_data", testName),};
+            var files = CreateTestFileNames(testName);
             DeleteFiles(files);
-            return new FileIndex(files[0], files[1]);
+            return FileIndex.Initialize(files[0], files[1]);
+        }
+
+        private FileIndex ReopenIndex(string testName) {
+            var files = CreateTestFileNames(testName);
+            return FileIndex.Initialize(files[0], files[1]);
         }
 
         private void DeleteFiles(string[] files) {

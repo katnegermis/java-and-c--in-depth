@@ -6,37 +6,41 @@ using System.Linq;
 namespace vfs.core.indexing {
     public class FileIndex : IDisposable {
         const int KEY_LENGTH = 256;
-        string treeFileName = @"C:/treefile.txt";
-        string dataFileName = @"C:/blockfile.txt";
-        BplusTreeBytes tree;
-        SerializedTree stree;
+        private SerializedTree stree;
 
-        public FileIndex(string treeFileName, string dataFileName) {
-            this.treeFileName = treeFileName;
-            this.dataFileName = dataFileName;
-            Initialize();
+        /// <summary>
+        /// Create new FileIndex from a BplusTreeBytes object.
+        /// </summary>
+        /// <param name="tree"></param>
+        public FileIndex(BplusTreeBytes tree) {
+            this.stree = new SerializedTree(tree);
         }
 
-        public FileIndex() {
-            Initialize();
+        public static FileIndex Initialize(Stream treeFile, Stream dataFile) {
+            var tree = BplusTreeBytes.Initialize(treeFile, dataFile, KEY_LENGTH);
+            tree.Commit(); // Make sure to write initial data to disk.
+            return new FileIndex(tree);
         }
 
-        private void Initialize() {
+        public static FileIndex Open(Stream treeFile, Stream dataFile) {
+            var tree = BplusTreeBytes.ReOpen(treeFile, dataFile);
+            return new FileIndex(tree);
+        }
+
+        public static FileIndex Initialize(string treeFileName, string dataFileName) {
             Stream treeFile;
-            Stream blockFile;
+            Stream dataFile;
             var filesExisted = File.Exists(treeFileName) && File.Exists(dataFileName);
             // We hope that the files weren't deleted in between the above and the two following lines of code.
             treeFile = File.Open(treeFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-            blockFile = File.Open(dataFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-            
-            if (filesExisted) {
-                this.tree = BplusTreeBytes.ReOpen(treeFile, blockFile);
-            } else {
-                this.tree = BplusTreeBytes.Initialize(treeFile, blockFile, KEY_LENGTH);
-                // Make sure to write initialized data structure to file.
-                this.tree.Commit();
+            dataFile = File.Open(dataFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+
+            if (!filesExisted) {
+                return Initialize(treeFile, dataFile);
             }
-            this.stree = new SerializedTree((IByteTree)tree);
+            else {
+                return Open(treeFile, dataFile);
+            }
         }
 
         public IndexedFile[] Get(string fileName) {
@@ -81,7 +85,7 @@ namespace vfs.core.indexing {
             }
             newArr[arr.Length] = f;
             stree.Set(f.Name, newArr);
-            //stree.Commit();
+            stree.Commit();
         }
 
         public void Rename(string fileName, string path, string newName, string newPath) {
