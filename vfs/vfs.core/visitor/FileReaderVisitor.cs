@@ -14,19 +14,45 @@ namespace vfs.core.visitor
 
         private GetFileContents f;
         private ulong bytesLeft;
+        private ulong firstBlockIndex;
+        private uint blockOffset;
+        private ulong blocksTraversed;
 
         public FileReaderVisitor(ulong size, GetFileContents f)
         {
+            Initialize(size, 0L, f);
+        }
+
+        public FileReaderVisitor(ulong size, ulong offset, GetFileContents f) {
+            Initialize(size, offset, f);
+        }
+
+        private void Initialize(ulong size, ulong fileOffset, GetFileContents f) {
+            this.blocksTraversed = 0;
             this.f = f;
             bytesLeft = size;
+            this.firstBlockIndex = fileOffset / JCDFAT.blockSize; // Floor division.
+            // blockOffset is always 0 <= x <= JCDFAT.blockSize because of floor division above.
+            this.blockOffset = (uint)(fileOffset - firstBlockIndex * JCDFAT.blockSize);
         }
 
         public bool Visit(JCDFAT vfs, uint block)
         {
-            ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
+            if (blocksTraversed < firstBlockIndex) {
+                blocksTraversed += 1;
+                return true;
+            }
 
-            var bytesToRead = (uint) Math.Min(bytesLeft, (ulong)JCDFAT.blockSize);
+            ulong vfsOffset = vfs.BlockGetByteOffset(block, blockOffset);
+            var bytesToRead = (uint)Math.Min(bytesLeft, (ulong)JCDFAT.blockSize - blockOffset);
+
+            // Only needed for the first block. All other blocks are read from the beginning.
+            blockOffset = 0;
+
             bytesLeft -= bytesToRead;
+            
+            blocksTraversed += 1;
+
             // Pass contents of block on to f and inform caller whether f wants 
             // the contents of the next block.
             return f(vfs.Read(vfsOffset, bytesToRead), bytesLeft == 0);

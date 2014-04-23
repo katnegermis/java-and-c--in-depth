@@ -1,36 +1,45 @@
 ﻿using System;
-using vfs.core;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace vfs.core.visitor
-{
-    class FileWriterVisitor : IVisitor
-    {
-        /// <summary>
-        /// Returns the offset into the buffer where the file continues
-        /// </summary>
-        /// <returns>The offset of next block of data in the buffer.</returns>
-        public delegate uint BufferIndex();
+namespace vfs.core.visitor {
+    class FileWriterVisitor : IVisitor {
+        private byte[] data;
+        private int remainingBytes;
+        private long blocksTraversed;
+        private long startingBlock;
+        private long blocksToWrite;
+        private uint blockOffset;
 
-        private BufferIndex f;
-        private ulong remainingFileSize;
-        private byte[] buffer;
-
-        public FileWriterVisitor(ulong fileSize, byte[] buffer, BufferIndex f)
-        {
-            this.f = f;
-            remainingFileSize = fileSize;
-            this.buffer = buffer;
+        public FileWriterVisitor(byte[] data, long offset) {
+            this.data = data;
+            this.remainingBytes = data.Length;
+            this.blocksTraversed = 0;
+            this.blocksToWrite = Helpers.ruid(data.Length, JCDFAT.blockSize);
+            this.startingBlock = offset / JCDFAT.blockSize; // Floor division.
+            // This is always >= 0 since the statement above uses floor division.
+            // It also fits in to a uint since the block size is only 2^12.
+            // blockOffset is only used for the first block we have to write to,
+            // as all other blocks will be written from their first byte.
+            this.blockOffset = (uint)(offset - startingBlock * JCDFAT.blockSize);
         }
 
-        public bool Visit(JCDFAT vfs, uint block)
-        {
-            ulong vfsOffset = vfs.BlockGetByteOffset(block, 0);
-            uint bufferPos = f();
+        public bool Visit(JCDFAT vfs, uint block) {
+            // Don't write anything until we reach the first block we want to write.
+            if (blocksTraversed < startingBlock) {
+                blocksTraversed += 1;
+                return true;
+            }
 
-            int writeBytes = (int) Math.Min((ulong) JCDFAT.blockSize, remainingFileSize);
-            vfs.Write(vfsOffset, buffer, (int) bufferPos, writeBytes);
-            remainingFileSize -= JCDFAT.blockSize;
+            var vfsOffset = vfs.BlockGetByteOffset(block, blockOffset);
+            var bytesToWrite = (int)Math.Min(remainingBytes, JCDFAT.blockSize - blockOffset);
+            blockOffset = 0; // We only need the blockOffset for the first block.
+            vfs.Write(vfsOffset, data, data.Length - remainingBytes, bytesToWrite);
+            remainingBytes -= bytesToWrite;
 
+            blocksTraversed += 1;
             return true;
         }
     }
