@@ -1,6 +1,6 @@
 ﻿namespace vfs.clients.desktop
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,18 +29,22 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.formFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
-            this.topSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.topLeftFlowLayout = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
             this.createButton = new System.Windows.Forms.Button();
             this.openButton = new System.Windows.Forms.Button();
             this.deleteButton = new System.Windows.Forms.Button();
-            this.topRightSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
             this.closeButton = new System.Windows.Forms.Button();
-            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
-            this.searchTypeComboBox = new System.Windows.Forms.ComboBox();
+            this.searchOptionButton = new System.Windows.Forms.Button();
+            this.searchMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.searchLocationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentSubfoldersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.everywhereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.caseSensitivityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sensitiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insensitiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.searchTextBox = new System.Windows.Forms.TextBox();
             this.vfsLabel = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -58,31 +62,22 @@
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.formFlowLayoutPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.topSplitContainer)).BeginInit();
-            this.topSplitContainer.Panel1.SuspendLayout();
-            this.topSplitContainer.Panel2.SuspendLayout();
-            this.topSplitContainer.SuspendLayout();
-            this.topLeftFlowLayout.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.topRightSplitContainer)).BeginInit();
-            this.topRightSplitContainer.Panel1.SuspendLayout();
-            this.topRightSplitContainer.Panel2.SuspendLayout();
-            this.topRightSplitContainer.SuspendLayout();
-            this.flowLayoutPanel3.SuspendLayout();
-            this.flowLayoutPanel5.SuspendLayout();
+            this.flowLayoutPanel4.SuspendLayout();
+            this.searchMenuStrip.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.lvMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // formFlowLayoutPanel
             // 
-            this.formFlowLayoutPanel.Controls.Add(this.topSplitContainer);
+            this.formFlowLayoutPanel.Controls.Add(this.flowLayoutPanel4);
             this.formFlowLayoutPanel.Controls.Add(this.vfsLabel);
             this.formFlowLayoutPanel.Controls.Add(this.flowLayoutPanel1);
             this.formFlowLayoutPanel.Controls.Add(this.directoryListView);
@@ -90,37 +85,22 @@
             this.formFlowLayoutPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.formFlowLayoutPanel.Location = new System.Drawing.Point(0, 0);
             this.formFlowLayoutPanel.Name = "formFlowLayoutPanel";
-            this.formFlowLayoutPanel.Size = new System.Drawing.Size(684, 362);
+            this.formFlowLayoutPanel.Size = new System.Drawing.Size(692, 388);
             this.formFlowLayoutPanel.TabIndex = 0;
             this.formFlowLayoutPanel.WrapContents = false;
             // 
-            // topSplitContainer
+            // flowLayoutPanel4
             // 
-            this.topSplitContainer.Location = new System.Drawing.Point(3, 3);
-            this.topSplitContainer.Name = "topSplitContainer";
-            // 
-            // topSplitContainer.Panel1
-            // 
-            this.topSplitContainer.Panel1.Controls.Add(this.topLeftFlowLayout);
-            // 
-            // topSplitContainer.Panel2
-            // 
-            this.topSplitContainer.Panel2.Controls.Add(this.topRightSplitContainer);
-            this.topSplitContainer.Size = new System.Drawing.Size(681, 28);
-            this.topSplitContainer.SplitterDistance = 278;
-            this.topSplitContainer.TabIndex = 8;
-            this.topSplitContainer.TabStop = false;
-            // 
-            // topLeftFlowLayout
-            // 
-            this.topLeftFlowLayout.Controls.Add(this.createButton);
-            this.topLeftFlowLayout.Controls.Add(this.openButton);
-            this.topLeftFlowLayout.Controls.Add(this.deleteButton);
-            this.topLeftFlowLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.topLeftFlowLayout.Location = new System.Drawing.Point(0, 0);
-            this.topLeftFlowLayout.Name = "topLeftFlowLayout";
-            this.topLeftFlowLayout.Size = new System.Drawing.Size(278, 28);
-            this.topLeftFlowLayout.TabIndex = 2;
+            this.flowLayoutPanel4.Controls.Add(this.createButton);
+            this.flowLayoutPanel4.Controls.Add(this.openButton);
+            this.flowLayoutPanel4.Controls.Add(this.deleteButton);
+            this.flowLayoutPanel4.Controls.Add(this.closeButton);
+            this.flowLayoutPanel4.Controls.Add(this.searchOptionButton);
+            this.flowLayoutPanel4.Controls.Add(this.searchTextBox);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel4.Name = "flowLayoutPanel4";
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(689, 30);
+            this.flowLayoutPanel4.TabIndex = 15;
             // 
             // createButton
             // 
@@ -155,38 +135,11 @@
             this.deleteButton.UseVisualStyleBackColor = true;
             this.deleteButton.Click += new System.EventHandler(this.DeleteButton_Click);
             // 
-            // topRightSplitContainer
-            // 
-            this.topRightSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.topRightSplitContainer.Location = new System.Drawing.Point(0, 0);
-            this.topRightSplitContainer.Name = "topRightSplitContainer";
-            // 
-            // topRightSplitContainer.Panel1
-            // 
-            this.topRightSplitContainer.Panel1.Controls.Add(this.flowLayoutPanel3);
-            // 
-            // topRightSplitContainer.Panel2
-            // 
-            this.topRightSplitContainer.Panel2.Controls.Add(this.flowLayoutPanel5);
-            this.topRightSplitContainer.Size = new System.Drawing.Size(399, 28);
-            this.topRightSplitContainer.SplitterDistance = 97;
-            this.topRightSplitContainer.TabIndex = 0;
-            this.topRightSplitContainer.TabStop = false;
-            // 
-            // flowLayoutPanel3
-            // 
-            this.flowLayoutPanel3.Controls.Add(this.closeButton);
-            this.flowLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(0, 0);
-            this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(97, 28);
-            this.flowLayoutPanel3.TabIndex = 0;
-            // 
             // closeButton
             // 
             this.closeButton.Enabled = false;
             this.closeButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.closeButton.Location = new System.Drawing.Point(3, 3);
+            this.closeButton.Location = new System.Drawing.Point(279, 3);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(86, 23);
             this.closeButton.TabIndex = 3;
@@ -194,55 +147,120 @@
             this.closeButton.UseVisualStyleBackColor = true;
             this.closeButton.Click += new System.EventHandler(this.CloseButton_Click);
             // 
-            // flowLayoutPanel5
+            // searchOptionButton
             // 
-            this.flowLayoutPanel5.Controls.Add(this.searchTypeComboBox);
-            this.flowLayoutPanel5.Controls.Add(this.searchTextBox);
-            this.flowLayoutPanel5.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel5.Location = new System.Drawing.Point(0, 0);
-            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(298, 28);
-            this.flowLayoutPanel5.TabIndex = 0;
+            this.searchOptionButton.ContextMenuStrip = this.searchMenuStrip;
+            this.searchOptionButton.Enabled = false;
+            this.searchOptionButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.searchOptionButton.Location = new System.Drawing.Point(371, 3);
+            this.searchOptionButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
+            this.searchOptionButton.Name = "searchOptionButton";
+            this.searchOptionButton.Size = new System.Drawing.Size(20, 22);
+            this.searchOptionButton.TabIndex = 8;
+            this.searchOptionButton.Text = "v";
+            this.searchOptionButton.UseVisualStyleBackColor = true;
+            this.searchOptionButton.Click += new System.EventHandler(this.searchOptionButton_Click);
             // 
-            // searchTypeComboBox
+            // searchMenuStrip
             // 
-            this.searchTypeComboBox.Enabled = false;
-            this.searchTypeComboBox.FormattingEnabled = true;
-            this.searchTypeComboBox.Location = new System.Drawing.Point(278, 3);
-            this.searchTypeComboBox.Name = "searchTypeComboBox";
-            this.searchTypeComboBox.Size = new System.Drawing.Size(17, 21);
-            this.searchTypeComboBox.TabIndex = 7;
+            this.searchMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.searchLocationToolStripMenuItem,
+            this.caseSensitivityToolStripMenuItem});
+            this.searchMenuStrip.Name = "searchMenuStrip";
+            this.searchMenuStrip.Size = new System.Drawing.Size(159, 48);
+            this.searchMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.searchMenuStrip_Opening);
+            // 
+            // searchLocationToolStripMenuItem
+            // 
+            this.searchLocationToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.currentFolderToolStripMenuItem,
+            this.currentSubfoldersToolStripMenuItem,
+            this.everywhereToolStripMenuItem});
+            this.searchLocationToolStripMenuItem.Name = "searchLocationToolStripMenuItem";
+            this.searchLocationToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.searchLocationToolStripMenuItem.Text = "Search Location";
+            // 
+            // currentFolderToolStripMenuItem
+            // 
+            this.currentFolderToolStripMenuItem.CheckOnClick = true;
+            this.currentFolderToolStripMenuItem.Name = "currentFolderToolStripMenuItem";
+            this.currentFolderToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.currentFolderToolStripMenuItem.Text = "Current Folder";
+            this.currentFolderToolStripMenuItem.Click += new System.EventHandler(this.currentFolderToolStripMenuItem_Click);
+            // 
+            // currentSubfoldersToolStripMenuItem
+            // 
+            this.currentSubfoldersToolStripMenuItem.CheckOnClick = true;
+            this.currentSubfoldersToolStripMenuItem.Name = "currentSubfoldersToolStripMenuItem";
+            this.currentSubfoldersToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.currentSubfoldersToolStripMenuItem.Text = "Current + Subfolders";
+            this.currentSubfoldersToolStripMenuItem.Click += new System.EventHandler(this.currentSubfoldersToolStripMenuItem_Click);
+            // 
+            // everywhereToolStripMenuItem
+            // 
+            this.everywhereToolStripMenuItem.CheckOnClick = true;
+            this.everywhereToolStripMenuItem.Name = "everywhereToolStripMenuItem";
+            this.everywhereToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.everywhereToolStripMenuItem.Text = "Everywhere";
+            this.everywhereToolStripMenuItem.Click += new System.EventHandler(this.everywhereToolStripMenuItem_Click);
+            // 
+            // caseSensitivityToolStripMenuItem
+            // 
+            this.caseSensitivityToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.sensitiveToolStripMenuItem,
+            this.insensitiveToolStripMenuItem});
+            this.caseSensitivityToolStripMenuItem.Name = "caseSensitivityToolStripMenuItem";
+            this.caseSensitivityToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.caseSensitivityToolStripMenuItem.Text = "Case Sensitivity";
+            // 
+            // sensitiveToolStripMenuItem
+            // 
+            this.sensitiveToolStripMenuItem.CheckOnClick = true;
+            this.sensitiveToolStripMenuItem.Name = "sensitiveToolStripMenuItem";
+            this.sensitiveToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.sensitiveToolStripMenuItem.Text = "Sensitive";
+            this.sensitiveToolStripMenuItem.Click += new System.EventHandler(this.sensitiveToolStripMenuItem_Click);
+            // 
+            // insensitiveToolStripMenuItem
+            // 
+            this.insensitiveToolStripMenuItem.CheckOnClick = true;
+            this.insensitiveToolStripMenuItem.Name = "insensitiveToolStripMenuItem";
+            this.insensitiveToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.insensitiveToolStripMenuItem.Text = "Insensitive";
+            this.insensitiveToolStripMenuItem.Click += new System.EventHandler(this.insensitiveToolStripMenuItem_Click);
             // 
             // searchTextBox
             // 
             this.searchTextBox.Enabled = false;
             this.searchTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.searchTextBox.Location = new System.Drawing.Point(40, 3);
+            this.searchTextBox.Location = new System.Drawing.Point(391, 4);
+            this.searchTextBox.Margin = new System.Windows.Forms.Padding(0, 4, 0, 3);
             this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(232, 20);
-            this.searchTextBox.TabIndex = 6;
+            this.searchTextBox.Size = new System.Drawing.Size(294, 20);
+            this.searchTextBox.TabIndex = 7;
+            this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
             // 
             // vfsLabel
             // 
-            this.vfsLabel.AutoSize = true;
             this.vfsLabel.Enabled = false;
             this.vfsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.vfsLabel.Location = new System.Drawing.Point(3, 34);
+            this.vfsLabel.Location = new System.Drawing.Point(3, 42);
+            this.vfsLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.vfsLabel.Name = "vfsLabel";
-            this.vfsLabel.Size = new System.Drawing.Size(106, 15);
-            this.vfsLabel.TabIndex = 0;
+            this.vfsLabel.Size = new System.Drawing.Size(686, 18);
+            this.vfsLabel.TabIndex = 17;
             this.vfsLabel.Text = "No VFS mounted..";
             // 
             // flowLayoutPanel1
             // 
             this.flowLayoutPanel1.Controls.Add(this.backButton);
             this.flowLayoutPanel1.Controls.Add(this.pathTextBox);
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 55);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 69);
             this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(678, 30);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(689, 30);
             this.flowLayoutPanel1.TabIndex = 10;
+            this.flowLayoutPanel1.WrapContents = false;
             // 
             // backButton
             // 
@@ -252,7 +270,7 @@
             this.backButton.Margin = new System.Windows.Forms.Padding(3, 1, 3, 3);
             this.backButton.Name = "backButton";
             this.backButton.Size = new System.Drawing.Size(44, 23);
-            this.backButton.TabIndex = 0;
+            this.backButton.TabIndex = 5;
             this.backButton.Text = "Back";
             this.backButton.UseVisualStyleBackColor = true;
             this.backButton.Click += new System.EventHandler(this.BackButton_Click);
@@ -260,15 +278,17 @@
             // 
             // pathTextBox
             // 
+            this.pathTextBox.AllowDrop = true;
             this.pathTextBox.Enabled = false;
             this.pathTextBox.Location = new System.Drawing.Point(53, 3);
             this.pathTextBox.Name = "pathTextBox";
-            this.pathTextBox.Size = new System.Drawing.Size(602, 20);
-            this.pathTextBox.TabIndex = 1;
+            this.pathTextBox.Size = new System.Drawing.Size(636, 20);
+            this.pathTextBox.TabIndex = 6;
             this.pathTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pathTextBox_KeyDown);
             // 
             // directoryListView
             // 
+            this.directoryListView.AllowDrop = true;
             this.directoryListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.nameColumn,
             this.typeColumn,
@@ -276,13 +296,17 @@
             this.directoryListView.ContextMenuStrip = this.lvMenuStrip;
             this.directoryListView.Enabled = false;
             this.directoryListView.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.directoryListView.Location = new System.Drawing.Point(3, 91);
+            this.directoryListView.Location = new System.Drawing.Point(3, 105);
             this.directoryListView.Name = "directoryListView";
-            this.directoryListView.Size = new System.Drawing.Size(678, 270);
+            this.directoryListView.Size = new System.Drawing.Size(689, 283);
             this.directoryListView.SmallImageList = this.imageList1;
-            this.directoryListView.TabIndex = 9;
+            this.directoryListView.TabIndex = 4;
             this.directoryListView.UseCompatibleStateImageBehavior = false;
             this.directoryListView.View = System.Windows.Forms.View.Details;
+            this.directoryListView.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.directoryListView_ItemDrag);
+            this.directoryListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragDrop);
+            this.directoryListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragEnter);
+            this.directoryListView.DragOver += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragOver);
             this.directoryListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.directoryListView_KeyDown);
             this.directoryListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.directoryListView_MouseDoubleClick);
             // 
@@ -319,7 +343,7 @@
             this.createFileToolStripMenuItem,
             this.createDirectoryToolStripMenuItem});
             this.createToolStripMenuItem.Name = "createToolStripMenuItem";
-            this.createToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.createToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.createToolStripMenuItem.Text = "Create";
             // 
             // createFileToolStripMenuItem
@@ -339,35 +363,65 @@
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.renameToolStripMenuItem.Text = "Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // cutToolStripMenuItem
             // 
             this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            this.cutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.cutToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.cutToolStripMenuItem.Text = "Cut";
             this.cutToolStripMenuItem.Click += new System.EventHandler(this.cutToolStripMenuItem_Click);
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.pasteToolStripMenuItem.Text = "Paste";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
+            // 
+            // importToolStripMenuItem
+            // 
+            this.importToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.importFileToolStripMenuItem,
+            this.importFolderToolStripMenuItem});
+            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
+            this.importToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+            this.importToolStripMenuItem.Text = "Import";
+            // 
+            // importFileToolStripMenuItem
+            // 
+            this.importFileToolStripMenuItem.Name = "importFileToolStripMenuItem";
+            this.importFileToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.importFileToolStripMenuItem.Text = "Import File";
+            this.importFileToolStripMenuItem.Click += new System.EventHandler(this.importFileToolStripMenuItem_Click);
+            // 
+            // importFolderToolStripMenuItem
+            // 
+            this.importFolderToolStripMenuItem.Name = "importFolderToolStripMenuItem";
+            this.importFolderToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.importFolderToolStripMenuItem.Text = "Import Folder";
+            this.importFolderToolStripMenuItem.Click += new System.EventHandler(this.importFolderToolStripMenuItem_Click);
+            // 
+            // exportToolStripMenuItem
+            // 
+            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+            this.exportToolStripMenuItem.Text = "Export";
+            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
             // 
             // deleteStripMenuItem1
             // 
             this.deleteStripMenuItem1.Name = "deleteStripMenuItem1";
-            this.deleteStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.deleteStripMenuItem1.Size = new System.Drawing.Size(117, 22);
             this.deleteStripMenuItem1.Text = "Delete";
             this.deleteStripMenuItem1.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
@@ -378,62 +432,23 @@
             this.imageList1.Images.SetKeyName(0, "Folder.png");
             this.imageList1.Images.SetKeyName(1, "Icon-Document.png");
             // 
-            // importToolStripMenuItem
-            // 
-            this.importToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importFileToolStripMenuItem,
-            this.importFolderToolStripMenuItem});
-            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
-            this.importToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.importToolStripMenuItem.Text = "Import";
-            // 
-            // exportToolStripMenuItem
-            // 
-            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.exportToolStripMenuItem.Text = "Export";
-            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
-            // 
-            // importFileToolStripMenuItem
-            // 
-            this.importFileToolStripMenuItem.Name = "importFileToolStripMenuItem";
-            this.importFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.importFileToolStripMenuItem.Text = "Import File";
-            this.importFileToolStripMenuItem.Click += new System.EventHandler(this.importFileToolStripMenuItem_Click);
-            // 
-            // importFolderToolStripMenuItem
-            // 
-            this.importFolderToolStripMenuItem.Name = "importFolderToolStripMenuItem";
-            this.importFolderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.importFolderToolStripMenuItem.Text = "Import Folder";
-            this.importFolderToolStripMenuItem.Click += new System.EventHandler(this.importFolderToolStripMenuItem_Click);
-            // 
-            // Form1
+            // MainForm
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 362);
+            this.ClientSize = new System.Drawing.Size(692, 388);
             this.Controls.Add(this.formFlowLayoutPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "VFS Ravioli";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.formFlowLayoutPanel.ResumeLayout(false);
-            this.formFlowLayoutPanel.PerformLayout();
-            this.topSplitContainer.Panel1.ResumeLayout(false);
-            this.topSplitContainer.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.topSplitContainer)).EndInit();
-            this.topSplitContainer.ResumeLayout(false);
-            this.topLeftFlowLayout.ResumeLayout(false);
-            this.topRightSplitContainer.Panel1.ResumeLayout(false);
-            this.topRightSplitContainer.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.topRightSplitContainer)).EndInit();
-            this.topRightSplitContainer.ResumeLayout(false);
-            this.flowLayoutPanel3.ResumeLayout(false);
-            this.flowLayoutPanel5.ResumeLayout(false);
-            this.flowLayoutPanel5.PerformLayout();
+            this.flowLayoutPanel4.ResumeLayout(false);
+            this.flowLayoutPanel4.PerformLayout();
+            this.searchMenuStrip.ResumeLayout(false);
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
             this.lvMenuStrip.ResumeLayout(false);
@@ -444,18 +459,6 @@
         #endregion
 
         private System.Windows.Forms.FlowLayoutPanel formFlowLayoutPanel;
-        private System.Windows.Forms.Label vfsLabel;
-        private System.Windows.Forms.SplitContainer topSplitContainer;
-        private System.Windows.Forms.FlowLayoutPanel topLeftFlowLayout;
-        private System.Windows.Forms.Button createButton;
-        private System.Windows.Forms.Button deleteButton;
-        private System.Windows.Forms.Button openButton;
-        private System.Windows.Forms.SplitContainer topRightSplitContainer;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
-        private System.Windows.Forms.Button closeButton;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
-        private System.Windows.Forms.ComboBox searchTypeComboBox;
-        private System.Windows.Forms.TextBox searchTextBox;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ContextMenuStrip lvMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem createToolStripMenuItem;
@@ -477,6 +480,22 @@
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importFolderToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip searchMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem searchLocationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem currentFolderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem currentSubfoldersToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem everywhereToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem caseSensitivityToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem sensitiveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem insensitiveToolStripMenuItem;
+        private System.Windows.Forms.TextBox searchTextBox;
+        private System.Windows.Forms.Button searchOptionButton;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
+        private System.Windows.Forms.Button createButton;
+        private System.Windows.Forms.Button openButton;
+        private System.Windows.Forms.Button deleteButton;
+        private System.Windows.Forms.Button closeButton;
+        private System.Windows.Forms.Label vfsLabel;
 
     }
 }

@@ -1,30 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace vfs.clients.desktop
 {
     public partial class InputNameForm : Form
     {
-        public string title;
-        public string text;
+        public string Title { private get; set; }
+        public string Description { private get; set; }
 
-        public string result;
+        public string Result { get; private set; }
 
         public InputNameForm()
         {
             InitializeComponent();
-            if (title != null)
-                this.Text = title;
+            if (Title != null)
+                this.Text = Title;
 
-            if (text != null)
-                this.textLabel.Text = text;
+            if (Description != null)
+                this.textLabel.Text = Description;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -61,7 +54,7 @@ namespace vfs.clients.desktop
 
         private void ok()
         {
-            this.result = inputTextBox.Text;
+            this.Result = inputTextBox.Text;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

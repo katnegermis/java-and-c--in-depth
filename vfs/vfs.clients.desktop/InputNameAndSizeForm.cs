@@ -12,24 +12,24 @@ namespace vfs.clients.desktop
 {
     public partial class InputNameAndSizeForm : Form
     {
-        public string title;
-        public string textName;
-        public string textSize;
+        public string Title { private get; set; }
+        public string TextName { private get; set; }
+        public string TextSize { private get; set; }
 
-        public string nameResult;
-        public ulong sizeResult;
+        public string NameResult { get; private set; }
+        public ulong SizeResult { get; private set; }
 
         public InputNameAndSizeForm()
         {
             InitializeComponent();
-            if (title != null)
-                this.Text = title;
+            if (Title != null)
+                this.Text = Title;
 
-            if (textName != null)
-                this.nameLabel.Text = textName;
+            if (TextName != null)
+                this.nameLabel.Text = TextName;
 
-            if (textSize != null)
-                this.sizeLabel.Text = textSize;
+            if (TextSize != null)
+                this.sizeLabel.Text = TextSize;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -74,8 +74,8 @@ namespace vfs.clients.desktop
         {
             try
             {
-                this.nameResult = nameTextBox.Text;
-                this.sizeResult = Convert.ToUInt64(sizeTextBox.Text);
+                this.NameResult = nameTextBox.Text;
+                this.SizeResult = Convert.ToUInt64(sizeTextBox.Text);
             }
             catch (Exception ex)
             {
