@@ -296,6 +296,7 @@
             this.directoryListView.ContextMenuStrip = this.lvMenuStrip;
             this.directoryListView.Enabled = false;
             this.directoryListView.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.directoryListView.HideSelection = false;
             this.directoryListView.Location = new System.Drawing.Point(3, 105);
             this.directoryListView.Name = "directoryListView";
             this.directoryListView.Size = new System.Drawing.Size(689, 283);
@@ -303,6 +304,7 @@
             this.directoryListView.TabIndex = 4;
             this.directoryListView.UseCompatibleStateImageBehavior = false;
             this.directoryListView.View = System.Windows.Forms.View.Details;
+            this.directoryListView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.directoryListView_ColumnClick);
             this.directoryListView.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.directoryListView_ItemDrag);
             this.directoryListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragDrop);
             this.directoryListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragEnter);
@@ -459,7 +461,6 @@
         #endregion
 
         private System.Windows.Forms.FlowLayoutPanel formFlowLayoutPanel;
-        private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ContextMenuStrip lvMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem createToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createFileToolStripMenuItem;
@@ -496,6 +497,7 @@
         private System.Windows.Forms.Button deleteButton;
         private System.Windows.Forms.Button closeButton;
         private System.Windows.Forms.Label vfsLabel;
+        private System.Windows.Forms.ImageList imageList1;
 
     }
 }
