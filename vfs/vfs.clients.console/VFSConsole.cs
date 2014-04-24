@@ -935,6 +935,7 @@ namespace console.client
 
         public class SearchCommand : ICommand {
             private bool valid;
+            private bool caseSensitive = true; // Case sensitive by default.
             private string fileName;
 
             public SearchCommand(List<string> args) {
@@ -943,14 +944,30 @@ namespace console.client
                     return;
                 }
 
-                try {
-                    fileName = args[0];
-                    valid = true;
+                if (args.Count == 1) {
+                    try {
+                        fileName = args[0];
+                        valid = true;
+                    }
+                    catch (Exception e) {
+                        valid = false;
+                        Console.WriteLine(e.ToString());
+                        return;
+                    }
                 }
-                catch (Exception e) {
-                    valid = false;
-                    Console.WriteLine(e.ToString());
-                    return;
+                else if (args.Count == 2) {
+                    try {
+                        if (args[0] == "-i") {
+                            caseSensitive = false;
+                        }
+                        fileName = args[1];
+                        valid = true;
+                    }
+                    catch (Exception e) {
+                        valid = false;
+                        Console.WriteLine(e.ToString());
+                        return;
+                    }
                 }
             }
 
@@ -966,7 +983,12 @@ namespace console.client
                 }
 
                 try {
-                    var files = console.mountedJCDFAT.Search(fileName, true);
+                    var files = console.mountedJCDFAT.Search(fileName, caseSensitive);
+                    if (files.Length == 0) {
+                        Console.WriteLine("Sorry, no files matched \"{0}\"", fileName);
+                        return 0;
+                    }
+
                     Console.WriteLine("Found the following files:");
                     foreach (var file in files) {
                         Console.WriteLine(file);

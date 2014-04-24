@@ -1035,7 +1035,7 @@ namespace vfs.core
         }
 
         public string[] Search(string fileName, bool caseSensitive) {
-            var files = fileIndex.Get(fileName);
+            var files = fileIndex.Get(fileName, caseSensitive);
             if (files == null) {
                 return new string[0];
             }

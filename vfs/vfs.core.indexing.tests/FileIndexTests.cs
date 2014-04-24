@@ -19,7 +19,7 @@ namespace vfs.core.indexing.tests {
             fileIndex.Put(file);
 
             /// Test
-            Assert.AreEqual(file, fileIndex.Get(file.Name)[0]); // Make sure file is there.
+            Assert.AreEqual(file, fileIndex.Get(file.Name, true)[0]); // Make sure file is there.
         }
 
         [TestMethod]
@@ -32,7 +32,7 @@ namespace vfs.core.indexing.tests {
             fileIndex.Put(file);
 
             /// Test
-            Assert.AreEqual(file, fileIndex.Get(file.Name)[0]); // Make sure file is there.
+            Assert.AreEqual(file, fileIndex.Get(file.Name, true)[0]); // Make sure file is there.
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace vfs.core.indexing.tests {
             }
 
             /// Test
-            var vals = fileIndex.Get(fileName);
+            var vals = fileIndex.Get(fileName, true);
             Assert.IsTrue(FilesAreAllThere(files, vals));
         }
 
@@ -60,7 +60,7 @@ namespace vfs.core.indexing.tests {
             }
 
             CorrectFileFound correctFile = (IndexedFile f, FileIndex fIndex) => {
-                var val = fIndex.Get(f.Name);
+                var val = fIndex.Get(f.Name, true);
                 Assert.AreEqual(val.Length, 1); // Make sure that only one file is found.
                 Assert.AreEqual(f, val[0]); // Make sure that the file is the correct file.
             };
@@ -76,7 +76,7 @@ namespace vfs.core.indexing.tests {
         public void TestSingleFileRetrieval() {
             var fileIndex = GetIndex("single_file_retrieval");
             fileIndex.Put(new IndexedFile("file", "/var/file"));
-            var vals = fileIndex.Get("file");
+            var vals = fileIndex.Get("file", true);
             Assert.AreEqual(1, vals.Length);
         }
 
@@ -86,7 +86,7 @@ namespace vfs.core.indexing.tests {
             var fileIndex = GetIndex("non_existent_file");
 
             /// Test
-            var vals = fileIndex.Get("non existent file");
+            var vals = fileIndex.Get("non existent file", true);
             Assert.IsNull(vals); // Make sure file isn't there.
         }
 
@@ -101,7 +101,7 @@ namespace vfs.core.indexing.tests {
             }
 
             /// Test
-            var vals = fileIndex.Get("file");
+            var vals = fileIndex.Get("file", true);
             Assert.IsTrue(FilesAreAllThere(files, vals));
         }
 
@@ -114,9 +114,9 @@ namespace vfs.core.indexing.tests {
             fileIndex.Put(file);
 
             /// Test
-            Assert.AreEqual(file, fileIndex.Get(file.Name)[0]); // Make sure `file` is there.
+            Assert.AreEqual(file, fileIndex.Get(file.Name, true)[0]); // Make sure `file` is there.
             fileIndex.Remove(file2); // Try to remove file that wasn't added.
-            Assert.AreEqual(file, fileIndex.Get(file.Name)[0]); // Make sure `file` is still there.
+            Assert.AreEqual(file, fileIndex.Get(file.Name, true)[0]); // Make sure `file` is still there.
         }
 
         [TestMethod]
@@ -127,9 +127,9 @@ namespace vfs.core.indexing.tests {
             fileIndex.Put(file);
 
             /// Test
-            Assert.AreEqual(file, fileIndex.Get(file.Name)[0]); // Make sure file is there.
+            Assert.AreEqual(file, fileIndex.Get(file.Name, true)[0]); // Make sure file is there.
             fileIndex.Remove(file);
-            Assert.IsNull(fileIndex.Get(file.Name)); // Make sure file has been removed.
+            Assert.IsNull(fileIndex.Get(file.Name, true)); // Make sure file has been removed.
         }
 
         [TestMethod]
@@ -146,7 +146,7 @@ namespace vfs.core.indexing.tests {
             var index = 2;
             var file = files[index];
             // Make sure file has been inserted.
-            Assert.AreEqual(file, fileIndex.Get(fileName)[index]);
+            Assert.AreEqual(file, fileIndex.Get(fileName, true)[index]);
 
             // Remove `file` from `index`.
             fileIndex.Remove(file);
@@ -155,7 +155,7 @@ namespace vfs.core.indexing.tests {
             files = files.Where(x => { return x != file; }).ToArray();
 
             /// Test
-            var vals = fileIndex.Get(fileName);
+            var vals = fileIndex.Get(fileName, true);
             // Make sure that only files that weren't deleted are still there.
             Assert.IsTrue(FilesAreAllThere(files, vals));
         }
@@ -178,7 +178,7 @@ namespace vfs.core.indexing.tests {
             foreach (var index in indexes) {
                 var file = files[index];
                 // Make sure file has been inserted.
-                Assert.AreEqual(file, fileIndex.Get(fileName)[index]);
+                Assert.AreEqual(file, fileIndex.Get(fileName, true)[index]);
 
                 // Remove `file` from `index`.
                 fileIndex.Remove(file);
@@ -189,7 +189,7 @@ namespace vfs.core.indexing.tests {
             }
 
             /// Test
-            var vals = fileIndex.Get(fileName);
+            var vals = fileIndex.Get(fileName, true);
             // Make sure that only files that weren't deleted are still there.
             Assert.IsTrue(FilesAreAllThere(files, vals));
         }
@@ -223,7 +223,7 @@ namespace vfs.core.indexing.tests {
             // Make sure that only files that weren't deleted are still there.
             for (int i = 0; i < newFiles.Length; i += 1) {
                 var file = newFiles[i];
-                var vals = fileIndex.Get(file.Name);
+                var vals = fileIndex.Get(file.Name, true);
                 Assert.AreEqual(file, vals[0]);
             }
         }
@@ -248,7 +248,7 @@ namespace vfs.core.indexing.tests {
 
             // Test
             fileIndex = ReopenIndex(testName);
-            var f2 = fileIndex.Get(fileName)[0];
+            var f2 = fileIndex.Get(fileName, true)[0];
             Assert.AreEqual(f1, f2);
         }
 
@@ -269,7 +269,7 @@ namespace vfs.core.indexing.tests {
             fileIndex = ReopenIndex(testName);
 
             foreach (var file in files) {
-                var val = fileIndex.Get(file.Name)[0];
+                var val = fileIndex.Get(file.Name, true)[0];
                 Assert.AreEqual(file, val);
             }
         }
@@ -289,10 +289,46 @@ namespace vfs.core.indexing.tests {
             // Test
             fileIndex = ReopenIndex(testName);
             
-            var fetchedFiles= fileIndex.Get(fileName);
+            var fetchedFiles= fileIndex.Get(fileName, true);
             for (int i = 0; i < files.Length; i += 1) {
                 Assert.AreEqual(files[i], fetchedFiles[i]);
             }
+        }
+
+        [TestMethod]
+        public void TestCaseInsensitive() {
+            // Set up
+            var fileIndex = GetIndex("test_case_insensitive");
+            var fileName = "CaSeInSenSiTiVe";
+            var file = new IndexedFile(fileName, "not_case_sensitive");
+            fileIndex.Put(file);
+
+            var val1 = fileIndex.Get(fileName.ToLower(), false);
+            Assert.IsTrue(val1.Length == 1);
+            Assert.AreEqual(file, val1[0]);
+
+            var val2 = fileIndex.Get(fileName.ToUpper(), false);
+            Assert.IsTrue(val2.Length == 1);
+            Assert.AreEqual(file, val2[0]);
+        }
+
+        [TestMethod]
+        public void TestCaseSensitive() {
+            // Set up
+            var fileIndex = GetIndex("test_case_sensitive");
+            var fileName = "CaSeSenSiTiVe";
+            var file = new IndexedFile(fileName, "not_case_sensitive");
+            fileIndex.Put(file);
+
+            // Test
+            var isNull = fileIndex.Get(fileName.ToLower(), true);
+            Assert.IsNull(isNull);
+
+            isNull = fileIndex.Get(fileName.ToUpper(), true);
+            Assert.IsNull(isNull);
+
+            var isSame = fileIndex.Get(fileName, true)[0];
+            Assert.AreEqual(file, isSame);
         }
 
         private bool FilesAreAllThere(IndexedFile[] arr1, IndexedFile[] arr2) {

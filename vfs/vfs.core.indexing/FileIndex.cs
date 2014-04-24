@@ -27,6 +27,12 @@ namespace vfs.core.indexing {
             return new FileIndex(tree);
         }
 
+        /// <summary>
+        /// Initialize a FileIndex from files on the host file system.
+        /// </summary>
+        /// <param name="treeFileName">Path to the file containing the tree structure.</param>
+        /// <param name="dataFileName">Path to the file containing data.</param>
+        /// <returns></returns>
         public static FileIndex Initialize(string treeFileName, string dataFileName) {
             Stream treeFile;
             Stream dataFile;
@@ -43,8 +49,13 @@ namespace vfs.core.indexing {
             }
         }
 
-        public IndexedFile[] Get(string fileName) {
-            var val = stree.Get(fileName, null);
+        /// <summary>
+        /// Retrieve stored values from `fileName`.
+        /// </summary>
+        /// <param name="fileName">Key of key-value pair.</param>
+        /// <returns>Value of key-value pair.</returns>
+        public IndexedFile[] Get(string fileName, bool caseSensitive) {
+            var val = stree.Get(fileName, null, caseSensitive);
 
             if (val == null) {
                 return null;
@@ -63,7 +74,7 @@ namespace vfs.core.indexing {
         }
 
         public void Put(IndexedFile f) {
-            var arr = Get(f.Name);
+            var arr = Get(f.Name, true);
 
             // Key didn't already exist, insert new array.
             if (arr == null) {
@@ -102,7 +113,7 @@ namespace vfs.core.indexing {
         }
 
         public void Remove(IndexedFile f) {
-            var vals = Get(f.Name);
+            var vals = Get(f.Name, true);
             if (vals == null) {
                 // TODO: possible throw exception here instead.
                 return;
