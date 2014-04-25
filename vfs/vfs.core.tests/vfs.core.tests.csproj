@@ -51,6 +51,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="JCDFileStreamTests.cs" />
+    <Compile Include="JCDVFSIndexingTests.cs" />
     <Compile Include="JCDVFSTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
