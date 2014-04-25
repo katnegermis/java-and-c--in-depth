@@ -56,6 +56,9 @@ namespace vfs.core {
             set {
                 this.entry.Name = value;
                 this.UpdateEntry(this.entry);
+                // Update path
+                var parents = Helpers.PathGetDirectoryName(this.path);
+                this.path = Helpers.PathCombine(parents, value);
             }
         }
 
