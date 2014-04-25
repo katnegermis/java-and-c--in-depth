@@ -127,7 +127,7 @@ namespace vfs.core {
         /// Delete file and all potential subdirectories.
         /// Subdirectories are deleted in a depth-first manner.
         /// </summary>
-        internal void Delete(bool skipEntryDeletion, JCDFAT.FileIndexCallback cb)
+        internal void Delete(bool skipEntryDeletion)
         {
             //Don't want to delete empty entries...
             if(EntryIsEmpty() || EntryIsFinal()) {
@@ -140,7 +140,7 @@ namespace vfs.core {
                 var files = ((JCDFolder)this).GetFileEntries();
                 foreach (var file in files)
                 {
-                    file.Delete(true, cb);
+                    file.Delete(true);
                 }
             }
 
@@ -154,7 +154,7 @@ namespace vfs.core {
 
                 container.tryShrink();
             }
-            cb(entry.Name, Path);
+            container.fileIndex.Remove(entry.Name, Path);
         }
         internal void DeleteEntry() {
             parent.DeleteEntry((uint) parentIndex);

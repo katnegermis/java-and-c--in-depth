@@ -980,8 +980,7 @@ namespace vfs.core
             {
                 throw new NonRecursiveDeletionException();
             }
-            FileIndexCallback cb = (name, p) => { fileIndex.Remove(name, p); };
-            file.Delete(false, cb);
+            file.Delete(false);
         }
 
         public void RenameFile(string vfsPath, string newName) {
@@ -1023,7 +1022,7 @@ namespace vfs.core
             var toEntry = fromFile.Entry;
             toEntry.Name = Helpers.PathGetFileName(newVfsPath);
             var toFile = toFolder.AddDirEntry(toEntry);
-            
+
             // Update fileIndex
             fileIndex.Rename(fromFile.Name, fromFile.Path, toFile.Name, toFile.Path);
             if (toFile.IsFolder) {
