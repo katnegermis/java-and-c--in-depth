@@ -1077,13 +1077,18 @@ namespace vfs.core
             return currentFolder.Path;
         }
 
-        public string[] Search(string fileName, bool caseSensitive) {
+        public string[] Search(string searchPath, string fileName, bool caseSensitive) {
             var files = fileIndex.Get(fileName, caseSensitive);
             if (files == null) {
                 return new string[0];
             }
 
-            return files.Select(f => f.Path).ToArray();
+            return (files.Where(f => f.Path.StartsWith(searchPath))
+                         .Select(f => f.Path).ToArray());
+        }
+
+        public string[] Search(string fileName, bool caseSensitive) {
+            return Search(rootFolder.Path, fileName, caseSensitive);
         }
 
         public JCDFileStream GetFileStream(string vfsPath) {

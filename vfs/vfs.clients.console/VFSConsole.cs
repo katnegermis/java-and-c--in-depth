@@ -934,41 +934,41 @@ namespace console.client
         }
 
         public class SearchCommand : ICommand {
-            private bool valid;
+            private bool valid = false; // Invalid by default.
             private bool caseSensitive = true; // Case sensitive by default.
             private string fileName;
+            private bool currentDirectory = true; // Searches only current directory by default.
+            private List<int> parsedArgs = new List<int>();
 
             public SearchCommand(List<string> args) {
                 if (args.Count < 1) {
-                    valid = false;
                     return;
                 }
 
-                if (args.Count == 1) {
-                    try {
-                        fileName = args[0];
-                        valid = true;
-                    }
-                    catch (Exception e) {
-                        valid = false;
-                        Console.WriteLine(e.ToString());
-                        return;
-                    }
-                }
-                else if (args.Count == 2) {
-                    try {
-                        if (args[0] == "-i") {
+                var unparsedArg = 0;
+                // Parse modifiers
+                for (int i = 0; i < args.Count; i += 1) {
+                    switch (args[i]) {
+                        case "-i":
                             caseSensitive = false;
-                        }
-                        fileName = args[1];
-                        valid = true;
-                    }
-                    catch (Exception e) {
-                        valid = false;
-                        Console.WriteLine(e.ToString());
-                        return;
+                            parsedArgs.Add(i);
+                            break;
+                        case "-a":
+                            currentDirectory = false;
+                            parsedArgs.Add(i);
+                            break;
+                        default:
+                            unparsedArg = i;
+                            break;
                     }
                 }
+                // Only valid if there's exactly one unparsed argument, the file name.
+                if (parsedArgs.Count != args.Count - 1) {
+                    return;
+                }
+
+                fileName = args[unparsedArg];
+                valid = true;
             }
 
             public int Execute(VFSConsole console) {
@@ -983,7 +983,11 @@ namespace console.client
                 }
 
                 try {
-                    var files = console.mountedJCDFAT.Search(fileName, caseSensitive);
+                    string searchDir = console.mountedJCDFAT.GetCurrentDirectory();
+                    if (!currentDirectory) {
+                        searchDir = "/";
+                    }
+                    var files = console.mountedJCDFAT.Search(searchDir, fileName, caseSensitive);
                     if (files.Length == 0) {
                         Console.WriteLine("Sorry, no files matched \"{0}\"", fileName);
                         return 0;

@@ -37,7 +37,8 @@ namespace console.client
             Console.WriteLine("size \t\t\t\t Show the size of the VFS");
             Console.WriteLine("free \t\t\t\t Show the free space");
             Console.WriteLine("occupied \t\t\t Show the occupied space");
-            Console.WriteLine("search \t[-i] filename\t\t Search for files on the disk, -i for case insensitive.");
+            Console.WriteLine("search \t[-i] filename\t\t Search current directory for file");
+            Console.WriteLine("\t\t\t\t  -i for case insensitive, -a entire disk");
             Console.WriteLine("");
         }
 
