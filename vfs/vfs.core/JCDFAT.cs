@@ -898,7 +898,12 @@ namespace vfs.core
             FileStream outputFile = null;
 
             // Make sure parent directory exists on hfs.
+            
+
             var dirName = Path.GetDirectoryName(hfsPath);
+            if (dirName == null && Path.GetPathRoot(hfsPath) != null) {
+                dirName = hfsPath;
+            }
             if (!Directory.Exists(dirName)) {
                 throw new vfs.exceptions.FileNotFoundException();
             }
