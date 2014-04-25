@@ -368,9 +368,9 @@ namespace vfs.clients.desktop
                 case SearchLocation.Everywhere:
                     return mountedVFS.Search(searchString, SearchCaseSensitive);
                 case SearchLocation.SubFolder:
-                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive);
+                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true);
                 case SearchLocation.Folder:
-                    throw new NotImplementedException();
+                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false);
                 default:
                     throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
