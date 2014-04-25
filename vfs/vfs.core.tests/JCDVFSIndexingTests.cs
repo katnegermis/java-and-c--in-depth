@@ -29,6 +29,86 @@ namespace vfs.core.tests {
         }
 
         [TestMethod]
+        public void TestDeleteSingleFile() {
+            // Set up
+            var vfs = CreateVFS("delete_single_file");
+            // Create initial file.
+            var filePath = "/dir/file";
+            var fileName = Helpers.PathGetFileName(filePath);
+            vfs.CreateFile(filePath, MB1, true);
+            vfs.DeleteFile(filePath, false);
+
+            // Test
+            // Make sure that file can't be found
+            var noFile = vfs.Search(fileName, true);
+            Assert.AreEqual(0, noFile.Length);
+        }
+
+        [TestMethod]
+        public void TestDeleteMultipleFiles() {
+            // Set up
+            var vfs = CreateVFS("delete_multiple_files");
+            var fileName = "file";
+            int numFiles = 10;
+            var files = new string[numFiles];
+            // Create `numFiles` in different directories.
+            for (int i = 0; i < numFiles; i += 1) {
+                files[i] = string.Format("/dir{0}/{1}", i, fileName);
+                vfs.CreateFile(files[i], 1, true);
+                vfs.DeleteFile(files[i], false);
+            }
+
+            // Test
+            var noFiles = vfs.Search(fileName, true);
+            Assert.AreEqual(0, noFiles.Length);
+        }
+
+        [TestMethod]
+        public void TestDeleteSingleDirectory() {
+            // Set up
+            var vfs = CreateVFS("delete_single_directory");
+            // Create initial file.
+            var dirPath = "/dir/directory";
+            var dirName = Helpers.PathGetFileName(dirPath);
+            vfs.CreateDirectory(dirPath, true);
+            vfs.DeleteFile(dirPath, true);
+
+            // Test
+            // Make sure that file can't be found
+            var noFile = vfs.Search(dirName, true);
+            Assert.AreEqual(0, noFile.Length);
+        }
+
+        [TestMethod]
+        public void TestDeleteDirectoryTree() {
+            // Set up
+            var vfs = CreateVFS("delete_directory_tree");
+            // Create initial directory
+            var dirPath = "/dir/";
+            var fileName = "file";
+            int numFiles = 10;
+            var files = new string[numFiles];
+            vfs.CreateDirectory(dirPath, false);
+            // Create `numFiles` in `dirPath`.
+            for (int i = 0; i < numFiles; i += 1) {
+                files[i] = Helpers.PathCombine(dirPath, fileName + i);
+                vfs.CreateFile(files[i], 1, false);
+            }
+            vfs.DeleteFile(dirPath, true);
+
+            // Test
+            // Make sure that directory can't be found.
+            var noFile = vfs.Search(dirPath, true);
+            Assert.AreEqual(0, noFile.Length);
+
+            // Make sure that subfiles can't be found.
+            for (int i = 0; i < numFiles; i += 1) {
+                Assert.AreEqual(0, vfs.Search(files[i], true).Length);
+            }
+
+        }
+
+        [TestMethod]
         public void TestFindMultipleFiles() {
             // Set up
             var vfs = CreateVFS("find_multiple_files");
