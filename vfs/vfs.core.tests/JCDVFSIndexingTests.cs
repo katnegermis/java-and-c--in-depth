@@ -169,6 +169,48 @@ namespace vfs.core.tests {
             Assert.AreEqual(newFilePath, files[0]);
         }
 
+        [TestMethod]
+        public void TestRenameDirectoryTree() {
+            // Set up
+            var vfs = CreateVFS("rename_directory_tree");
+            var rootDir = "/root/dir/";
+            vfs.CreateDirectory(rootDir, true);
+
+            // Create initial files.
+            var numFiles = 20;
+            var fileName = "file";
+            var files = new string[numFiles];
+            for (int i = 0; i < numFiles; i += 1) {
+                files[i] = Helpers.PathCombine(rootDir, fileName + i);
+                vfs.CreateFile(files[i], 1, false);
+            }
+
+            // Move old root dir.
+            var newDirName = "newdir";
+            var newRootDir = Path.Combine("/root/", newDirName);
+            vfs.RenameFile(rootDir, newDirName);
+
+            // Create list of new file names.
+            var newFiles = new string[numFiles];
+            for (int i = 0; i < numFiles; i += 1) {
+                newFiles[i] = Helpers.PathCombine(newRootDir, fileName + i);
+            }
+
+            // Test
+            // Make sure that the old files can't be found.
+            for (int i = 0; i < numFiles; i += 1) {
+                var noFiles = vfs.Search(files[i], true);
+                Assert.AreEqual(0, noFiles.Length);
+            }
+
+            // Make sure that the new files are found.
+            for (int i = 0; i < numFiles; i += 1) {
+                var oneFile = vfs.Search(fileName + i, true);
+                Assert.AreEqual(1, oneFile.Length);
+                Assert.AreEqual(newFiles[i], oneFile[0]);
+            }
+        }
+
         private JCDFAT CreateVFS(string testName, uint size) {
             DeleteFiles(new string[] { testName });
             return JCDFAT.Create(testName, size);

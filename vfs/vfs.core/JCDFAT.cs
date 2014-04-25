@@ -997,7 +997,12 @@ namespace vfs.core
             }
             var oldName = file.Name;
             file.Name = newName;
+
+            // Update fileIndex
             fileIndex.Rename(oldName, file.Path, newName, file.Path);
+            if (file.IsFolder) {
+                ((JCDFolder)file).UpdateChildrenPaths(fileIndex);
+            }
         }
 
         public void MoveFile(string vfsPath, string newVfsPath) {
