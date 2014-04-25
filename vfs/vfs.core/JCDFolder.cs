@@ -183,7 +183,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="dirEntry">Entry to be added.</param>
         /// <returns>Index of the newly added entry.</returns>
-        internal JCDFile AddDirEntry(JCDDirEntry dirEntry, JCDFAT.FileIndexCallback cb)
+        internal JCDFile AddDirEntry(JCDDirEntry dirEntry)
         {
             // Verify that a file with that name doesn't already exist.
             if (this.GetFile(dirEntry.Name) != null)
@@ -195,7 +195,6 @@ namespace vfs.core {
             var newFile = JCDFile.FromDirEntry(container, dirEntry, this, index, entryPath, level + 1);
             setFileEntry(index, newFile);
             setEntry(index, dirEntry);
-            cb(dirEntry.Name, newFile.Path);
             return newFile;
         }
 
