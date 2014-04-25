@@ -96,7 +96,6 @@ namespace vfs.core.indexing {
             }
             newArr[arr.Length] = f;
             stree.Set(f.Name, newArr);
-            stree.Commit();
         }
 
         public void Rename(string fileName, string path, string newName, string newPath) {
