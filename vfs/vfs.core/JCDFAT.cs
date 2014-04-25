@@ -1027,6 +1027,9 @@ namespace vfs.core
             
             // Update fileIndex
             fileIndex.Rename(fromFile.Name, fromFile.Path, toFile.Name, toFile.Path);
+            if (toFile.IsFolder) {
+                ((JCDFolder)toFile).UpdateChildrenPaths(fileIndex);
+            }
 
             // Delete original file.
             fromFile.DeleteEntry();

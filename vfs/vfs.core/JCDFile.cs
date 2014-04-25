@@ -198,6 +198,10 @@ namespace vfs.core {
             return newLastBlock;
         }
 
+        public void SetDirectoryPath(string directoryPath) {
+            this.path = Helpers.PathCombine(directoryPath, this.Name);
+        }
+
         public JCDFAT GetContainer() {
             return this.container;
         }

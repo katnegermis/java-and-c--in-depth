@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using vfs.core.indexing;
 using vfs.core.visitor;
 using vfs.exceptions;
 
@@ -196,6 +197,25 @@ namespace vfs.core {
             setFileEntry(index, newFile);
             setEntry(index, dirEntry);
             return newFile;
+        }
+
+        /// <summary>
+        /// Update the path of all children. Used when a folder is moved.
+        /// </summary>
+        /// <param name="fileIndex"></param>
+        internal void UpdateChildrenPaths(FileIndex fileIndex) {
+            UpdateChildrenPaths(this, fileIndex);   
+        }
+
+        private void UpdateChildrenPaths(JCDFolder folder, FileIndex fileIndex) {
+            foreach (var file in folder.GetFileEntries()) {
+                var oldPath = file.Path;
+                file.SetDirectoryPath(folder.Path);
+                fileIndex.Rename(file.Name, oldPath, file.Name, file.Path);
+                if (file.IsFolder) {
+                    UpdateChildrenPaths((JCDFolder)file, fileIndex);
+                }
+            }
         }
 
         /// <summary>
