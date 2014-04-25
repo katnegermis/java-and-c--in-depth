@@ -54,11 +54,21 @@ namespace vfs.core {
         internal string Name {
             get { return this.entry.Name; }
             set {
+                var oldName = Name;
+                var oldPath = this.path;
+
+                // Update name
                 this.entry.Name = value;
                 this.UpdateEntry(this.entry);
+
                 // Update path
-                var parents = Helpers.PathGetDirectoryName(this.path);
-                this.path = Helpers.PathCombine(parents, value);
+                this.path = Helpers.PathGetDirectoryName(this.path) + value;
+                
+                // Update file index
+                container.fileIndex.Rename(oldName, oldPath, Name, Path);
+                if (IsFolder) {
+                    ((JCDFolder)this).UpdateChildrenPaths(container.fileIndex);
+                }
             }
         }
 

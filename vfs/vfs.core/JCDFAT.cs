@@ -21,7 +21,7 @@ namespace vfs.core
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
         public delegate void FileIndexCallback(string fileName, string path);
-        private FileIndex fileIndex;
+        internal FileIndex fileIndex;
         private bool initialized = false;
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
@@ -997,12 +997,6 @@ namespace vfs.core
             }
             var oldName = file.Name;
             file.Name = newName;
-
-            // Update fileIndex
-            fileIndex.Rename(oldName, file.Path, newName, file.Path);
-            if (file.IsFolder) {
-                ((JCDFolder)file).UpdateChildrenPaths(fileIndex);
-            }
         }
 
         public void MoveFile(string vfsPath, string newVfsPath) {
