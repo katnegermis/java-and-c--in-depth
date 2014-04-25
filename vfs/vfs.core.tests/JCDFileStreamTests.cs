@@ -11,8 +11,7 @@ using vfs.core;
 namespace vfs.core.tests {
 
     [TestClass]
-    public class JCDFileStreamTests
-    {
+    public class JCDFileStreamTests {
         private ulong MB50 = 50000000;
         private int MB5 = 5000000;
         private int MB1 = 1000000;
@@ -20,7 +19,8 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestWriteRead10MB() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_write_read_10mb", MB50);
+            var testName = "test_write_read_10mb";
+            var stream = CreateJCDAndGetFileStream(testName, MB50);
             int bytes = MB5 * 2;
             var dataIn = GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
@@ -32,12 +32,14 @@ namespace vfs.core.tests {
             stream.Read(dataOut, 0, bytes);
             // Verify that all bytes are the same
             AreEqual(dataIn, dataOut);
+            CleanUp(stream, testName);
         }
 
         [TestMethod]
         public void TestSeekData() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_seek_data", MB50);
+            var testName = "test_seek_data";
+            var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var dataIn = GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
@@ -50,12 +52,14 @@ namespace vfs.core.tests {
             for (int i = 0; i < bytes - MB1; i += 1) {
                 Assert.AreEqual(dataIn[i + MB1], dataOut[i]);
             }
+            CleanUp(stream, testName);
         }
 
         [TestMethod]
         public void TestOffsetReadData() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_offset_read_data", MB50);
+            var testName = "test_offset_read_data";
+            var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var outBytes = MB5 - MB1;
             var dataIn = GenerateRandomData(bytes, 1);
@@ -69,12 +73,14 @@ namespace vfs.core.tests {
             for (int i = 0; i < bytes - outBytes; i += 1) {
                 Assert.AreEqual(dataIn[i + outBytes], dataOut[i]);
             }
+            CleanUp(stream, testName);
         }
 
         [TestMethod]
         public void TestSeekWriteData() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_seek_write_data", MB50);
+            var testName = "test_seek_write_data";
+            var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var dataIn = GenerateRandomData(bytes, 15);
             // Write data 5 megabytes in to file.
@@ -88,12 +94,14 @@ namespace vfs.core.tests {
             stream.Seek(MB5, SeekOrigin.Begin);
             stream.Read(dataOut, 0, bytes);
             AreEqual(dataIn, dataOut);
+            CleanUp(stream, testName);
         }
 
         [TestMethod]
         public void TestReadSeekReadSeekRead() {
             // Set up
-            var stream = CreateJCDAndGetFileStream("test_read_seek_read_seek_read", MB50);
+            var testName = "test_read_seek_read_seek_read";
+            var stream = CreateJCDAndGetFileStream(testName, MB50);
             var datas = new byte[5][];
             // Initialize 5 arrays with random data in them.
             for (int i = 0; i < datas.Length; i += 1) {
@@ -108,14 +116,21 @@ namespace vfs.core.tests {
                 stream.Read(dataOut, 0, MB1);
                 AreEqual(datas[i], dataOut);
             }
+            CleanUp(stream, testName);
         }
 
-        public JCDFileStream CreateJCDAndGetFileStream(string vfsFileName, ulong size) {
+        private JCDFileStream CreateJCDAndGetFileStream(string vfsFileName, ulong size) {
             DeleteFiles(new string[] { vfsFileName });
             var vfs = JCDFAT.Create(vfsFileName, size);
             var testFileName = "test";
             vfs.CreateFile(testFileName, 0, false);
             return vfs.GetFileStream(testFileName);
+        }
+
+        private void CleanUp(JCDFileStream stream, string testName) {
+            stream.Close();
+            stream.GetVFS().Close();
+            DeleteFiles(new string[] { testName });
         }
 
         private byte[] GenerateRandomData(int size, int seed) {

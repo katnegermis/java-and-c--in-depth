@@ -127,5 +127,9 @@ namespace vfs.core {
         public override void Close() {
             base.Close();
         }
+
+        public JCDFAT GetVFS() {
+            return file.GetContainer();
+        }
     }
 }

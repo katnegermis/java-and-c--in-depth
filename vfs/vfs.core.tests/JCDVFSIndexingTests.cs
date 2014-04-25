@@ -16,7 +16,8 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestFindSingleFile() {
             // Set up
-            var vfs = CreateVFS("find_single_file");
+            var testName = "find_single_file";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
             var fileName = Helpers.PathGetFileName(filePath);
@@ -26,12 +27,14 @@ namespace vfs.core.tests {
             var files = vfs.Search(fileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(filePath, files[0]);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestDeleteSingleFile() {
             // Set up
-            var vfs = CreateVFS("delete_single_file");
+            var testName = "delete_single_file";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
             var fileName = Helpers.PathGetFileName(filePath);
@@ -42,12 +45,14 @@ namespace vfs.core.tests {
             // Make sure that file can't be found
             var noFile = vfs.Search(fileName, true);
             Assert.AreEqual(0, noFile.Length);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestDeleteMultipleFiles() {
             // Set up
-            var vfs = CreateVFS("delete_multiple_files");
+            var testName = "delete_multiple_files";
+            var vfs = CreateVFS(testName);
             var fileName = "file";
             int numFiles = 10;
             var files = new string[numFiles];
@@ -61,12 +66,14 @@ namespace vfs.core.tests {
             // Test
             var noFiles = vfs.Search(fileName, true);
             Assert.AreEqual(0, noFiles.Length);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestDeleteSingleDirectory() {
             // Set up
-            var vfs = CreateVFS("delete_single_directory");
+            var testName = "delete_single_directory";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var dirPath = "/dir/directory";
             var dirName = Helpers.PathGetFileName(dirPath);
@@ -77,12 +84,14 @@ namespace vfs.core.tests {
             // Make sure that file can't be found
             var noFile = vfs.Search(dirName, true);
             Assert.AreEqual(0, noFile.Length);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestDeleteDirectoryTree() {
             // Set up
-            var vfs = CreateVFS("delete_directory_tree");
+            var testName = "delete_directory_tree";
+            var vfs = CreateVFS(testName);
             // Create initial directory
             var dirPath = "/dir/";
             var fileName = "file";
@@ -105,13 +114,14 @@ namespace vfs.core.tests {
             for (int i = 0; i < numFiles; i += 1) {
                 Assert.AreEqual(0, vfs.Search(files[i], true).Length);
             }
-
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestFindMultipleFiles() {
             // Set up
-            var vfs = CreateVFS("find_multiple_files");
+            var testName = "find_multiple_files";
+            var vfs = CreateVFS(testName);
             var fileName = "file";
             int numFiles = 10;
             var files = new string[numFiles];
@@ -127,12 +137,14 @@ namespace vfs.core.tests {
             for (int i = 0; i < numFiles; i += 1) {
                 Assert.AreEqual(files[i], foundFiles[i]);
             }
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestFindMovedFile() {
             // Set up
-            var vfs = CreateVFS("find_moved_file");
+            var testName = "find_moved_file";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var dir = "/dir/";
             var fileName = "file";
@@ -148,17 +160,19 @@ namespace vfs.core.tests {
             // Make sure we don't find the old file.
             var noFiles = vfs.Search(fileName, true);
             Assert.AreEqual(0, noFiles.Length);
-            
+
             // Make sure we find new file.
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestFindMovedToNewDirectory() {
             // Set up
-            var vfs = CreateVFS("find_moved_to_new_directory");
+            var testName = "find_moved_to_new_directory";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
             var fileName = Helpers.PathGetFileName(filePath);
@@ -180,12 +194,14 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestMoveDirectoryTree() {
             // Set up
-            var vfs = CreateVFS("move_directory_tree");
+            var testName = "move_directory_tree";
+            var vfs = CreateVFS(testName);
             var rootDir = "/root/dir/";
             vfs.CreateDirectory(rootDir, true);
 
@@ -201,7 +217,7 @@ namespace vfs.core.tests {
             var newRootDir = "/new/root/dir/";
             vfs.CreateDirectory(Helpers.PathGetDirectoryName(newRootDir), true);
             vfs.MoveFile(rootDir, newRootDir);
-            
+
             // Create list of new file names.
             var newFiles = new string[numFiles];
             for (int i = 0; i < numFiles; i += 1) {
@@ -222,12 +238,14 @@ namespace vfs.core.tests {
                 Assert.AreEqual(1, oneFile.Length);
                 Assert.AreEqual(newFiles[i], oneFile[0]);
             }
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestRenamedFile() {
             // Set up
-            var vfs = CreateVFS("find_renamed_file");
+            var testName = "find_renamed_file";
+            var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
             var fileName = Helpers.PathGetFileName(filePath);
@@ -247,12 +265,14 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
+            CloseVFS(vfs, testName);
         }
 
         [TestMethod]
         public void TestRenameDirectoryTree() {
             // Set up
-            var vfs = CreateVFS("rename_directory_tree");
+            var testName = "rename_directory_tree";
+            var vfs = CreateVFS(testName);
             var rootDir = "/root/dir/";
             vfs.CreateDirectory(rootDir, true);
 
@@ -289,6 +309,7 @@ namespace vfs.core.tests {
                 Assert.AreEqual(1, oneFile.Length);
                 Assert.AreEqual(newFiles[i], oneFile[0]);
             }
+            CloseVFS(vfs, testName);
         }
 
         private JCDFAT CreateVFS(string testName, uint size) {
@@ -298,6 +319,11 @@ namespace vfs.core.tests {
 
         private JCDFAT CreateVFS(string testName) {
             return CreateVFS(testName, MB50);
+        }
+
+        private void CloseVFS(JCDFAT vfs, string testName) {
+            vfs.Close();
+            DeleteFiles(new string[] { testName });
         }
 
         private void DeleteFiles(string[] files) {
