@@ -531,8 +531,7 @@ namespace vfs.core
                     FirstBlock = firstBlock,
                 };
                 var container = GetFile(Helpers.PathGetDirectoryName(fileName));
-                FileIndexCallback cb = (name, p) => { }; // dummy callback
-                return ((JCDFolder)container).AddDirEntry(entry, cb);
+                return ((JCDFolder)container).AddDirEntry(entry);
             };
 
             var treeFileStream = new JCDFileStream(f(searchFileTreeName, searchFileTreeBlock));
@@ -726,10 +725,15 @@ namespace vfs.core
                     continue;
                 }
                 currentPath += dir + "/";
+                // Check whether directory already exists, but only if the previous
+                // directory existed.
                 if (f != null) { // Only use GetFile if all previous directories existed.
                     f = GetFile(currentPath);
                 }
-                CreateDirectory(currentPath, false);
+                // Create directory if it doesn't exist.
+                if (f == null) {
+                    CreateDirectory(currentPath, false);
+                }
             }
         }
         
@@ -758,9 +762,10 @@ namespace vfs.core
             if(!container.IsFolder) {
                 throw new NotAFolderException();
             }
-
-            FileIndexCallback cb = (name, p) => { fileIndex.Put(name, p); };
-            return ((JCDFolder) container).AddDirEntry(entry, cb);
+            
+            var result = ((JCDFolder) container).AddDirEntry(entry);
+            fileIndex.Put(result.Name, result.Path);
+            return result;
         }
 
         internal void ZeroBlock(uint block)
@@ -990,7 +995,9 @@ namespace vfs.core
             if(!Helpers.FileNameIsValid(newName)) {
                 throw new InvalidFileNameException();
             }
+            var oldName = file.Name;
             file.Name = newName;
+            fileIndex.Rename(oldName, file.Path, newName, file.Path);
         }
 
         public void MoveFile(string vfsPath, string newVfsPath) {
@@ -1016,8 +1023,10 @@ namespace vfs.core
             }
             var toEntry = fromFile.Entry;
             toEntry.Name = Helpers.PathGetFileName(newVfsPath);
-            FileIndexCallback cb = (name, path) => { fileIndex.Put(name, path); };
-            var toFile = toFolder.AddDirEntry(toEntry, cb);
+            var toFile = toFolder.AddDirEntry(toEntry);
+            
+            // Update fileIndex
+            fileIndex.Put(toFile.Name, toFile.Path);
 
             // Delete original file.
             fromFile.DeleteEntry();
