@@ -16,7 +16,7 @@ namespace vfs.clients.desktop
         public DirectoryEntry[] SearchResults { private get; set; }
         public string SearchString { private get; set; }
 
-        public string SelectedPath { get; private set; }
+        public DirectoryEntry SelectedEntry { get; private set; }
 
         public SearchResultForm()
         {
@@ -50,6 +50,7 @@ namespace vfs.clients.desktop
                     //new ListViewItem.ListViewSubItem(item, dirEntry.Size.ToString())};
 
                     item.SubItems.AddRange(subItems);
+                    item.Tag = dirEntry;
                     searchListView.Items.Add(item);
                 }
                 else
@@ -61,6 +62,7 @@ namespace vfs.clients.desktop
                           new ListViewItem.ListViewSubItem(item, dirEntry.Size.ToString())};
 
                     item.SubItems.AddRange(subItems);
+                    item.Tag = dirEntry;
                     searchListView.Items.Add(item);
                 }
 
@@ -97,7 +99,7 @@ namespace vfs.clients.desktop
                 close();
             else
             {
-                SelectedPath = searchListView.SelectedItems[0].Text;
+                SelectedEntry = (DirectoryEntry)searchListView.SelectedItems[0].Tag;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }

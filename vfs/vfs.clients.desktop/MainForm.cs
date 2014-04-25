@@ -1081,8 +1081,14 @@ namespace vfs.clients.desktop
 
                     if (form.ShowDialog() == DialogResult.OK)
                     {
-                        //if (form.SelectedPath != "")
-                          //  session.MoveInto(form.SelectedPath, true);
+                        if (form.SelectedEntry != null)
+                        {
+                            var selected = form.SelectedEntry;
+                            if (selected.IsFolder)
+                                makeMoveInto(selected.Path, true);
+                            else
+                                makeMoveInto(session.ParentDirOf(selected.Path), true);
+                        }
                     }
                 }
                 else

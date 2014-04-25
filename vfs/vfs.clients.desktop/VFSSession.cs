@@ -392,7 +392,7 @@ namespace vfs.clients.desktop
             if (mountedVFS == null)
                 throw new Exception("No VFS mounted!");
 
-            var path = parentDirOf(CurrentDir);
+            var path = ParentDirOf(CurrentDir);
             if (path == CurrentDir)
                 return false;
 
@@ -460,7 +460,7 @@ namespace vfs.clients.desktop
         /// </summary>
         /// <param name="path">To calculate the parent directory from</param>
         /// <returns></returns>
-        private string parentDirOf(string path)
+        public string ParentDirOf(string path)
         {
             string result;
 

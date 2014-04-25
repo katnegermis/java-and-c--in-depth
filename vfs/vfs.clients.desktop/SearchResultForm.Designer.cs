@@ -34,13 +34,13 @@
             this.searchStringLabel = new System.Windows.Forms.Label();
             this.searchListView = new System.Windows.Forms.ListView();
             this.columnName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.cancelButton = new System.Windows.Forms.Button();
             this.okButton = new System.Windows.Forms.Button();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-            this.columnSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
@@ -77,11 +77,13 @@
             this.columnPath,
             this.columnType,
             this.columnSize});
-            this.searchListView.HoverSelection = true;
+            this.searchListView.FullRowSelect = true;
+            this.searchListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.searchListView.Location = new System.Drawing.Point(3, 27);
             this.searchListView.MultiSelect = false;
             this.searchListView.Name = "searchListView";
             this.searchListView.Size = new System.Drawing.Size(377, 197);
+            this.searchListView.SmallImageList = this.imageList1;
             this.searchListView.TabIndex = 1;
             this.searchListView.UseCompatibleStateImageBehavior = false;
             this.searchListView.View = System.Windows.Forms.View.Details;
@@ -92,14 +94,18 @@
             // 
             this.columnName.Text = "Name";
             // 
-            // columnType
-            // 
-            this.columnType.Text = "Type";
-            // 
             // columnPath
             // 
             this.columnPath.Text = "Path";
             this.columnPath.Width = 87;
+            // 
+            // columnType
+            // 
+            this.columnType.Text = "Type";
+            // 
+            // columnSize
+            // 
+            this.columnSize.Text = "Size";
             // 
             // flowLayoutPanel2
             // 
@@ -138,10 +144,6 @@
             this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
             this.imageList1.Images.SetKeyName(0, "Folder.png");
             this.imageList1.Images.SetKeyName(1, "Icon-Document.png");
-            // 
-            // columnSize
-            // 
-            this.columnSize.Text = "Size";
             // 
             // SearchResultForm
             // 
