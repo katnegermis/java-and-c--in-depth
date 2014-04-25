@@ -114,7 +114,7 @@ namespace vfs.core.indexing {
         public void Remove(IndexedFile f) {
             var vals = Get(f.Name, true);
             if (vals == null) {
-                // TODO: possible throw exception here instead.
+                // TODO: possibly throw exception here instead.
                 return;
             }
 
