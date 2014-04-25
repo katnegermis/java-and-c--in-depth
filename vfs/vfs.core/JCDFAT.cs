@@ -898,9 +898,10 @@ namespace vfs.core
             FileStream outputFile = null;
 
             // Make sure parent directory exists on hfs.
-            
-
             var dirName = Path.GetDirectoryName(hfsPath);
+            // In case hfsPath is C:\\, dirName would return null. But
+            // in the same case, GetPathRoot wouldn't.
+            // We use this to make sure that dirName is a valid directory.
             if (dirName == null && Path.GetPathRoot(hfsPath) != null) {
                 dirName = hfsPath;
             }
