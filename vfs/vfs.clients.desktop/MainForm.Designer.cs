@@ -84,8 +84,9 @@
             this.formFlowLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.formFlowLayoutPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.formFlowLayoutPanel.Location = new System.Drawing.Point(0, 0);
+            this.formFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(1);
             this.formFlowLayoutPanel.Name = "formFlowLayoutPanel";
-            this.formFlowLayoutPanel.Size = new System.Drawing.Size(692, 388);
+            this.formFlowLayoutPanel.Size = new System.Drawing.Size(695, 391);
             this.formFlowLayoutPanel.TabIndex = 0;
             this.formFlowLayoutPanel.WrapContents = false;
             // 
@@ -192,8 +193,8 @@
             // 
             this.currentSubfoldersToolStripMenuItem.CheckOnClick = true;
             this.currentSubfoldersToolStripMenuItem.Name = "currentSubfoldersToolStripMenuItem";
-            this.currentSubfoldersToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.currentSubfoldersToolStripMenuItem.Text = "Current + Subfolders";
+            this.currentSubfoldersToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.currentSubfoldersToolStripMenuItem.Text = "Curr + Subfolders";
             this.currentSubfoldersToolStripMenuItem.Click += new System.EventHandler(this.currentSubfoldersToolStripMenuItem_Click);
             // 
             // everywhereToolStripMenuItem
@@ -236,7 +237,7 @@
             this.searchTextBox.Location = new System.Drawing.Point(391, 4);
             this.searchTextBox.Margin = new System.Windows.Forms.Padding(0, 4, 0, 3);
             this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(294, 20);
+            this.searchTextBox.Size = new System.Drawing.Size(297, 20);
             this.searchTextBox.TabIndex = 7;
             this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
             // 
@@ -247,7 +248,7 @@
             this.vfsLabel.Location = new System.Drawing.Point(3, 42);
             this.vfsLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.vfsLabel.Name = "vfsLabel";
-            this.vfsLabel.Size = new System.Drawing.Size(686, 18);
+            this.vfsLabel.Size = new System.Drawing.Size(690, 18);
             this.vfsLabel.TabIndex = 17;
             this.vfsLabel.Text = "No VFS mounted..";
             // 
@@ -258,7 +259,7 @@
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 69);
             this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(689, 30);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(688, 30);
             this.flowLayoutPanel1.TabIndex = 10;
             this.flowLayoutPanel1.WrapContents = false;
             // 
@@ -282,7 +283,7 @@
             this.pathTextBox.Enabled = false;
             this.pathTextBox.Location = new System.Drawing.Point(53, 3);
             this.pathTextBox.Name = "pathTextBox";
-            this.pathTextBox.Size = new System.Drawing.Size(636, 20);
+            this.pathTextBox.Size = new System.Drawing.Size(635, 20);
             this.pathTextBox.TabIndex = 6;
             this.pathTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pathTextBox_KeyDown);
             // 
@@ -309,6 +310,7 @@
             this.directoryListView.DragDrop += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragDrop);
             this.directoryListView.DragEnter += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragEnter);
             this.directoryListView.DragOver += new System.Windows.Forms.DragEventHandler(this.directoryListView_DragOver);
+            this.directoryListView.DragLeave += new System.EventHandler(this.directoryListView_DragLeave);
             this.directoryListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.directoryListView_KeyDown);
             this.directoryListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.directoryListView_MouseDoubleClick);
             // 
@@ -439,7 +441,7 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(692, 388);
+            this.ClientSize = new System.Drawing.Size(695, 391);
             this.Controls.Add(this.formFlowLayoutPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
