@@ -896,7 +896,22 @@ namespace vfs.core
 
         private void ExportFile(string hfsPath, JCDFile file) {
             FileStream outputFile = null;
-            var filePath = Helpers.PathCombine(hfsPath, file.Name);
+
+            // Make sure parent directory exists on hfs.
+            var dirName = Path.GetDirectoryName(hfsPath);
+            if (!Directory.Exists(dirName)) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            // If given path points to a directory, append file name to it.
+            string filePath;
+            if (Directory.Exists(hfsPath)) {
+                filePath = Helpers.PathCombine(hfsPath, file.Name);
+            }
+            else { // Else let the given path decide the name of the file exported.
+                filePath = hfsPath;
+            }
+            
             try {
                 outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
                 ExportFile(outputFile, file);
