@@ -76,9 +76,9 @@ namespace vfs.core.tests {
         }
 
         [TestMethod]
-        public void TestFindMovedToNewDirectoryFile() {
+        public void TestFindMovedToNewDirectory() {
             // Set up
-            var vfs = CreateVFS("find_moved_to_new_directory_file");
+            var vfs = CreateVFS("find_moved_to_new_directory");
             // Create initial file.
             var filePath = "/dir/file";
             var fileName = Helpers.PathGetFileName(filePath);
@@ -100,6 +100,48 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
+        }
+
+        [TestMethod]
+        public void TestMoveDirectoryTree() {
+            // Set up
+            var vfs = CreateVFS("move_directory_tree");
+            var rootDir = "/root/dir/";
+            vfs.CreateDirectory(rootDir, true);
+
+            // Create initial files.
+            var numFiles = 20;
+            var files = new string[numFiles];
+            for (int i = 0; i < numFiles; i += 1) {
+                files[i] = Helpers.PathCombine(rootDir, "file" + i);
+                vfs.CreateFile(files[i], 1, false);
+            }
+
+            // Move old root dir.
+            var newRootDir = "/new/root/dir/";
+            vfs.CreateDirectory(Helpers.PathGetDirectoryName(newRootDir), true);
+            vfs.MoveFile(rootDir, newRootDir);
+            
+            // Create list of new file names.
+            var newFiles = new string[numFiles];
+            for (int i = 0; i < numFiles; i += 1) {
+                newFiles[i] = Helpers.PathCombine(newRootDir, "file" + i);
+            }
+
+            // Test
+            // Make sure that the old files can't be found.
+            for (int i = 0; i < numFiles; i += 1) {
+                var noFiles = vfs.Search(files[i], true);
+                Assert.AreEqual(0, noFiles.Length);
+            }
+
+            // Make sure that the new files are found.
+            for (int i = 0; i < numFiles; i += 1) {
+                var newFileName = Helpers.PathGetFileName(newFiles[i]);
+                var oneFile = vfs.Search(newFileName, true);
+                Assert.AreEqual(1, oneFile.Length);
+                Assert.AreEqual(newFiles[i], oneFile[0]);
+            }
         }
 
         [TestMethod]
