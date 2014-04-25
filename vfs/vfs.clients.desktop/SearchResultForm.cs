@@ -13,7 +13,7 @@ namespace vfs.clients.desktop
     public partial class SearchResultForm : Form
     {
 
-        public string[] SearchResultPaths { private get; set; }
+        public DirectoryEntry[] SearchResults { private get; set; }
         public string SearchString { private get; set; }
 
         public string SelectedPath { get; private set; }
@@ -34,32 +34,35 @@ namespace vfs.clients.desktop
         {
             searchListView.Items.Clear();
             ListViewItem item = null;
-            //ListViewItem.ListViewSubItem[] subItems;
+            ListViewItem.ListViewSubItem[] subItems;
 
-            foreach (var path in SearchResultPaths)
+            foreach (var dirEntry in SearchResults)
             {
-                item = new ListViewItem(path, 1);
-                searchListView.Items.Add(item);
+                //item = new ListViewItem(path, 1);
+                //searchListView.Items.Add(item);
 
-                /*if (dirEntry.IsFolder)
+                if (dirEntry.IsFolder)
                 {
                     item = new ListViewItem(dirEntry.Name, 0);
-                    subItems = new ListViewItem.ListViewSubItem[] { new ListViewItem.ListViewSubItem(item, "Directory") };
+                    subItems = new ListViewItem.ListViewSubItem[] 
+                        { new ListViewItem.ListViewSubItem(item, dirEntry.Path),
+                          new ListViewItem.ListViewSubItem(item, "Directory")};
                     //new ListViewItem.ListViewSubItem(item, dirEntry.Size.ToString())};
 
                     item.SubItems.AddRange(subItems);
-                    directoryListView.Items.Add(item);
+                    searchListView.Items.Add(item);
                 }
                 else
                 {
                     item = new ListViewItem(dirEntry.Name, 1);
                     subItems = new ListViewItem.ListViewSubItem[] 
-                        {new ListViewItem.ListViewSubItem(item, "File"), 
-                         new ListViewItem.ListViewSubItem(item, dirEntry.Size.ToString())};
+                        { new ListViewItem.ListViewSubItem(item, dirEntry.Path), 
+                          new ListViewItem.ListViewSubItem(item, "File"),
+                          new ListViewItem.ListViewSubItem(item, dirEntry.Size.ToString())};
 
                     item.SubItems.AddRange(subItems);
-                    directoryListView.Items.Add(item);
-                }*/
+                    searchListView.Items.Add(item);
+                }
 
             }
             searchListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);

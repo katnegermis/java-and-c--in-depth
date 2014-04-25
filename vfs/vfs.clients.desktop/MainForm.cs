@@ -1072,17 +1072,17 @@ namespace vfs.clients.desktop
                 if (session == null)
                     throw new Exception("No VFS mounted!");
 
-                string[] found = session.Search(searchString);
+                var found = session.Search(searchString);
                 if (found.Length > 0)
                 {
                     var form = new SearchResultForm();
                     form.SearchString = searchString;
-                    form.SearchResultPaths = found;
+                    form.SearchResults = found;
 
                     if (form.ShowDialog() == DialogResult.OK)
                     {
-                        if (form.SelectedPath != "")
-                            session.MoveInto(form.SelectedPath, true);
+                        //if (form.SelectedPath != "")
+                          //  session.MoveInto(form.SelectedPath, true);
                     }
                 }
                 else

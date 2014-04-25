@@ -972,6 +972,15 @@ namespace vfs.core
             }));
         }
 
+        public JCDDirEntry GetFileDetails(string vfsPath)
+        {
+            var file = GetFile(vfsPath);
+            if (file == null)
+                throw new vfs.exceptions.FileNotFoundException();
+
+            return file.Entry;
+        }
+
         public JCDDirEntry[] ListDirectory(string vfsPath)
         {
             var directory = GetFile(vfsPath);

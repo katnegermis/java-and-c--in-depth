@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using vfs.core;
 
@@ -8,15 +9,17 @@ namespace vfs.clients.desktop
     /// Class that represents an entry into the VFS, directory or file.
     /// Serves as container between controller and view classes.
     /// </summary>
-    class DirectoryEntry
+    public class DirectoryEntry
     {
         public bool IsFolder { get; private set; }
         public string Name { get; private set; }
+        public string Path { get; private set; }
         public ulong Size { get; private set; }
 
-        public DirectoryEntry(string name, bool isFolder, ulong size)
+        public DirectoryEntry(string name, string path, bool isFolder, ulong size)
         {
             this.Name = name;
+            this.Path = path;
             this.IsFolder = isFolder;
             this.Size = size;
         }
@@ -357,20 +360,20 @@ namespace vfs.clients.desktop
         /// Searches for the given string and returns the found files.
         /// </summary>
         /// <param name="searchString">String to search for.</param>
-        /// <returns>String Array with the found files.</returns>
-        public string[] Search(string searchString)
+        /// <returns>DirectoryEntry Array with the found files.</returns>
+        public DirectoryEntry[] Search(string searchString)
         {
             if (mountedVFS == null)
                 throw new Exception("No VFS mounted!");
-            
-            switch(SearchLocation)
+
+            switch (SearchLocation)
             {
                 case SearchLocation.Everywhere:
-                    return mountedVFS.Search(searchString, SearchCaseSensitive);
+                    return getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
                 case SearchLocation.SubFolder:
-                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true);
+                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
                 case SearchLocation.Folder:
-                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false);
+                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
                 default:
                     throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
@@ -429,10 +432,15 @@ namespace vfs.clients.desktop
             var dirList = mountedVFS.ListDirectory(CurrentDir);
             var entries = new DirectoryEntry[dirList.Length];
             for (int i = 0; i < dirList.Length; i++)
-                entries[i] = new DirectoryEntry(dirList[i].Name, dirList[i].IsFolder, dirList[i].Size);
-
+            {
+                string path = CurrentDir + dirList[i].Name;
+                if (dirList[i].IsFolder)
+                    path += @"/";
+                entries[i] = new DirectoryEntry(dirList[i].Name, path, dirList[i].IsFolder, dirList[i].Size);
+            }
             return entries;
         }
+
 
         #endregion
 
@@ -473,6 +481,29 @@ namespace vfs.clients.desktop
             clipboardPathes = new string[names.Length];
             for (int i = 0; i < names.Length; i++)
                 clipboardPathes[i] = Helpers.PathCombine(CurrentDir, names[i]);
+        }
+
+        /// <summary>
+        /// Returns the JCDDirEntries for the files at the given pathes.
+        /// </summary>
+        /// <param name="pathes">Pahtes to the files to get the details from.</param>
+        /// <returns>Array with the details.</returns>
+        private DirectoryEntry[] getDirEntryDetails(string[] pathes)
+        {
+            var dirEntryList = new List<DirectoryEntry>();
+            foreach (var path in pathes)
+            {
+                try
+                {
+                    var dirEntry = mountedVFS.GetFileDetails(path);
+                    dirEntryList.Add(new DirectoryEntry(dirEntry.Name, path, dirEntry.IsFolder, dirEntry.Size));
+                }
+                catch (Exception)
+                {
+                    //Log or just ignore
+                }
+            }
+            return dirEntryList.ToArray();
         }
 
         #endregion

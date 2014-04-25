@@ -120,6 +120,7 @@ namespace vfs.clients.desktop
             saveFileDialog.DefaultExt = ".vfs";
             saveFileDialog.AddExtension = true;
             saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.CheckFileExists = false;
 
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {

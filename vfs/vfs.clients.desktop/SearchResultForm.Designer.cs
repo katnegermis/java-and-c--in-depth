@@ -37,9 +37,10 @@
             this.columnType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnPath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
-            this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.okButton = new System.Windows.Forms.Button();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.columnSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
@@ -60,20 +61,24 @@
             // searchStringLabel
             // 
             this.searchStringLabel.AutoSize = true;
+            this.searchStringLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.searchStringLabel.Location = new System.Drawing.Point(3, 6);
             this.searchStringLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.searchStringLabel.Name = "searchStringLabel";
-            this.searchStringLabel.Size = new System.Drawing.Size(95, 13);
+            this.searchStringLabel.Size = new System.Drawing.Size(108, 15);
             this.searchStringLabel.TabIndex = 0;
             this.searchStringLabel.Text = "Search results for: ";
             // 
             // searchListView
             // 
+            this.searchListView.Activation = System.Windows.Forms.ItemActivation.OneClick;
             this.searchListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnName,
+            this.columnPath,
             this.columnType,
-            this.columnPath});
-            this.searchListView.Location = new System.Drawing.Point(3, 25);
+            this.columnSize});
+            this.searchListView.HoverSelection = true;
+            this.searchListView.Location = new System.Drawing.Point(3, 27);
             this.searchListView.MultiSelect = false;
             this.searchListView.Name = "searchListView";
             this.searchListView.Size = new System.Drawing.Size(377, 197);
@@ -101,21 +106,11 @@
             this.flowLayoutPanel2.Controls.Add(this.cancelButton);
             this.flowLayoutPanel2.Controls.Add(this.okButton);
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 228);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 230);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
             this.flowLayoutPanel2.Size = new System.Drawing.Size(377, 34);
             this.flowLayoutPanel2.TabIndex = 2;
             this.flowLayoutPanel2.WrapContents = false;
-            // 
-            // okButton
-            // 
-            this.okButton.Location = new System.Drawing.Point(218, 3);
-            this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(75, 23);
-            this.okButton.TabIndex = 0;
-            this.okButton.Text = "OK";
-            this.okButton.UseVisualStyleBackColor = true;
-            this.okButton.Click += new System.EventHandler(this.okButton_Click);
             // 
             // cancelButton
             // 
@@ -127,12 +122,26 @@
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
+            // okButton
+            // 
+            this.okButton.Location = new System.Drawing.Point(218, 3);
+            this.okButton.Name = "okButton";
+            this.okButton.Size = new System.Drawing.Size(75, 23);
+            this.okButton.TabIndex = 0;
+            this.okButton.Text = "OK";
+            this.okButton.UseVisualStyleBackColor = true;
+            this.okButton.Click += new System.EventHandler(this.okButton_Click);
+            // 
             // imageList1
             // 
             this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
             this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
             this.imageList1.Images.SetKeyName(0, "Folder.png");
             this.imageList1.Images.SetKeyName(1, "Icon-Document.png");
+            // 
+            // columnSize
+            // 
+            this.columnSize.Text = "Size";
             // 
             // SearchResultForm
             // 
@@ -164,6 +173,7 @@
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.ImageList imageList1;
+        private System.Windows.Forms.ColumnHeader columnSize;
 
     }
 }
