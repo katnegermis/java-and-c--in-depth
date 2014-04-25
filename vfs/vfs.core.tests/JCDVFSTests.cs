@@ -194,7 +194,9 @@ namespace vfs.core.tests
 
 
         #endregion
+
     }
+
 
     [TestClass()]
     public class MountedJCFVFSTests
@@ -761,6 +763,58 @@ namespace vfs.core.tests
             Assert.AreEqual(name, testVFS.GetCurrentDirectory());
         }
 
+        #endregion
+
+    }
+
+    [TestClass]
+    public class MountedTestsWithoutInitializer {
+        #region Create Parents Tests
+        [TestMethod]
+        public void TestCreateParents() {
+            // Set up
+            var vfs = CreateVFS("create_parents");
+            var dirName = "/1/2/3/4/5/";
+            vfs.CreateDirectory(dirName, true);
+
+            // Test
+            vfs.SetCurrentDirectory(dirName);
+            Assert.AreEqual(dirName, vfs.GetCurrentDirectory());
+        }
+
+        [TestMethod]
+        public void TestCreateParentsAlreadyExist() {
+            // Set up
+            var vfs = CreateVFS("create_parents_already_exist");
+            var dirName1 = "/1/2/3/";
+            var dirName2 = "/1/2/3/4/5/";
+            vfs.CreateDirectory(dirName1, true);
+            vfs.CreateDirectory(dirName2, true);
+
+            // Test
+            vfs.SetCurrentDirectory(dirName2);
+            Assert.AreEqual(dirName2, vfs.GetCurrentDirectory());
+        }
+        #endregion
+
+        #region Helper Functions
+        private JCDFAT CreateVFS(string testName, uint size) {
+            DeleteFiles(new string[] { testName });
+            return JCDFAT.Create(testName, size);
+        }
+
+        private JCDFAT CreateVFS(string testName) {
+            return CreateVFS(testName, 50000000);
+        }
+
+        private void DeleteFiles(string[] files) {
+            foreach (var file in files) {
+                try {
+                    File.Delete(file);
+                }
+                catch (System.IO.FileNotFoundException) { }
+            }
+        }
         #endregion
     }
 }
