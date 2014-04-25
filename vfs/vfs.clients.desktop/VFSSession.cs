@@ -280,25 +280,16 @@ namespace vfs.clients.desktop
         /// Imports the given files/dirs from the host file system into the current directory.
         /// </summary>
         /// <param name="files">File/dir paths to import</param>
+        /// <param name="targetDir">Dir to import the files/dirs to.</param>
         /// <returns>The number of top level files/dirs that have been imported</returns>
-        public int Import(string[] files)
+        public int Import(string[] files, string targetDir)
         {
             int count = 0;
             foreach (string file in files)
             {
                 var name = new FileInfo(file).Name;
-                mountedVFS.ImportFile(file, Helpers.PathCombine(CurrentDir, name));
+                mountedVFS.ImportFile(file, Helpers.PathCombine(targetDir, name));
                 count++;
-                /*try
-                {
-                    var name = new FileInfo(file).Name;
-                    mountedVFS.ImportFile(file, Helpers.PathCombine(CurrentDir, name));
-                    count++; 
-                }
-                catch (Exception)
-                {
-                    //Log or just ignore
-                }*/
             }
             return count;
         }
@@ -371,8 +362,18 @@ namespace vfs.clients.desktop
         {
             if (mountedVFS == null)
                 throw new Exception("No VFS mounted!");
-
-            return mountedVFS.Search(searchString, SearchCaseSensitive);
+            
+            switch(SearchLocation)
+            {
+                case SearchLocation.Everywhere:
+                    return mountedVFS.Search(searchString, SearchCaseSensitive);
+                case SearchLocation.SubFolder:
+                    return mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive);
+                case SearchLocation.Folder:
+                    throw new NotImplementedException();
+                default:
+                    throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
+            }
         }
 
         #endregion

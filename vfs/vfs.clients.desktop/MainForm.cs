@@ -19,7 +19,15 @@ namespace vfs.clients.desktop
         /// </summary>
         string vfsName;
 
+        /// <summary>
+        /// The Sorter class for the ListView Columns.
+        /// </summary>
         private ListViewColumnSorter lvwColumnSorter;
+
+        /// <summary>
+        /// Bool indicating whether a drag and drop has left the ListView or not.
+        /// </summary>
+        private bool draggedOutside = false;
 
         public MainForm()
         {
@@ -35,31 +43,7 @@ namespace vfs.clients.desktop
                 makeVFSClose();
         }
 
-        private void directoryListView_ColumnClick(object sender, ColumnClickEventArgs e)
-        {
-            // Determine if clicked column is already the column that is being sorted.
-            if (e.Column == lvwColumnSorter.SortColumn)
-            {
-                // Reverse the current sort direction for this column.
-                if (lvwColumnSorter.Order == SortOrder.Ascending)
-                {
-                    lvwColumnSorter.Order = SortOrder.Descending;
-                }
-                else
-                {
-                    lvwColumnSorter.Order = SortOrder.Ascending;
-                }
-            }
-            else
-            {
-                // Set the column number that is to be sorted; default to ascending.
-                lvwColumnSorter.SortColumn = e.Column;
-                lvwColumnSorter.Order = SortOrder.Ascending;
-            }
 
-            // Perform the sort with these new sort options.
-            this.directoryListView.Sort();
-        }
 
         #region Button Clicks
 
@@ -150,6 +134,32 @@ namespace vfs.clients.desktop
             makeDelete();
         }
 
+        private void directoryListView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            // Determine if clicked column is already the column that is being sorted.
+            if (e.Column == lvwColumnSorter.SortColumn)
+            {
+                // Reverse the current sort direction for this column.
+                if (lvwColumnSorter.Order == SortOrder.Ascending)
+                {
+                    lvwColumnSorter.Order = SortOrder.Descending;
+                }
+                else
+                {
+                    lvwColumnSorter.Order = SortOrder.Ascending;
+                }
+            }
+            else
+            {
+                // Set the column number that is to be sorted; default to ascending.
+                lvwColumnSorter.SortColumn = e.Column;
+                lvwColumnSorter.Order = SortOrder.Ascending;
+            }
+
+            // Perform the sort with these new sort options.
+            this.directoryListView.Sort();
+        }
+
         #endregion
 
         #region Search ToolStripMenu Click and Opening
@@ -194,6 +204,10 @@ namespace vfs.clients.desktop
             searchTextBox.Focus();
         }
 
+        #endregion
+
+        #region Drag and Drop
+
         private void directoryListView_ItemDrag(object sender, ItemDragEventArgs e)
         {
             var count = this.directoryListView.SelectedIndices.Count;
@@ -207,79 +221,103 @@ namespace vfs.clients.desktop
 
                 if (e.Button == MouseButtons.Left)
                 {
-                    DoDragDrop(selectedNames, DragDropEffects.Move);
+                    draggedOutside = false;
+                    var effect = DoDragDrop(selectedNames, DragDropEffects.Move);
+                    if (effect == DragDropEffects.None && draggedOutside)
+                        makeExport();
                 }
                 else if (e.Button == MouseButtons.Right)
                 {
-                    DoDragDrop(selectedNames, DragDropEffects.Copy);
+                    draggedOutside = false;
+                    var effect = DoDragDrop(selectedNames, DragDropEffects.Copy);
+                    if (effect == DragDropEffects.None && draggedOutside)
+                        makeExport();
                 }
+
             }
 
         }
 
         private void directoryListView_DragEnter(object sender, DragEventArgs e)
         {
+            draggedOutside = false;
             if (e.Data.GetDataPresent(typeof(string[])))
                 e.Effect = e.AllowedEffect;
+            else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = e.AllowedEffect;
+            else
+                e.Effect = DragDropEffects.None;
         }
+
+        private void directoryListView_DragLeave(object sender, EventArgs e)
+        {
+            draggedOutside = true;
+        }
+
 
         private void directoryListView_DragOver(object sender, DragEventArgs e)
         {
             var pos = directoryListView.PointToClient(new Point(e.X, e.Y));
             var item = directoryListView.GetItemAt(pos.X, pos.Y);
-            if (item != null && item.GetType() == typeof(ListViewItem))
+            if (item != null && item.GetType() == typeof(ListViewItem) && item.SubItems[1].Text == "Directory")
+            {
                 item.Focused = true;
-        }
+                directoryListView.Focus();
+            }
 
+        }
 
         private void directoryListView_DragDrop(object sender, DragEventArgs e)
-        {
-            var pos = directoryListView.PointToClient(new Point(e.X, e.Y));
-            var hit = directoryListView.HitTest(pos);
-            if (hit.Item != null && hit.Item.Text != null && hit.Item.SubItems[1].Text == "Directory")
-            {
-                try
-                {
-                    if (session == null)
-                        throw new Exception("No VFS mounted!");
-
-                    var droppedNames = e.Data.GetData(typeof(string[])) as string[];
-
-                    if (e.Effect == DragDropEffects.Copy)
-                        session.DragDrop(droppedNames, hit.Item.Text, false);
-                    else if (e.Effect == DragDropEffects.Move)
-                    {
-                        var count = session.DragDrop(droppedNames, hit.Item.Text, true);
-                        if (count > 0)
-                            updateForm();
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-            }
-        }
-
-
-        /*//Attempt to trigger the Export function when drag&drop goes out of the form -> Not working propperly
-         * private void MainForm_DragOver(object sender, DragEventArgs e)
         {
             try
             {
                 if (session == null)
                     throw new Exception("No VFS mounted!");
 
-                e.
-                makeExport();
+                var pos = directoryListView.PointToClient(new Point(e.X, e.Y));
+                var hit = directoryListView.HitTest(pos);
+
+                if (e.Data.GetDataPresent(typeof(string[])))
+                {
+                    if (hit.Item != null && hit.Item.Text != null && hit.Item.SubItems[1].Text == "Directory")
+                    {
+                        var droppedNames = e.Data.GetData(typeof(string[])) as string[];
+
+                        if (e.Effect == DragDropEffects.Copy)
+                            session.DragDrop(droppedNames, hit.Item.Text, false);
+                        else if (e.Effect == DragDropEffects.Move)
+                        {
+                            var count = session.DragDrop(droppedNames, hit.Item.Text, true);
+                            if (count > 0)
+                                updateForm();
+                        }
+                    }
+                }
+                else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string targetDir = session.CurrentDir;
+                    if (hit.Item != null && hit.Item.Text != null && hit.Item.SubItems[1].Text == "Directory")
+                        targetDir += hit.Item.Text + "/";
+
+                    Array arr = (Array)e.Data.GetData(DataFormats.FileDrop);
+                    if (arr != null && arr.Length > 0)
+                    {
+                        var files = new string[arr.Length];
+                        for (int i = 0; i < arr.Length; i++)
+                            files[i] = arr.GetValue(i).ToString();
+
+                        makeImport(files, targetDir);
+
+                        this.Activate();
+                    }
+
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }*/
+        }
 
         #endregion
 
@@ -919,8 +957,11 @@ namespace vfs.clients.desktop
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     var files = openFileDialog.FileNames;
-                    if (session.Import(files) > 0)
-                        updateForm();
+                    int count = session.Import(files, session.CurrentDir);
+                    updateForm();
+
+                    if (count > 0)
+                        MessageBox.Show(String.Format("Imported \"{0}\" files/directories.", count), "Import done", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
@@ -947,10 +988,37 @@ namespace vfs.clients.desktop
 
                 if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
-                    //if (session.Import(new string[] { folderBrowserDialog.SelectedPath }) > 0)
-                    session.Import(new string[] { folderBrowserDialog.SelectedPath });
+                    //if (session.Import(new string[] { folderBrowserDialog.SelectedPath }, session.CurrentDir) > 0)
+                    int count = session.Import(new string[] { folderBrowserDialog.SelectedPath }, session.CurrentDir);
                     updateForm();
+
+                    if (count > 0)
+                        MessageBox.Show(String.Format("Imported \"{0}\" files/directories.", count), "Import done", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Imports the given files to the target directory by calling the Session object.
+        /// </summary>
+        /// <param name="files">Files/dirs to import.</param>
+        /// <param name="targetDir">Dir to import to.</param>
+        private void makeImport(string[] files, string targetDir)
+        {
+            try
+            {
+                if (session == null)
+                    throw new Exception("No VFS mounted!");
+
+                int count = session.Import(files, targetDir);
+                updateForm();
+
+                if (count > 0)
+                    MessageBox.Show(String.Format("Imported \"{0}\" files/directories.", count), "Import done", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -1027,10 +1095,6 @@ namespace vfs.clients.desktop
         }
 
         #endregion
-
-       
-
-
 
     }
 }
