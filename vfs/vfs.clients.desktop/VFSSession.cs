@@ -21,7 +21,7 @@ namespace vfs.clients.desktop
             this.Size = size;
         }
     }
-   
+
     /// <summary>
     /// Enum that represents the possible search locations.
     /// </summary>
@@ -235,9 +235,11 @@ namespace vfs.clients.desktop
                 try
                 {
                     var name = Helpers.PathGetFileName(path);
-                    mountedVFS.CopyFile(path, Helpers.PathCombine(CurrentDir, name));
+
                     if (cutNotCopy)
-                        mountedVFS.DeleteFile(path, true);
+                        mountedVFS.MoveFile(path, Helpers.PathCombine(CurrentDir, name));
+                    else
+                        mountedVFS.CopyFile(path, Helpers.PathCombine(CurrentDir, name));
                     count++;
                 }
                 catch (Exception)
@@ -284,16 +286,19 @@ namespace vfs.clients.desktop
             int count = 0;
             foreach (string file in files)
             {
-                try
+                var name = new FileInfo(file).Name;
+                mountedVFS.ImportFile(file, Helpers.PathCombine(CurrentDir, name));
+                count++;
+                /*try
                 {
                     var name = new FileInfo(file).Name;
                     mountedVFS.ImportFile(file, Helpers.PathCombine(CurrentDir, name));
-                    count++;
+                    count++; 
                 }
                 catch (Exception)
                 {
                     //Log or just ignore
-                }
+                }*/
             }
             return count;
         }
@@ -319,6 +324,40 @@ namespace vfs.clients.desktop
                     //log or just ignore
                 }
                 count++;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Makes the drag and drop operation with the given files/dirs from the current directory to the target.
+        /// If set so, the given files are removed afterwards.
+        /// </summary>
+        /// <param name="names">Files/dirs to drag/drop.</param>
+        /// <param name="removeAfterwards">If set to true, a Move operation is done, otherwise a Copy operation.</param>
+        /// <returns>The number of moved files/dirs.</returns>
+        public int DragDrop(string[] names, string dir, bool removeAfterwards)
+        {
+            if (mountedVFS == null)
+                throw new Exception("No VFS mounted!");
+
+            int count = 0;
+            foreach (string name in names)
+            {
+                try
+                {
+                    var path = Helpers.PathCombine(CurrentDir, name);
+                    var targetDir = Helpers.PathCombine(CurrentDir, dir + "/");
+                    if (removeAfterwards)
+                        mountedVFS.MoveFile(path, Helpers.PathCombine(targetDir, name));
+                    else
+                        mountedVFS.CopyFile(path, Helpers.PathCombine(targetDir, name));
+
+                    count++;
+                }
+                catch (Exception)
+                {
+                    //Log or just ignore
+                }
             }
             return count;
         }
