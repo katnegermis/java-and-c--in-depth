@@ -1026,7 +1026,7 @@ namespace vfs.core
             var toFile = toFolder.AddDirEntry(toEntry);
             
             // Update fileIndex
-            fileIndex.Put(toFile.Name, toFile.Path);
+            fileIndex.Rename(fromFile.Name, fromFile.Path, toFile.Name, toFile.Path);
 
             // Delete original file.
             fromFile.DeleteEntry();
