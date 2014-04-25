@@ -936,9 +936,10 @@ namespace console.client
         public class SearchCommand : ICommand {
             private bool valid = false; // Invalid by default.
             private bool caseSensitive = true; // Case sensitive by default.
+            private bool recursive = true; // Resursive search by default.
             private string fileName;
-            private bool currentDirectory = true; // Searches only current directory by default.
-            private List<int> parsedArgs = new List<int>();
+            private bool startFromRoot = false; // Searches only current directory by default.
+            private int parsedArgs = 0;
 
             public SearchCommand(List<string> args) {
                 if (args.Count < 1) {
@@ -951,11 +952,15 @@ namespace console.client
                     switch (args[i]) {
                         case "-i":
                             caseSensitive = false;
-                            parsedArgs.Add(i);
+                            parsedArgs += 1;
                             break;
                         case "-a":
-                            currentDirectory = false;
-                            parsedArgs.Add(i);
+                            startFromRoot = true;
+                            parsedArgs += 1;
+                            break;
+                        case "-n":
+                            recursive = false;
+                            parsedArgs += 1;
                             break;
                         default:
                             unparsedArg = i;
@@ -963,7 +968,7 @@ namespace console.client
                     }
                 }
                 // Only valid if there's exactly one unparsed argument, the file name.
-                if (parsedArgs.Count != args.Count - 1) {
+                if (parsedArgs != args.Count - 1) {
                     return;
                 }
 
@@ -984,10 +989,10 @@ namespace console.client
 
                 try {
                     string searchDir = console.mountedJCDFAT.GetCurrentDirectory();
-                    if (!currentDirectory) {
+                    if (startFromRoot) {
                         searchDir = "/";
                     }
-                    var files = console.mountedJCDFAT.Search(searchDir, fileName, caseSensitive);
+                    var files = console.mountedJCDFAT.Search(searchDir, fileName, caseSensitive, recursive);
                     if (files.Length == 0) {
                         Console.WriteLine("Sorry, no files matched \"{0}\"", fileName);
                         return 0;

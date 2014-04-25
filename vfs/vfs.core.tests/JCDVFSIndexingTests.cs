@@ -312,6 +312,31 @@ namespace vfs.core.tests {
             CloseVFS(vfs, testName);
         }
 
+        [TestMethod]
+        public void TestSearchNonRecursive() {
+            // Set up
+            var testName = "search_non_recursive";
+            var vfs = CreateVFS(testName);
+            var fileName = "file";
+            int numFiles = 10;
+            var files = new string[numFiles];
+            // Create `numFiles` in different directories.
+            for (int i = 0; i < numFiles; i += 1) {
+                files[i] = string.Format("/dir{0}/{1}", i, fileName);
+                vfs.CreateFile(files[i], 1, true);
+            }
+
+            // Test
+            // Verify that files can be found recursively.
+            var allFiles = vfs.Search("/", fileName, true, true);
+            Assert.AreEqual(numFiles, allFiles.Length);
+            
+            // Verify that files aren't found nonrecursively.
+            var noFiles = vfs.Search("/", fileName, true, false);
+            Assert.AreEqual(0, noFiles.Length);
+            CloseVFS(vfs, testName);
+        }
+
         private JCDFAT CreateVFS(string testName, uint size) {
             DeleteFiles(new string[] { testName });
             return JCDFAT.Create(testName, size);

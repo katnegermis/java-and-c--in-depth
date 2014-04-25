@@ -36,6 +36,9 @@ namespace vfs.core
 
         public static string PathCombine(string path, string fileName)
         {
+            if (!path.EndsWith("/")) {
+                path += "/";
+            }
             return System.IO.Path.Combine(path, fileName);
         }
 

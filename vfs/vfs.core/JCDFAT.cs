@@ -1075,16 +1075,46 @@ namespace vfs.core
             return currentFolder.Path;
         }
 
-        public string[] Search(string searchPath, string fileName, bool caseSensitive) {
+        /// <summary>
+        /// Search through a specific folder in the file system.
+        /// </summary>
+        /// <param name="searchPath">Folder to search.</param>
+        /// <param name="fileName">Exact name of the file you want to find.</param>
+        /// <param name="caseSensitive">Whether the search be case sensitive</param>
+        /// <param name="recursive">Whether the search be recursive</param>
+        /// <returns></returns>
+        public string[] Search(string searchPath, string fileName, bool caseSensitive, bool recursive) {
             var files = fileIndex.Get(fileName, caseSensitive);
             if (files == null) {
                 return new string[0];
             }
 
-            return (files.Where(f => f.Path.StartsWith(searchPath))
-                         .Select(f => f.Path).ToArray());
+            IEnumerable<IndexedFile> filtered = files;
+            if (recursive) {
+                filtered = files.Where(f => f.Path.StartsWith(searchPath));
+            } else {
+                filtered = files.Where(f => f.Path == Path.Combine(searchPath, f.Name));
+            }
+            return filtered.Select(f => f.Path).ToArray();
         }
 
+        /// <summary>
+        /// Search recursively in a specific folder of the file system.
+        /// </summary>
+        /// <param name="searchPath"></param>
+        /// <param name="fileName"></param>
+        /// <param name="caseSensitive"></param>
+        /// <returns></returns>
+        public string[] Search(string searchPath, string fileName, bool caseSensitive) {
+            return Search(searchPath, fileName, caseSensitive, true);
+        }
+
+        /// <summary>
+        /// Search the entire file system for a specific file name.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="caseSensitive"></param>
+        /// <returns></returns>
         public string[] Search(string fileName, bool caseSensitive) {
             return Search(rootFolder.Path, fileName, caseSensitive);
         }

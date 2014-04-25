@@ -38,7 +38,7 @@ namespace console.client
             Console.WriteLine("free \t\t\t\t Show the free space");
             Console.WriteLine("occupied \t\t\t Show the occupied space");
             Console.WriteLine("search \t[-i] filename\t\t Search current directory for file");
-            Console.WriteLine("\t\t\t\t  -i for case insensitive, -a entire disk");
+            Console.WriteLine("\t\t\t\t  -i for case insensitive, -a search from root, -n non recursive search");
             Console.WriteLine("");
         }
 
