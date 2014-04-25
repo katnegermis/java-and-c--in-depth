@@ -41,7 +41,6 @@ namespace vfs.core
 
         public static string PathGetDirectoryName(string path)
         {
-            //return System.IO.Path.GetDirectoryName(path);
             var tmp = TrimLastSlash(path);
             var slash = tmp.LastIndexOf('/');
             if(slash > -1) {

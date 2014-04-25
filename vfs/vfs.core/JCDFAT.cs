@@ -701,9 +701,38 @@ namespace vfs.core
         }
 
         public void CreateDirectory(string path, bool createParents) {
-            //TODO: handle createParents
+            if (createParents) {
+                CreateParents(path);
+            }
             CreateFile(JCDFAT.blockSize, path, true);
         }
+
+        private void CreateParents(string path) {
+            var parents = Helpers.PathGetDirectoryName(path).Split('/');
+
+            // Can't create root directory.
+            if (parents.Length == 1 && parents[0] == ".") {
+                return;
+            }
+
+            string currentPath = ".";
+            if (path.StartsWith("/")) {
+                currentPath = "/";
+            }
+            JCDFile f = GetFile(currentPath);
+            // Create parents that don't exist.
+            foreach (var dir in parents) {
+                if (dir == "") {
+                    continue;
+                }
+                currentPath += dir + "/";
+                if (f != null) { // Only use GetFile if all previous directories existed.
+                    f = GetFile(currentPath);
+                }
+                CreateDirectory(currentPath, false);
+            }
+        }
+        
 
         private JCDFile CreateFile(ulong size, string path, bool isFolder)
         {
@@ -778,7 +807,9 @@ namespace vfs.core
         }
 
         public void CreateFile(string vfsPath, ulong size, bool createParents) {
-            // TODO: create parents.
+            if (createParents) {
+                CreateParents(vfsPath);
+            }
             CreateFile(size, vfsPath, false);
         }
 
