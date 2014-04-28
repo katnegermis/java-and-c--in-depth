@@ -7,6 +7,7 @@
 %\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{amsmath}
+\usepackage{enumitem} 
 
 
 % TODO: Add your group name
@@ -60,7 +61,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item How much space is free in the virtual disk can be queried and is calculated in method \texttt{GetFreeSpace()} in \texttt{JCDFAT}, which is multiplying the number of free blocks times the block size. The occupied space can be queried too and is calculated in method \texttt{OccupiedSpace()} in \texttt{JCDVFS} which is subtracting the free space from the virtual disk size.
 \end{enumerate}
 
-\subsection{Bonus points}
+\subsubsection{Bonus points}
 We've implemented two of the bonus features of this milestone. The first one is "Elastic disk". Our virtual disk initially takes up only the space required by the meta data (and FAT), and hereafter expands itself as needed when importing files. We currently have an untested implementation of automatic shrinking of the virtual disk.\\
 The second bonus feature we've implemented is "Large data". This feature is implemented by using buffers of a predefined, constant size, when reading/writing files to/from the file system, instead of having the whole VFS in memory. The current implementation uses quite big buffers (20 MB), trying to mitigate the problem of constantly reading and writing from different parts of the harddisk.
 
@@ -205,22 +206,61 @@ Since we are running the tests on the same files that are created and then delet
 % --------------------------------------
 
 \section{VFS Browser}
-
-%TODO: Remove this text and replace it with actual content
-\emph{Give a short (1-2 paragraphs) description of what VFS Browser is.}
+In this part of the project we're creating one or several user interfaces that are more sophisticated than the console client from the previous part, which means Graphical User Interfaces (GUI), for the VFS core. We decided to create a Windows desktop client and a web application written in ASP.NET. The browsers support both mouse and keyboard navigation. \newline
+The clients support all of the previously created operations of the VFS core and additionally a functionality to search for file/directory names with the options search location and case sensitivity. 
 
 
 \subsection{Requirements}
+In this part we indicate and describe what requirements we have implemented. We also list the main software elements involved in the respective implementation. When requirements are described for both browser clients separately, we do so first for the desktop (a) and then the web client (b).
 
-% TODO: Remove this text and replace it with actual content
-\emph{Describe which requirements (and possibly bonus requirements) you have implemented in this part. Give a quick description (1-2 sentences) of each requirement. List the software elements (classes and or functions) that are mainly involved in implementing each requirement.}
+\begin{enumerate}
+	\item The platforms we have created our browsers for are the Windows desktop and web (ASP.NET).
+	\item 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
+		\item TODO web
+		\end{enumerate}
+	\item 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item In the list view single and multiple items can be selected. The operations where this multiple selection makes sense are then run on all those items.
+		\item TODO web
+		\end{enumerate}
+	\item 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item Keyboard navigation in the application is done mostly through the TAB key. In the list view going to child folders is done through pressing ENTER when a folder is selected. Going back can be done trough the Back-Button or the BACKSPACE key. Common Windows key functionalities (e.g. Delete)as well as combinations (e.g. Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A) are all supported.
+		\item TODO web
+		\end{enumerate}
+	\item 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item Mouse navigation is supported in the expected way. In the list view double click on a folder means going into this folder. Going to the parent folder can be done by clicking on the Back-Button.
+		\item TODO web
+		\end{enumerate}
+	\item 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item Search can be done by entering the key word into the text box at the top right corner and then pressing ENTER. Selection of the search options can be done in the menu that appears when a click on the v-Button besides the text box happens.
+		\item TODO web
+		\end{enumerate}
+\end{enumerate}
 
+\subsubsection{Bonus points}
+As a general bonus feature we have implemented browsers for two different platforms. The platform specific implemented bonus features are: 
+		\begin{enumerate} [label={(\alph*)}] 
+		\item In the desktop client we have implemented especially nice-to-have features like drag-and-drop. Inside of the list view, dragging with the left mouse button results in a move and with the right mouse button in a copy operation. Dragging from the Windows Explorer and dropping into the list view results in an Import. Dragging an item of the list view and dropping it outside of this view results in an Export.
+		\item TODO web
+		\end{enumerate}
 
 \subsection{Design}
 
-% TODO: Remove this text and replace it with actual content
-\emph{Give an overview of the design of this part and describe in general terms how the implementation works. You can mention design patterns used, class diagrams, definition of custom file formats, network protocols, or anything else that helps understand the implementation.}
+\subsubsection{Search functionality}
 
+TODO
+
+\subsubsection{Desktop client}
+The most notable design decision was to make a clean separation between the View part, where event handling from the MainForm is done, and the Control part that is accessing the VFS core functionalities. In order to do this, we have defined a class VFSSession.cs which is the only class in the client that is referencing vfs.core. It contains a JCDFAT object, which represents an open VFS, and mostly calls methods of this object to fulfill its tasks. On the other hand, no Forms functionality is used in it, which makes this class easily reusable for other clients.
+
+\subsubsection{Web client}
+
+TODO
 
 \subsection{Integration}
 
@@ -238,7 +278,7 @@ Since we are running the tests on the same files that are created and then delet
 %\textbf{[This section has to be completed by May 13th.]}
 %
 %%TODO: Remove this text and replace it with actual content
-%\emph{Give a short (1-2 paragraphs) description of what VFS Browser is.}
+%\emph{Give a short (1-2 paragraphs) description of what Synchronization Server is.}
 %
 %
 %\subsection{Requirements}
@@ -294,6 +334,7 @@ To facilitate debugging we have created a console client. The available commands
 		\item size: Show the size of the hole VFS file.
 		\item free: Show the free space.
 		\item occupied: Show the occupied space.
+		\item search [-i] [-a] [-n] filename: Search current directory for the given file (case insensitive with -i, -a search from root, -n non recursive search)
 	\end{itemize}
 \end{enumerate}
 
