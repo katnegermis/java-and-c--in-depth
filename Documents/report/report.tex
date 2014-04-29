@@ -218,27 +218,27 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
-		\item TODO web
+		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in Default.aspx.cs.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item In the list view single and multiple items can be selected. The operations where this multiple selection makes sense are then run on all those items.
-		\item TODO web
+		\item Same as for desktop.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item Keyboard navigation in the application is done mostly through the TAB key. In the list view going to child folders is done through pressing ENTER when a folder is selected. Going back can be done trough the Back-Button or the BACKSPACE key. Common Windows key functionalities (e.g. Delete)as well as combinations (e.g. Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A) are all supported.
-		\item TODO web
+		\item Keyboard navigation is not yet implemented.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item Mouse navigation is supported in the expected way. In the list view double click on a folder means going into this folder. Going to the parent folder can be done by clicking on the Back-Button.
-		\item TODO web
+		\item Single click on a folder to enter it, click the up button to go to the parent folder.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item Search can be done by entering the key word into the text box at the top right corner and then pressing ENTER. Selection of the search options can be done in the menu that appears when a click on the v-Button besides the text box happens.
-		\item TODO web
+		\item Search is not yet implemented.
 		\end{enumerate}
 \end{enumerate}
 
@@ -246,7 +246,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 As a general bonus feature we have implemented browsers for two different platforms. The platform specific implemented bonus features are:
 		\begin{enumerate} [label={(\alph*)}]
 		\item In the desktop client we have implemented especially nice-to-have features like drag-and-drop. Inside of the list view, dragging with the left mouse button results in a move and with the right mouse button in a copy operation. Dragging from the Windows Explorer and dropping into the list view results in an Import. Dragging an item of the list view and dropping it outside of this view results in an Export.
-		\item TODO web
+		\item Nothing to see here, move on.
 		\end{enumerate}
 
 \subsection{Design}
@@ -266,7 +266,7 @@ The most notable design decision was to make a clean separation between the View
 
 \subsubsection{Web client}
 
-TODO
+The web client largely reuses the VFSSession class from the desktop client, though some changes are currently separate because of differences in error handling and data binding.
 
 \subsection{Integration}
 \label{sec:integration}
