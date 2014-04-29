@@ -1,56 +1,70 @@
-\documentclass[11pt]{article}
+\documentclass[a4paper,12pt]{article}
 
+
+% add more packages if necessary
+\usepackage{xspace}
 \usepackage{graphicx}
+%\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{amsmath}
-%\usepackage{ETHlogo}
+\usepackage{enumitem}
+
+
+% TODO: Add your group name
+\newcommand{\groupname}{Ravioli\xspace}
+
+
+\title{
+Project Report \\
+Group \groupname \\
+\vspace{5mm}
+\large Java and C\# in depth, Spring 2014
+}
+\author{
+% TODO: Add your names here
+Michael Bang (\texttt{mbang@student.ethz.ch}) \\
+Pascal Fischli (\texttt{fischlip@student.ethz.ch}) \\
+Vladimir Grozman (\texttt{grozmanv@student.ethz.ch})
+}
+\date{\today}
+
+
 
 \begin{document}
-
-\begin{center}
-
-%\includegraphics[width=0.15\textwidth]{./logo}\\[1cm]
-
-\LARGE Project Report\\Group Ravioli \\[0.5cm]
-
-\Large Java and C\# in depth, Spring 2014 \\[0.5cm]
-
-\large Michael Bang\\\small\texttt{mbang@student.ethz.ch}\\[0.05cm]
-\large Pascal Fischli\\\small\texttt{fischlip@student.ethz.ch}\\[0.05cm]
-\large Vladimir Grozman\\\small\texttt{grozmanv@student.ethz.ch}\\[0.5cm]
-
-{\large \today}\\[1.5cm]
-
-\end{center}
-
-%\end{titlepage}
+\maketitle
 
 \section{Introduction}
-This document describes the design and implementation of the Personal Virtual File System of group ravioli. The project is part of the course Java and C\# in depth at ETH Zurich. The following sections describe each project phase, listing the requirements that were implemented and the design decisions taken. The last section describes a use case of using the Personal File System.
+
+This document describes the design and implementation of the \emph{Personal Virtual File System} of group \emph{\groupname}. The project is part of the course \emph{Java and C\# in depth} at ETH Zurich. The following sections describe each project phase, listing the requirements that were implemented and the design decisions taken. The last section describes a use case of using the \emph{Personal Virtual File System}.
+
+% PART I: VFS CORE
+% --------------------------------------
 
 \section{VFS Core}
 VFS Core is the first step towards a Personal Virtual File System. It operates on virtual disks, of which each one is stored in a single file in the host file system. Its API not only offers functionalities to create, mount and delete virtual disks, but also to operate inside opened disks. This ranges from basic console operations, like navigating through directories, renaming and removing, to the virtual disk operations of importing and exporting directories, files or both together.\newline
 The most important task in the process of creating the VFS Core is the design of the storage structure in the virtual disk files. The main aspect in this is efficiency. Not mainly in speed, but in usage of the available space. Two basic approaches are storing the files in one block, which of course could result in lots of space lost due to fragmentation, or splitting files into parts of predefined size that are always linking to the next part, resulting in a very space efficient but most likely slower system.
 
+
 \subsection{Requirements}
 In this part we indicate and describe what requirements we have implemented. We also list the main software elements involved in the respective implementation.
 
 \begin{enumerate}
-	\item The virtual disk is stored in a single file in the host file system. The creation happens in the creators of \texttt{JCDVFS}, which are creating a FileStream for the new file that is then written to in the creators of \texttt{JCDFAT}.
-	\item The creation of virtual disk files happens in method \texttt{Create(string hfsPath, ulong size)} of class \texttt{JCDVFS}. The parameters specify the location and the initial size.
-	\item Several virtual file systems on the host are allowed. Creation and opening, which is done with method \texttt{Open(string hfsPath)} of class \texttt{JCDVFS}, can happen an unlimited amount of times and with the file at any place on the host file system.
-	\item Virtual disks can be disposed from the host file system, which can be done through the method \texttt{Delete(string hfsPath)} of class \texttt{JCDVFS}. Only files containing a virtual disk that can be opened are disposable through this.
+	\item The virtual disk is stored in a single file in the host file system. The creation happens in the creators of \texttt{JCDFAT}, which are creating a FileStream for the new file that is then written to in the creators of \texttt{JCDFAT}.
+	\item The creation of virtual disk files happens in method \texttt{Create(string hfsPath, ulong size)} of class \texttt{JCDFAT}. The parameters specify the location and the initial size.
+	\item Several virtual file systems on the host are allowed. Creation and opening, which is done with method \texttt{Open(string hfsPath)} of class \texttt{JCDFAT}, can happen an unlimited amount of times and with the file at any place on the host file system.
+	\item Virtual disks can be disposed from the host file system, which can be done through the method \texttt{Delete(string hfsPath)} of class \texttt{JCDFAT}. Only files containing a virtual disk that can be opened are disposable through this.
 	\item On a mounted VFS files and directories can be created, deleted and renamed with the methods \texttt{CreateFile(ulong size, string path, bool isFolder)}, \texttt{DeleteFile(string path, bool recursive)} and \texttt{RenameFile(string vfsPath, string newName)} in class \texttt{JCDFAT}.
-	\item For basic navigation functionalities going to a specific location can be done with method \texttt{SetCurrentDirectory(string path)} in class \texttt{JCDFAT}. To support that, listing of files and directories can be done with the method \texttt{ListDirectory(string vfsPath)} in class \texttt{JCDFAT}, which is called by the method with the same signature in class \texttt{JCDVFS}.
+	\item For basic navigation functionalities going to a specific location can be done with method \texttt{SetCurrentDirectory(string path)} in class \texttt{JCDFAT}. To support that, listing of files and directories can be done with the method \texttt{ListDirectory(string vfsPath)} in class \texttt{JCDFAT}, which is called by the method with the same signature in class \texttt{JCDFAT}.
 	\item Moving of files and directories can be done with method \texttt{MoveFile(string vfsPath, string newVfsPath)} and copying with method \texttt{CopyFile(string vfsPath, string newVfsPath)} in \texttt{JCDFAT}. Both preserve the internal file/directory hierarchy.
-	\item Files and directories can be imported from the host into the virtual file system. This is done through method \texttt{ImportFile(string hfsPath, string vfsPath)} in \texttt{JCDVFS} which is then calling \texttt{ImportFolder(string hfsFolderPath, string vfsPath)} or \texttt{ImportFile(Stream file, string path, string fileName)} in \texttt{JCDFAT}.
+	\item Files and directories can be imported from the host into the virtual file system. This is done through method \texttt{ImportFile(string hfsPath, string vfsPath)} in \texttt{JCDFAT} which is then calling \texttt{ImportFolder(string hfsFolderPath, string vfsPath)} or \texttt{ImportFile(Stream file, string path, string fileName)} in \texttt{JCDFAT}.
 	\item Exporting of files and directories from the virtual to the host file system is done in methods \texttt{ExportFile(Stream outputFile, JCDFile file)} and \texttt{ExportFolderRecursive(JCDFolder folder, string hfsPath)} in \texttt{JCDFAT}.
-	\item How much space is free in the virtual disk can be queried and is calculated in method \texttt{GetFreeSpace()} in \texttt{JCDFAT}, which is multiplying the number of free blocks times the block size. The occupied space can be queried too and is calculated in method \texttt{OccupiedSpace()} in \texttt{JCDVFS} which is subtracting the free space from the virtual disk size.
+	\item How much space is free in the virtual disk can be queried and is calculated in method \texttt{GetFreeSpace()} in \texttt{JCDFAT}, which is multiplying the number of free blocks times the block size. The occupied space can be queried too and is calculated in method \texttt{OccupiedSpace()} in \texttt{JCDFAT} which is subtracting the free space from the virtual disk size.
 \end{enumerate}
 
-\subsection{Bonus points}
+\subsubsection{Bonus points}
 We've implemented two of the bonus features of this milestone. The first one is "Elastic disk". Our virtual disk initially takes up only the space required by the meta data (and FAT), and hereafter expands itself as needed when importing files. We currently have an untested implementation of automatic shrinking of the virtual disk.\\
 The second bonus feature we've implemented is "Large data". This feature is implemented by using buffers of a predefined, constant size, when reading/writing files to/from the file system, instead of having the whole VFS in memory. The current implementation uses quite big buffers (20 MB), trying to mitigate the problem of constantly reading and writing from different parts of the harddisk.
+
 
 \subsection{Design}
 We decided to take a lot of inspiration from the FAT file system
@@ -187,6 +201,123 @@ After having defined the API and prior to implementing its functionalities we ha
 Since we are running the tests on the same files that are created and then deleted for each test run, our tests cannot be run or analysed for code coverage in parallel.
 
 
+
+% PART II: VFS Browser
+% --------------------------------------
+
+\section{VFS Browser}
+In this part of the project we're creating one or several user interfaces that are more sophisticated than the console client from the previous part, which means Graphical User Interfaces (GUI), for the VFS core. We decided to create a Windows desktop client and a web application written in ASP.NET. The browsers support both mouse and keyboard navigation. \newline
+The clients support all of the previously created operations of the VFS core and additionally a functionality to search for file/directory names with the options search location and case sensitivity.
+
+
+\subsection{Requirements}
+In this part we indicate and describe what requirements we have implemented. We also list the main software elements involved in the respective implementation. When requirements are described for both browser clients separately, we do so first for the desktop (a) and then the web client (b).
+
+\begin{enumerate}
+	\item The platforms we have created our browsers for are the Windows desktop and web (ASP.NET).
+	\item
+		\begin{enumerate} [label={(\alph*)}]
+		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
+		\item TODO web
+		\end{enumerate}
+	\item
+		\begin{enumerate} [label={(\alph*)}]
+		\item In the list view single and multiple items can be selected. The operations where this multiple selection makes sense are then run on all those items.
+		\item TODO web
+		\end{enumerate}
+	\item
+		\begin{enumerate} [label={(\alph*)}]
+		\item Keyboard navigation in the application is done mostly through the TAB key. In the list view going to child folders is done through pressing ENTER when a folder is selected. Going back can be done trough the Back-Button or the BACKSPACE key. Common Windows key functionalities (e.g. Delete)as well as combinations (e.g. Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A) are all supported.
+		\item TODO web
+		\end{enumerate}
+	\item
+		\begin{enumerate} [label={(\alph*)}]
+		\item Mouse navigation is supported in the expected way. In the list view double click on a folder means going into this folder. Going to the parent folder can be done by clicking on the Back-Button.
+		\item TODO web
+		\end{enumerate}
+	\item
+		\begin{enumerate} [label={(\alph*)}]
+		\item Search can be done by entering the key word into the text box at the top right corner and then pressing ENTER. Selection of the search options can be done in the menu that appears when a click on the v-Button besides the text box happens.
+		\item TODO web
+		\end{enumerate}
+\end{enumerate}
+
+\subsubsection{Bonus points}
+As a general bonus feature we have implemented browsers for two different platforms. The platform specific implemented bonus features are:
+		\begin{enumerate} [label={(\alph*)}]
+		\item In the desktop client we have implemented especially nice-to-have features like drag-and-drop. Inside of the list view, dragging with the left mouse button results in a move and with the right mouse button in a copy operation. Dragging from the Windows Explorer and dropping into the list view results in an Import. Dragging an item of the list view and dropping it outside of this view results in an Export.
+		\item TODO web
+		\end{enumerate}
+
+\subsection{Design}
+
+\subsubsection{Search functionality}
+\label{sec:search_functionality}
+
+When implementing search functionality on a file system, there are some decisions to be made. Different implementations are faster for some kinds of searching than others. In this project, we decided to optimize our implementation for full file-system search, i.e. looking for a file name throughout the whole file system. There, of course, are trade-offs being made, when making decisions like the one just mentioned. Optimizing for full-file system search has an impact on the time it takes to search through only sub-folders of the file system; in our implementation, it requires (in the order of) the same amount of operations to search through the entire file system as it does to search through only a single folder. This is a fact that we were aware of when making the decision, and found to be acceptable. It would be possible to have multiple data structures, optimizing for different kinds of searches, but we decided to go with just one.
+We found that B+-trees are a perfect match to implement an efficient full-file system search. Thus, our implementation relies on this data structure. We did not implement B+-trees ourselves, but sought help from the open source community where we found an implementation we could use, called `bplusdotnet'. The code for this project can be found at http://sourceforge.net/projects/bplusdotnet/.
+
+
+The implementation of B-trees we use, `bplusdotnet', uses two files for storage; one for storing the data structure and one for storing the actual data we put in the nodes of the tree. We decided to store these two files in the virtual file system itself, to comply with the requirement that the virtual file system should span only one file on the host file system. This means that additional storage space is required (for storing the B-tree data structure) on the virtual file system, and makes it more difficult to predict exactly how much space is required when adding a new file. This has the implication that, even though there may be X bytes of free space on the drive, it might not be possible to import a file of X bytes because of the metadata required in the file system.
+
+The implementation of the search functionality almost solely resides in the sub-project `vfs.core.indexing'.
+
+
+\subsubsection{Desktop client}
+The most notable design decision was to make a clean separation between the View part, where event handling from the MainForm is done, and the Control part that is accessing the VFS core functionalities. In order to do this, we have defined a class VFSSession.cs which is the only class in the client that is referencing vfs.core. It contains a JCDFAT object, which represents an open VFS, and mostly calls methods of this object to fulfill its tasks. On the other hand, no Forms functionality is used in it, which makes this class easily reusable for other clients.
+
+\subsubsection{Web client}
+
+TODO
+
+\subsection{Integration}
+In order to integrate file search into JCDFAT, we only had to add, delete, and maintain nodes in the B-tree when importing, renaming, moving, and deleting files on the virtual file system. These changes are not very interesting to comment on here, and make up only around a total of 30 lines of code in JCDFAT.cs, JCDFile.cs, and JCDFolder.cs. The only real integration work we had to do in this milestone, was to integrate the open source project `bplusdotnet', which implements B+-trees, into our project.
+
+% Michael's notes:
+% Integration of `bplusdotnet' into our project:
+% - Implement JCDFileStream : Stream to let `bplusdotnet' use our file system instead of host file system.
+% - Write wrapper layer (`vfs.core.indexing')
+%     - In this wrapper layer
+% - Modify `bplusdotnet' to allow for case sensitive search.
+%     - possibly upload source code
+
+
+
+
+% PART III: Synchronization Server
+% --------------------------------------
+
+%\section{Synchronization Server}
+%
+%% TODO: Remove this line
+%\textbf{[This section has to be completed by May 13th.]}
+%
+%%TODO: Remove this text and replace it with actual content
+%\emph{Give a short (1-2 paragraphs) description of what Synchronization Server is.}
+%
+%
+%\subsection{Requirements}
+%
+%% TODO: Remove this text and replace it with actual content
+%\emph{Describe which requirements (and possibly bonus requirements) you have implemented in this part. Give a quick description (1-2 sentences) of each requirement. List the software elements (classes and or functions) that are mainly involved in implementing each requirement.}
+%
+%
+%\subsection{Design}
+%
+%% TODO: Remove this text and replace it with actual content
+%\emph{Give an overview of the design of this part and describe in general terms how the implementation works. You can mention design patterns used, class diagrams, definition of custom file formats, network protocols, or anything else that helps understand the implementation.}
+%
+%
+%\subsection{Integration}
+%
+%% TODO: Remove this text and replace it with actual content
+%\emph{If you had to change the design or API of the previous part, describe the changes and the reasons for each change here.}
+
+
+
+% PART IV: Quick Start Guide
+% --------------------------------------
+
 \setcounter{section}{4}
 
 \section{Quick Start Guide}
@@ -218,12 +349,26 @@ To facilitate debugging we have created a console client. The available commands
 		\item size: Show the size of the hole VFS file.
 		\item free: Show the free space.
 		\item occupied: Show the occupied space.
+		\item search [-i] [-a] [-n] filename: Search current directory for the given file (case insensitive with -i, -a search from root, -n non recursive search)
 	\end{itemize}
 \end{enumerate}
 
 
-\begin{thebibliography}{99}
+% TODO: Remove this line
+%\noindent\textbf{[This part has to be completed by May 13th.]}
 
-\end{thebibliography}
+% TODO: Remove this text and replace it with actual content
+%\emph{Describe how to realize the following use case with your system. Describe the steps involved and how to perform each action (e.g. command line executions and arguments, menu entries, keyboard shortcuts, screenshots). The use case is the following:
+%\begin{enumerate}
+%\item Start synchronization server on localhost.
+%\item Create account on synchronization server.
+%\item Create two VFS disks (on the same machine) and link them to the new account.
+%\item Import a directory (recursively) from the host file system into Disk 1.
+%\item Dispose Disk 1 after the synchronization finished.
+%\item Export the directory (recursively) from Disk 2 into the host file system.
+%\item Stop synchronization server.
+%\end{enumerate}
+%}
+
 
 \end{document}

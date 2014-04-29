@@ -176,3 +176,5 @@ FakesAssemblies/
 
 *.swp
 *.fuse_hidden*
+Documents/report/report.bbl
+Documents/report/report.blg
