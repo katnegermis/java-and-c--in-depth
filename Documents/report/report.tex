@@ -253,14 +253,12 @@ As a general bonus feature we have implemented browsers for two different platfo
 
 \subsubsection{Search functionality}
 \label{sec:search_functionality}
-
-When implementing search functionality on a file system, there are some decisions to be made. Different implementations are faster for some kinds of searching than others. In this project, we decided to optimize our implementation for full file-system search, i.e. looking for a file name throughout the whole file system. There, of course, are trade-offs being made, when making decisions like the one just mentioned. Optimizing for full-file system search has an impact on the time it takes to search through only sub-folders of the file system; in our implementation, it requires (in the order of) the same amount of operations to search through the entire file system as it does to search through only a single folder. This is a fact that we were aware of when making the decision, and found to be acceptable. It would be possible to have multiple data structures, optimizing for different kinds of searches, but we decided to go with just one.
-We found that B+-trees are a perfect match to implement an efficient full-file system search. Thus, our implementation relies on this data structure. We did not implement B+-trees ourselves, but sought help from the open source community where we found an implementation we could use, called `bplusdotnet'. The code for this project can be found at http://sourceforge.net/projects/bplusdotnet/.
-
-
-The implementation of B-trees we use, `bplusdotnet', uses two files for storage; one for storing the data structure and one for storing the actual data we put in the nodes of the tree. We decided to store these two files in the virtual file system itself, to comply with the requirement that the virtual file system should span only one file on the host file system. This means that additional storage space is required (for storing the B-tree data structure) on the virtual file system, and makes it more difficult to predict exactly how much space is required when adding a new file. This has the implication that, even though there may be X bytes of free space on the drive, it might not be possible to import a file of X bytes because of the metadata required in the file system.
-
-The implementation of the search functionality almost solely resides in the sub-project `vfs.core.indexing'.
+In implementing search functionality on a file system, there are some decisions to be made. There are many different data structures to use, and different ways to use each data structure. In this project, we decided to optimize our implementation for full file-system search, i.e. looking for a file name throughout the whole file system. There, of course, are trade-offs being made when making decisions like the one just mentioned; optimizing for full-file system search has an impact on the time it takes to search through only a small subset of folders of the file system. In our implementation, it requires (in the order of) the same amount of operations to search through the entire file system as it does to search through only a single folder. This is a fact that we were aware of when making the decision, and found to be acceptable. It would be possible to have multiple data structures, each optimizing for a different type of search, but we decided to go with just one. Having multiple data structures adds much more complexity and overhead, both w.r.t. processing power and storage.\\
+We found that B+-trees are a perfect match to implement an efficient full-file system search. Thus, our implementation relies on this data structure. We did not implement B+-trees ourselves, but sought help from the open source community, where we found an implementation we could use called `bplusdotnet'. The code for this project can be found at \url{https://github.com/benaston/BTree}.\\
+\\
+The implementation of B-trees we use, `bplusdotnet', uses two files for storage; one for storing the data structure and one for storing the actual data we put in the nodes of the tree. We decided to store these two files in the virtual file system itself, in order to comply with the requirement that the virtual file system should span only one file on the host file system. This means that additional storage space is required for storing the B-tree data structure on the virtual file system, and makes it more difficult to predict exactly how much space is required when adding a new file. This has the implication that, even though there may be X bytes of free space on the drive, it might not be possible to import a file of X bytes because of the metadata that is also written to the file system.\\
+\\
+The implementation of the search functionality almost solely resides in the namespace `vfs.core.indexing', which wraps the implementation of B+-trees we use. This implementation is described further in Section \ref{sec:integration} because this mostly consisted of integration work.
 
 
 \subsubsection{Desktop client}
@@ -271,17 +269,22 @@ The most notable design decision was to make a clean separation between the View
 TODO
 
 \subsection{Integration}
-In order to integrate file search into JCDFAT, we only had to add, delete, and maintain nodes in the B-tree when importing, renaming, moving, and deleting files on the virtual file system. These changes are not very interesting to comment on here, and make up only around a total of 30 lines of code in JCDFAT.cs, JCDFile.cs, and JCDFolder.cs. The only real integration work we had to do in this milestone, was to integrate the open source project `bplusdotnet', which implements B+-trees, into our project.
-
-% Michael's notes:
-% Integration of `bplusdotnet' into our project:
-% - Implement JCDFileStream : Stream to let `bplusdotnet' use our file system instead of host file system.
-% - Write wrapper layer (`vfs.core.indexing')
-%     - In this wrapper layer
-% - Modify `bplusdotnet' to allow for case sensitive search.
-%     - possibly upload source code
-
-
+\label{sec:integration}
+In order to integrate file search into JCDFAT, all we had to do was to add and maintain nodes in the B-tree when importing, renaming, moving, and deleting files on the virtual file system. These changes are not very interesting to comment on here, and make up only around a total of 30 lines of code in the classes JCDFAT, JCDFile, and JCDFolder. The only real integration work we had to do in this milestone, was to integrate the open source project `bplusdotnet' into our project.\\
+\\
+We had three obstacles to overcome during the integration of bplusdotnet into our project:
+\begin{itemize}
+    \item bplusdotnet doesn't provide support for having multiple keys with the same value.
+    \item bplusdotnet to writes its data to the host file system.
+    \item bplusdotnet doesn't allow for case insensitive search.
+\end{itemize}
+In the following we describe how we overcame these three obstacles.\\
+\\
+In solving the first obstacle, we started out with implementing a wrapper (vfs.core.indexing.FileIndex) for the class SerializedTree of bplusdotnet. SerializedTree implements a B+-tree which maps unicode keys (which our file names are) to serializable objects. As already mentioned, SerializedTree doesn't support having multiple keys with the same value. But it does support using serializable objects as values, and since arrays of serializable objects are also serializable, our solution was to create a serializable class (vfs.core.indexing.IndexedFile) and use an array of this class as values. Our wrapper class (FileIndex) then implements the logic required to add and remove items from the array used as value in the B-tree.\\
+\\
+Since bplusdotnet uses instances of Stream for writing data to disk, we figured that the correct way to solve our second problem was to create a class which implements the Stream interface on our virtual file system. This class can be found in vfs.core.JCDFileStream. After having implemented JCDFileStream, we realized that it might also be useful for the 3rd milestone of the project, and so were even more happy with our solution.\\
+\\
+Even though the third obstacle wasn't the most difficult one to overcome, it probably was the most time consuming. Here, we decided to pull up our sleeves and give something back to the open source community; we went through the codebase of bplusdotnet and added support for case insensitive key comparisons. Since these modifications don't really have anything to do with our own project, this will not be described
 
 
 % PART III: Synchronization Server
