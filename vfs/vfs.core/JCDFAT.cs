@@ -20,7 +20,6 @@ namespace vfs.core
 
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
-        public delegate void FileIndexCallback(string fileName, string path);
         internal FileIndex fileIndex;
         private bool initialized = false;
         private const uint magicNumber = 0x13371337;
@@ -68,6 +67,41 @@ namespace vfs.core
         private FileStream fs;
         private BinaryWriter bw;
         private BinaryReader br;
+
+        public event VFSEvents.AddFileEventHandler FileAdded;
+        public event VFSEvents.DeleteFileEventHandler FileDeleted;
+        public event VFSEvents.MoveFileEventHandler FileMoved;
+
+        /// <summary>
+        /// Event to be called every time a new file is added to the file system.
+        /// </summary>
+        /// <param name="path">Path of the newly added file.</param>
+        internal void OnFileAdded(string path) {
+            if (FileAdded != null) {
+                FileAdded(path);
+            }
+        }
+
+        /// <summary>
+        /// Event to be called every time a file is deleted from the file system.
+        /// </summary>
+        /// <param name="path">Path of the deleted file.</param>
+        internal void OnFileDeleted(string path) {
+            if (FileDeleted != null) {
+                FileDeleted(path);
+            }
+        }
+
+        /// <summary>
+        /// Event to be called every time a file is moved or renamed on the file system.
+        /// </summary>
+        /// <param name="oldPath">File's previous (old) path.</param>
+        /// <param name="newPath">File's new (current) path.</param>
+        internal void OnFileMoved(string oldPath, string newPath) {
+            if (FileMoved != null) {
+                FileMoved(oldPath, newPath);
+            }
+        }
 
         public static JCDFAT Create(string hfsPath, ulong size) {
             // Make sure the directory exists.
@@ -538,6 +572,8 @@ namespace vfs.core
             var dataFileStream = new JCDFileStream(f(searchFileDataName, searchFileDataBlock));
 
             fileIndex = FileIndex.Initialize(treeFileStream, dataFileStream);
+            fileIndex.Close();
+            InitSearchFile();
         }
 
 
@@ -549,6 +585,23 @@ namespace vfs.core
             var dataFileStream = new JCDFileStream(dataFile);
 
             fileIndex = FileIndex.Open(treeFileStream, dataFileStream);
+            
+            // Add event handlers
+            FileAdded += path => {
+                var fileName = Helpers.PathGetFileName(path);
+                fileIndex.Put(fileName, path);
+            };
+
+            FileDeleted += path => {
+                var fileName = Helpers.PathGetFileName(path);
+                fileIndex.Remove(fileName, path);
+            };
+
+            FileMoved += (oldPath, newPath) => {
+                var oldName = Helpers.PathGetFileName(oldPath);
+                var newName = Helpers.PathGetFileName(newPath);
+                fileIndex.Rename(oldName, oldPath, newName, newPath);
+            };
         }
 
         /// <summary>
@@ -764,7 +817,7 @@ namespace vfs.core
             }
             
             var result = ((JCDFolder) container).AddDirEntry(entry);
-            fileIndex.Put(result.Name, result.Path);
+            OnFileAdded(result.Path);
             return result;
         }
 
@@ -1053,10 +1106,11 @@ namespace vfs.core
             toEntry.Name = Helpers.PathGetFileName(newVfsPath);
             var toFile = toFolder.AddDirEntry(toEntry);
 
-            // Update fileIndex
-            fileIndex.Rename(fromFile.Name, fromFile.Path, toFile.Name, toFile.Path);
+            // Trigger FileMoved event.
+            OnFileMoved(fromFile.Path, toFile.Path);
+            // Update the path of sub-files, if moved file is a folder.
             if (toFile.IsFolder) {
-                ((JCDFolder)toFile).UpdateChildrenPaths(fileIndex);
+                ((JCDFolder)toFile).UpdateChildrenPaths();
             }
 
             // Delete original file.

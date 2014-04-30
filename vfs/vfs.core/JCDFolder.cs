@@ -203,17 +203,17 @@ namespace vfs.core {
         /// Update the path of all children. Used when a folder is moved.
         /// </summary>
         /// <param name="fileIndex"></param>
-        internal void UpdateChildrenPaths(FileIndex fileIndex) {
-            UpdateChildrenPaths(this, fileIndex);   
+        internal void UpdateChildrenPaths() {
+            UpdateChildrenPathsRecursive(this);   
         }
 
-        private void UpdateChildrenPaths(JCDFolder folder, FileIndex fileIndex) {
+        private void UpdateChildrenPathsRecursive(JCDFolder folder) {
             foreach (var file in folder.GetFileEntries()) {
                 var oldPath = file.Path;
                 file.SetDirectoryPath(folder.Path);
-                fileIndex.Rename(file.Name, oldPath, file.Name, file.Path);
+                container.OnFileMoved(oldPath, file.Path);
                 if (file.IsFolder) {
-                    UpdateChildrenPaths((JCDFolder)file, fileIndex);
+                    UpdateChildrenPathsRecursive((JCDFolder)file);
                 }
             }
         }

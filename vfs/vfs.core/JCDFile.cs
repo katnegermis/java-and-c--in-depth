@@ -65,9 +65,9 @@ namespace vfs.core {
                 this.path = Helpers.PathGetDirectoryName(this.path) + value;
                 
                 // Update file index
-                container.fileIndex.Rename(oldName, oldPath, Name, Path);
+                container.OnFileMoved(oldPath, Path);
                 if (IsFolder) {
-                    ((JCDFolder)this).UpdateChildrenPaths(container.fileIndex);
+                    ((JCDFolder)this).UpdateChildrenPaths();
                 }
             }
         }
@@ -154,7 +154,7 @@ namespace vfs.core {
 
                 container.tryShrink();
             }
-            container.fileIndex.Remove(entry.Name, Path);
+            container.OnFileDeleted(Path);
         }
         internal void DeleteEntry() {
             parent.DeleteEntry((uint) parentIndex);
