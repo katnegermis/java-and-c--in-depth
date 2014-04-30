@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.common;
 using vfs.core;
 
 namespace vfs.core.indexing {
@@ -12,8 +13,8 @@ namespace vfs.core.indexing {
         public string Name;
         public string Path;
 
-        public IndexedFile(string name, string path) {
-            this.Name = name;
+        public IndexedFile(string path) {
+            this.Name = Helpers.PathGetFileName(path); ;
             this.Path = path;
         }
 

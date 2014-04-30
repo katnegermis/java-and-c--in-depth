@@ -2,6 +2,7 @@
 using System.IO;
 using BplusDotNet;
 using System.Linq;
+using vfs.common;
 
 namespace vfs.core.indexing {
     public class FileIndex : IDisposable {
@@ -69,8 +70,9 @@ namespace vfs.core.indexing {
             return null;
         }
 
-        public void Put(string fileName, string path) {
-            Put(new IndexedFile(fileName, path));
+        public void Put(string path) {
+            var fileName = Helpers.PathGetFileName(path);
+            Put(new IndexedFile(path));
         }
 
         public void Put(IndexedFile f) {
@@ -98,17 +100,19 @@ namespace vfs.core.indexing {
             stree.Set(f.Name, newArr);
         }
 
-        public void Rename(string fileName, string path, string newName, string newPath) {
-            Rename(new IndexedFile(fileName, path), newName, newPath);
+        public void Rename(string oldPath, string newPath) {
+            var oldName = Helpers.PathGetFileName(oldPath);
+            Rename(new IndexedFile(oldPath), newPath);
         }
 
-        public void Rename(IndexedFile f, string newName, string newPath) {
-            Remove(f);
-            Put(newName, newPath);
+        public void Rename(IndexedFile file, string newPath) {
+            Remove(file);
+            Put(newPath);
         }
 
-        public void Remove(string fileName, string path) {
-            Remove(new IndexedFile(fileName, path));
+        public void Remove(string path) {
+            var fileName = Helpers.PathGetFileName(path);
+            Remove(new IndexedFile(path));
         }
 
         public void Remove(IndexedFile f) {

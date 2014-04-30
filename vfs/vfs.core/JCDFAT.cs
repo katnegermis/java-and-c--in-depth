@@ -591,19 +591,15 @@ namespace vfs.core
             
             // Add event handlers
             FileAdded += path => {
-                var fileName = Helpers.PathGetFileName(path);
-                fileIndex.Put(fileName, path);
+                fileIndex.Put(path);
             };
 
             FileDeleted += path => {
-                var fileName = Helpers.PathGetFileName(path);
-                fileIndex.Remove(fileName, path);
+                fileIndex.Remove(path);
             };
 
             FileMoved += (oldPath, newPath) => {
-                var oldName = Helpers.PathGetFileName(oldPath);
-                var newName = Helpers.PathGetFileName(newPath);
-                fileIndex.Rename(oldName, oldPath, newName, newPath);
+                fileIndex.Rename(oldPath, newPath);
             };
         }
 

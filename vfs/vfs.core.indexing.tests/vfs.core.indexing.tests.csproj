@@ -55,6 +55,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\vfs.common\vfs.common.csproj">
+      <Project>{1fad4d59-c2e9-43f9-a544-125de616ab2c}</Project>
+      <Name>vfs.common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\vfs.core.indexing\vfs.core.indexing.csproj">
       <Project>{d922d70b-31ee-4c36-a2eb-886407fd83c5}</Project>
       <Name>vfs.core.indexing</Name>
