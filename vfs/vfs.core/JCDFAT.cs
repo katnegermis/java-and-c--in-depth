@@ -6,6 +6,7 @@ using vfs.core.visitor;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using vfs.core.indexing;
+using vfs.common;
 
 namespace vfs.core
 {
@@ -17,6 +18,8 @@ namespace vfs.core
         [FieldOffset(0)]
         public uint[] uints;
     }
+
+    internal delegate JCDFile CreateHiddenFileDelegate(string path, uint firstBlock);
 
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
@@ -554,7 +557,7 @@ namespace vfs.core
 
         private void NewFSCreateSearchFile()
         {
-            Helpers.CreateHiddenFileDelegate f = (fileName, firstBlock) => {
+            CreateHiddenFileDelegate f = (fileName, firstBlock) => {
                 
                 FatSetEOC(firstBlock);
 

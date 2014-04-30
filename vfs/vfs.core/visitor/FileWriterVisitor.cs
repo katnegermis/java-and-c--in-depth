@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.common;
 
 namespace vfs.core.visitor {
     class FileWriterVisitor : IVisitor {

@@ -56,6 +56,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\vfs.common\vfs.common.csproj">
+      <Project>{1fad4d59-c2e9-43f9-a544-125de616ab2c}</Project>
+      <Name>vfs.common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\vfs.core\vfs.core.csproj">
       <Project>{F283EE69-4609-4C8F-A26C-48B9E72EBFAB}</Project>
       <Name>vfs.core</Name>

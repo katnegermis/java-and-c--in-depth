@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using vfs.core.indexing;
 using vfs.core.visitor;
 using vfs.exceptions;
+using vfs.common;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {

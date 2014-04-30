@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using vfs.core;
+using vfs.common;
 
 namespace vfs.clients.desktop
 {

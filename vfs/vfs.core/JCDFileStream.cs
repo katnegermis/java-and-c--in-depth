@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.exceptions;
+using vfs.common;
 
 namespace vfs.core {
     public class JCDFileStream : Stream {
