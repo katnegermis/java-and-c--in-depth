@@ -71,8 +71,19 @@ namespace vfs.core
         private BinaryWriter bw;
         private BinaryReader br;
 
+        /// <summary>
+        /// Triggered whenever a file has been added to the file system.
+        /// </summary>
         public event AddFileEventHandler FileAdded;
+
+        /// <summary>
+        /// Triggered whenever a file has been deleted on the file system.
+        /// </summary>
         public event DeleteFileEventHandler FileDeleted;
+
+        /// <summary>
+        /// Triggered whenever a file within the file system is moved or renamed.
+        /// </summary>
         public event MoveFileEventHandler FileMoved;
 
         /// <summary>

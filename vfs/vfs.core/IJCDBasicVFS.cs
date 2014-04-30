@@ -6,7 +6,6 @@ namespace vfs.core
 
     public interface IJCDBasicVFS
     {
-
         event AddFileEventHandler FileAdded;
         event DeleteFileEventHandler FileDeleted;
         event MoveFileEventHandler FileMoved;
