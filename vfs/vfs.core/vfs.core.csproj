@@ -48,7 +48,7 @@
     <Compile Include="JCDFileStream.cs" />
     <Compile Include="JCDFolder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VFSEvents.cs" />
+    <Compile Include="JCDEvents.cs" />
     <Compile Include="visitor\BlockCounterVisitor.cs" />
     <Compile Include="visitor\FileDeleterVisitor.cs" />
     <Compile Include="visitor\FileImporterVisitor.cs" />
