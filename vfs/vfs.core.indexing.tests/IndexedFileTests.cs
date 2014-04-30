@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace vfs.core.indexing.tests {
     [TestClass]
-    public class MyFileTests {
+    public class IndexedFileTests {
         [TestMethod]
         public void TestMyFileEquality() {
             // Set up
