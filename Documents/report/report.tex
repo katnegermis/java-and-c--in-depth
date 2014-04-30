@@ -55,7 +55,8 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item Virtual disks can be disposed from the host file system, which can be done through the method \texttt{Delete(string hfsPath)} of class \texttt{JCDFAT}. Only files containing a virtual disk that can be opened are disposable through this.
 	\item On a mounted VFS files and directories can be created, deleted and renamed with the methods \texttt{CreateFile(ulong size, string path, bool isFolder)}, \texttt{DeleteFile(string path, bool recursive)} and \texttt{RenameFile(string vfsPath, string newName)} in class \texttt{JCDFAT}.
 	\item For basic navigation functionalities going to a specific location can be done with method \texttt{SetCurrentDirectory(string path)} in class \texttt{JCDFAT}. To support that, listing of files and directories can be done with the method \texttt{ListDirectory(string vfsPath)} in class \texttt{JCDFAT}, which is called by the method with the same signature in class \texttt{JCDFAT}.
-	\item Moving of files and directories can be done with method \texttt{MoveFile(string vfsPath, string newVfsPath)} and copying with method \texttt{CopyFile(string vfsPath, string newVfsPath)} in \texttt{JCDFAT}. Both preserve the internal file/directory hierarchy.
+	\item Moving of files and directories can be done with method \texttt{MoveFile(string vfsPath, string newVfsPath)} and copying with method \newline
+	\texttt{CopyFile(string vfsPath, string newVfsPath)} in \texttt{JCDFAT}. Both preserve the internal file/directory hierarchy.
 	\item Files and directories can be imported from the host into the virtual file system. This is done through method \texttt{ImportFile(string hfsPath, string vfsPath)} in \texttt{JCDFAT} which is then calling \texttt{ImportFolder(string hfsFolderPath, string vfsPath)} or \texttt{ImportFile(Stream file, string path, string fileName)} in \texttt{JCDFAT}.
 	\item Exporting of files and directories from the virtual to the host file system is done in methods \texttt{ExportFile(Stream outputFile, JCDFile file)} and \texttt{ExportFolderRecursive(JCDFolder folder, string hfsPath)} in \texttt{JCDFAT}.
 	\item How much space is free in the virtual disk can be queried and is calculated in method \texttt{GetFreeSpace()} in \texttt{JCDFAT}, which is multiplying the number of free blocks times the block size. The occupied space can be queried too and is calculated in method \texttt{OccupiedSpace()} in \texttt{JCDFAT} which is subtracting the free space from the virtual disk size.
@@ -207,7 +208,7 @@ Since we are running the tests on the same files that are created and then delet
 
 \section{VFS Browser}
 In this part of the project we're creating one or several user interfaces that are more sophisticated than the console client from the previous part, which means Graphical User Interfaces (GUI), for the VFS core. We decided to create a Windows desktop client and a web application written in ASP.NET. The browsers support both mouse and keyboard navigation. \newline
-The clients support all of the previously created operations of the VFS core and additionally a functionality to search for file/directory names with the options search location and case sensitivity.
+The clients offer all of the previously created operations of the VFS core and additionally a functionality to search for file/directory names with the options search location and case sensitivity.
 
 
 \subsection{Requirements}
@@ -218,7 +219,8 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
-		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in Default.aspx.cs.
+		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in\newline 
+		Default.aspx.cs.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
@@ -275,7 +277,7 @@ In order to integrate file search into JCDFAT, all we had to do was to add and m
 We had three obstacles to overcome during the integration of bplusdotnet into our project:
 \begin{itemize}
     \item bplusdotnet doesn't provide support for having multiple keys with the same value.
-    \item bplusdotnet to writes its data to the host file system.
+    \item bplusdotnet writes its data to the host file system.
     \item bplusdotnet doesn't allow for case insensitive search.
 \end{itemize}
 In the following we describe how we overcame these three obstacles.\\
