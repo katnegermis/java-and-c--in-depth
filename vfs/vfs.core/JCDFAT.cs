@@ -71,9 +71,9 @@ namespace vfs.core
         private BinaryWriter bw;
         private BinaryReader br;
 
-        public event JCDEvents.AddFileEventHandler FileAdded;
-        public event JCDEvents.DeleteFileEventHandler FileDeleted;
-        public event JCDEvents.MoveFileEventHandler FileMoved;
+        public event AddFileEventHandler FileAdded;
+        public event DeleteFileEventHandler FileDeleted;
+        public event MoveFileEventHandler FileMoved;
 
         /// <summary>
         /// Event to be called every time a new file is added to the file system.
