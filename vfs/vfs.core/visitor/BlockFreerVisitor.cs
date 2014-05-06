@@ -7,7 +7,7 @@ using vfs.exceptions;
 
 namespace vfs.core.visitor
 {
-    class FileDeleterVisitor : IVisitor
+    class BlockFreerVisitor : IVisitor
     {
         public bool Visit(JCDFAT vfs, uint block)
         {

@@ -6,7 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using vfs.common;
 using vfs.core;
+using vfs.exceptions;
 
 namespace vfs.core.tests {
 
@@ -116,6 +118,71 @@ namespace vfs.core.tests {
                 stream.Read(dataOut, 0, MB1);
                 AreEqual(datas[i], dataOut);
             }
+            CleanUp(stream, testName);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(BufferTooSmallException), "Buffer was too small!")]
+        public void TestBufferSize() {
+            // Set up
+            var testName = "buffer_size";
+            var stream = CreateJCDAndGetFileStream(testName, (ulong)MB1);
+            // We have to set the file length to be greater than 0, which is the default
+            // by `CreateJCDAndGetFileStream`.
+            var length = 10;
+            stream.SetLength(length);
+
+            // Test
+            var buffer = new byte[length - 1];
+            stream.Read(buffer, 0, length);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FileTooSmallException), "Expected file to be too small.")]
+        public void TestShrinkFile() {
+            // Set up
+            var testName = "shrink_file";
+            DeleteFiles(new string[] { testName });
+            var vfs = JCDFAT.Create(testName, (ulong)MB5);
+            var testFileName = "test";
+            var fileSize = MB1;
+            vfs.CreateFile(testFileName, (ulong)fileSize, false);
+            var stream = vfs.GetFileStream(testFileName);
+            var jcdBlockSize = 1 << 12;
+
+            // Test
+            int shrinkBytes = MB1 / 2;
+            var oldFreeSpace = vfs.FreeSpace();
+
+            // Check that stream.Length is updated correctly.
+            stream.SetLength(shrinkBytes);
+            Assert.AreEqual(fileSize - shrinkBytes, stream.Length);
+
+            // Check that vfs.FreeSpace is updated correctly.
+            var blocksShrunk = (fileSize - shrinkBytes) / jcdBlockSize;
+            var newFreeSpace = oldFreeSpace + (ulong)(blocksShrunk * jcdBlockSize);
+            Assert.AreEqual(newFreeSpace, vfs.FreeSpace());
+
+            // Check that an exception is thrown.
+            var data = new byte[1];
+            stream.Read(data, shrinkBytes, 1); // Throws FileTooSmallException
+        }
+
+        [TestMethod]
+        public void TestExpandFile() {
+            // Set up
+            var testName = "expand_file";
+            // Creates new file with size 0.
+            var stream = CreateJCDAndGetFileStream(testName, (ulong)MB5);
+
+            // Test
+            var length = MB1;
+            stream.SetLength(length);
+            Assert.AreEqual(stream.Length, length);
+            var data = new byte[1];
+            stream.Read(data, length - 1, 1);
+            // Assumes that initial file is zero.
+            Assert.AreEqual(data[0], (byte)'\0');
             CleanUp(stream, testName);
         }
 

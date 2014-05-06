@@ -6,6 +6,10 @@ namespace vfs.exceptions
 
     public class FileNotFoundException : Exception { }
 
+    public class FileTooSmallException : Exception { }
+
+    public class BufferTooSmallException : Exception { }
+
     public class ParentNotFoundException : FileNotFoundException { }
 
     public class NotAFolderException : FileNotFoundException { }

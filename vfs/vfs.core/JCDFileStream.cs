@@ -14,10 +14,9 @@ namespace vfs.core {
         private ModifyFileEventHandler modifiedCallback;
 
         // Implementations.
-        private long length;
         override public long Length {
             get {
-                return length;
+                return (long)file.Size;
             }
         }
 
@@ -41,7 +40,6 @@ namespace vfs.core {
 
         internal JCDFileStream(JCDFile file, ModifyFileEventHandler modifiedCallback) {
             this.file = file;
-            this.length = (long)file.Size;
             this.currentNumBlocks = (long)Helpers.ruid(file.Size + 1, JCDFAT.blockSize);
             this.position = 0L;
             this.modifiedCallback = modifiedCallback;
@@ -53,11 +51,11 @@ namespace vfs.core {
 
         public override int Read(byte[] buffer, int offset, int count) {
             // Make sure that offset and count don't go beyond bound of file
-            if (offset + count > length) {
-                throw new Exception("File is not that big!");
+            if (offset + count > (long)file.Size) {
+                throw new FileTooSmallException();
             }
             if (buffer.Length < count) {
-                throw new Exception("Buffer is not big enough!");
+                throw new BufferTooSmallException();
             }
             var vfs = file.GetContainer();
             vfs.ReadFile(buffer, (ulong)(position + offset), (ulong)count, file.Entry.FirstBlock);
@@ -74,34 +72,10 @@ namespace vfs.core {
             var vfs = file.GetContainer();
             // Increase file length in case we're writing beyond #blocks currently allocated.
             long allocatedBytes = this.currentNumBlocks * JCDFAT.blockSize;
-            long requiredBytes = this.position + offset + count;
-            if (requiredBytes > allocatedBytes) {
-                long expandBytes = requiredBytes - allocatedBytes;
-
-                // Make sure that there's enough free space on the vfs.
-                if ((ulong)expandBytes > vfs.FreeSpace()) {
-                    throw new NotEnoughSpaceException();
-                }
-
-                // Allocate required blocks.
-                long extraBlocksRequired = Helpers.ruid(expandBytes, JCDFAT.blockSize);
-                for (int i = 0; i < extraBlocksRequired; i += 1) {
-                    // TODO: could be implemented more efficiently by doing multiple blocks at the time.
-                    file.ExpandOneBlock();
-                }
-
-                // Update size of file.
-                file.Size = (ulong)(allocatedBytes + expandBytes);
-                currentNumBlocks += extraBlocksRequired;
+            long requiredBytesTotal = this.position + offset + count;
+            if ((ulong)requiredBytesTotal > file.Size) {
+                file.ExpandBytes(requiredBytesTotal - (long)file.Size);
             }
-
-            // Update the number of bytes the file spans (which could be less than the
-            // number of blocks * block size.)
-            if ((ulong)requiredBytes > file.Size) {
-                file.Size = (ulong)requiredBytes;
-            }
-
-            length = (long)file.Size;
 
             vfs.WriteFile(data, position + offset, file.Entry.FirstBlock);
             // Call modified callback.
@@ -122,7 +96,7 @@ namespace vfs.core {
                     position += offset;
                     break;
                 case SeekOrigin.End:
-                    position = length + offset;
+                    position = (long)file.Size + offset;
                     // We wait to set the length until user writes beyond file length.
                     break;
             }
@@ -130,7 +104,12 @@ namespace vfs.core {
         }
 
         public override void SetLength(long value) {
-            this.length = value;
+            if ((ulong)value < file.Size) {
+                file.ShrinkBytes(value);
+            }
+            else {
+                file.ExpandBytes(value);
+            }
         }
 
         public override void Close() {

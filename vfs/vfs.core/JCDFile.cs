@@ -147,7 +147,7 @@ namespace vfs.core {
 
             // Delete blocks for this file.
             // All (potential) sub-entries will have been deleted at this point.
-            container.WalkFATChain(entry.FirstBlock, new FileDeleterVisitor());
+            container.WalkFATChain(entry.FirstBlock, new BlockFreerVisitor());
 
             // Remove this dir-entry from parent folder.
             if(!skipEntryDeletion) {
@@ -186,11 +186,77 @@ namespace vfs.core {
             this.parent.setEntry(this.parentIndex, this.entry);
         }
 
+        internal uint ExpandBytes(long expandBytes) {
+            if ((ulong)expandBytes > container.FreeSpace()) {
+                throw new NotEnoughSpaceException();
+            }
+
+            if (expandBytes == 0) {
+                return GetLastBlockId();
+            }
+
+            var blocksToAllocate = Math.Max(1, Helpers.ruid(expandBytes, JCDFAT.blockSize));
+
+            // Do one FAT chaining here because we want to save firstNewBlock.
+            uint prevBlock = GetLastBlockId();
+            var firstNewBlock = container.GetFreeBlock();
+            var nextBlock = firstNewBlock;
+            container.FatSet(prevBlock, nextBlock);
+            prevBlock = nextBlock;
+
+            // Chain remaining FAT blocks.
+            for (int i = 0; i < blocksToAllocate - 1; i += 1) {
+                nextBlock = container.GetFreeBlock();
+                container.FatSet(prevBlock, nextBlock);
+                prevBlock = nextBlock;
+                // Clear the newly allocated block in case it has old data.
+                container.ZeroBlock(nextBlock);
+            }
+            container.FatSetEOC(prevBlock);
+
+            if (this.IsFolder) {
+                // Folders always span exactly the amount of blocks they have allocated.
+                this.Size += (ulong)(blocksToAllocate * JCDFAT.blockSize);
+            }
+            else {
+                // Files don't necessarily span the full amount of blocks they have allocated.
+                this.Size += (ulong)expandBytes;
+            }
+
+            return firstNewBlock;
+        }
+
+        /// <summary>
+        /// Shrink file by `shrinkBytes`.
+        /// If `shrinkBytes` is higher than the size of the file, the file will be truncated to 0 bytes.
+        /// </summary>
+        /// <param name="shrinkBytes">Amount of bytes to shrink file by.</param>
+        internal void ShrinkBytes(long shrinkBytes) {
+            if (shrinkBytes < 0) {
+                return;
+            }
+
+            if (this.Size - (ulong)shrinkBytes <= 0) {
+                shrinkBytes = (long)this.Size;
+            }
+
+            var newSize = this.Size - (ulong)shrinkBytes;
+            long currentNumBlocks = Math.Max(1, Helpers.ruid((long)this.Size, JCDFAT.blockSize));
+            long newNumBlocks = (long)Math.Max(1, Helpers.ruid(newSize, JCDFAT.blockSize));
+            if (currentNumBlocks > newNumBlocks) {
+                var blockVisitor = new NthBlockIdVisitor(newNumBlocks + 1);
+                blockVisitor = (NthBlockIdVisitor)container.WalkFATChain(entry.FirstBlock, blockVisitor);
+                container.WalkFATChain(blockVisitor.Block, new BlockFreerVisitor());
+            }
+
+            this.Size -= (ulong)shrinkBytes;
+        }
+
         /// <summary>
         /// Expand folder by one block.
         /// </summary>
         /// <returns>FAT index of newly allocated block.</returns>
-        public uint ExpandOneBlock() {
+        internal uint ExpandOneBlock() {
             var prevLastBlock = GetLastBlockId();
             var newLastBlock = container.GetFreeBlock();
 
