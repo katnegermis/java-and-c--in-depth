@@ -33,8 +33,8 @@ namespace vfs.core
         internal const uint searchFileTreeBlock = 1;
         internal const uint searchFileDataBlock = 2;
 
-        internal string searchFileTreeName = "/searchfiletree";
-        internal string searchFileDataName = "/searchfiledata";
+        internal string searchFileTreePath = "/searchfiletree";
+        internal string searchFileDataPath = "/searchfiledata";
 
         private const uint readBufferSize = 40 * 1024; //In blocks
 
@@ -87,6 +87,12 @@ namespace vfs.core
         public event MoveFileEventHandler FileMoved;
 
         /// <summary>
+        /// Triggered whenever the data of a file within the file system is modified.
+        /// This does NOT include renaming, moving, or deleting.
+        /// </summary>
+        public event ModifyFileEventHandler FileModified;
+
+        /// <summary>
         /// Event to be called every time a new file is added to the file system.
         /// </summary>
         /// <param name="path">Path of the newly added file.</param>
@@ -114,6 +120,17 @@ namespace vfs.core
         internal void OnFileMoved(string oldPath, string newPath) {
             if (FileMoved != null) {
                 FileMoved(oldPath, newPath);
+            }
+        }
+
+        internal void OnFileModified(string path, long startByte, byte[] data) {
+            // Don't track internal files.
+            if (path == searchFileDataPath || path == searchFileTreePath) {
+                return;
+            }
+
+            if (FileModified != null) {
+                FileModified(path, startByte, data);
             }
         }
 
@@ -582,8 +599,8 @@ namespace vfs.core
                 return ((JCDFolder)container).AddDirEntry(entry);
             };
 
-            var treeFileStream = new JCDFileStream(f(searchFileTreeName, searchFileTreeBlock));
-            var dataFileStream = new JCDFileStream(f(searchFileDataName, searchFileDataBlock));
+            var treeFileStream = new JCDFileStream(f(searchFileTreePath, searchFileTreeBlock), OnFileModified);
+            var dataFileStream = new JCDFileStream(f(searchFileDataPath, searchFileDataBlock), OnFileModified);
 
             fileIndex = FileIndex.Initialize(treeFileStream, dataFileStream);
             fileIndex.Close();
@@ -592,11 +609,11 @@ namespace vfs.core
 
 
         private void InitSearchFile() {
-            var treeFile = GetFile(searchFileTreeName);
-            var dataFile = GetFile(searchFileDataName);
+            var treeFile = GetFile(searchFileTreePath);
+            var dataFile = GetFile(searchFileDataPath);
 
-            var treeFileStream = new JCDFileStream(treeFile);
-            var dataFileStream = new JCDFileStream(dataFile);
+            var treeFileStream = new JCDFileStream(treeFile, OnFileModified);
+            var dataFileStream = new JCDFileStream(dataFile, OnFileModified);
 
             fileIndex = FileIndex.Open(treeFileStream, dataFileStream);
             
@@ -1215,7 +1232,7 @@ namespace vfs.core
 
         public JCDFileStream GetFileStream(string vfsPath) {
             var file = GetFile(vfsPath);
-            return new JCDFileStream(file);
+            return new JCDFileStream(file, OnFileModified);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace vfs.core {
     public class JCDFileStream : Stream {
         private JCDFile file;
         private long currentNumBlocks;
+        private ModifyFileEventHandler modifiedCallback;
 
         // Implementations.
         private long length;
@@ -38,11 +39,12 @@ namespace vfs.core {
         override public int ReadTimeout { get { return 0; } }
         override public int WriteTimeout { get { return 0; } }
 
-        internal JCDFileStream(JCDFile file) {
+        internal JCDFileStream(JCDFile file, ModifyFileEventHandler modifiedCallback) {
             this.file = file;
             this.length = (long)file.Size;
             this.currentNumBlocks = (long)Helpers.ruid(file.Size + 1, JCDFAT.blockSize);
             this.position = 0L;
+            this.modifiedCallback = modifiedCallback;
         }
 
         override public void Flush() {
@@ -102,6 +104,12 @@ namespace vfs.core {
             length = (long)file.Size;
 
             vfs.WriteFile(data, position + offset, file.Entry.FirstBlock);
+            // Call modified callback.
+            // Copy `data` to new place in memory.
+            var dataCopy = new byte[count];
+            Buffer.BlockCopy(data, 0, dataCopy, 0, count);
+            modifiedCallback(file.Path, Position, dataCopy);
+
             position += offset + count;
         }
 

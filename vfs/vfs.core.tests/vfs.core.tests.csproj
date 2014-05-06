@@ -54,6 +54,7 @@
     <Compile Include="JCDVFSIndexingTests.cs" />
     <Compile Include="JCDVFSTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="JCDFATEventTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vfs.common\vfs.common.csproj">
