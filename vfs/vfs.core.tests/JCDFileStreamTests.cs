@@ -151,7 +151,7 @@ namespace vfs.core.tests {
             var jcdBlockSize = 1 << 12;
 
             // Test
-            int shrinkBytes = MB1 / 2;
+            int shrinkBytes = fileSize / 2;
             var oldFreeSpace = vfs.FreeSpace();
 
             // Check that stream.Length is updated correctly.
@@ -163,7 +163,7 @@ namespace vfs.core.tests {
             var newFreeSpace = oldFreeSpace + (ulong)(blocksShrunk * jcdBlockSize);
             Assert.AreEqual(newFreeSpace, vfs.FreeSpace());
 
-            // Check that an exception is thrown.
+            // Check that an exception is thrown when we try read beyond the length of the file.
             var data = new byte[1];
             stream.Read(data, shrinkBytes, 1); // Throws FileTooSmallException
         }
