@@ -23,10 +23,59 @@ namespace vfs.core.tests {
             // Test
             var data = TestHelpers.GenerateRandomData((int)fileSize, 1);
             // Add function to be called on FileModified event.
+            var callbackCalled = false;
             vfs.FileModified += (path, startByte, inData) => {
                 TestHelpers.AreEqual(data, inData);
+                callbackCalled = true;
             };
             fs.Write(data, 0, (int)fileSize);
+            Assert.IsTrue(callbackCalled);
+
+            CloseVFS(vfs, testName);
+        }
+
+        [TestMethod]
+        public void TestResizedSmallerEvent() {
+            // Set up
+            var testName = "test_resized_smaller_event";
+            var vfs = CreateVFS(testName);
+            var fileName = "file";
+            var fileSize = MB1;
+            vfs.CreateFile(fileName, (ulong)fileSize, false);
+            var fs = vfs.GetFileStream(fileName);
+            var newFileSize = fileSize / 2;
+
+            // Test
+            var callbackCalled = false;
+            vfs.FileResized += (path, newSize) => {
+                Assert.AreEqual(newFileSize, newSize);
+                callbackCalled = true;
+            };
+            fs.SetLength(newFileSize);
+            Assert.IsTrue(callbackCalled);
+
+            CloseVFS(vfs, testName);
+        }
+
+        [TestMethod]
+        public void TestResizedBiggerEvent() {
+            // Set up
+            var testName = "test_resized_bigger_event";
+            var vfs = CreateVFS(testName);
+            var fileName = "file";
+            var fileSize = MB1;
+            vfs.CreateFile(fileName, (ulong)fileSize, false);
+            var fs = vfs.GetFileStream(fileName);
+            var newFileSize = fileSize / 2;
+
+            // Test
+            var callbackCalled = false;
+            vfs.FileResized += (path, newSize) => {
+                Assert.AreEqual(newFileSize, newSize);
+                callbackCalled = true;
+            };
+            fs.SetLength(newFileSize);
+            Assert.IsTrue(callbackCalled);
 
             CloseVFS(vfs, testName);
         }

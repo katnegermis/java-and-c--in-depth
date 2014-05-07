@@ -93,6 +93,11 @@ namespace vfs.core
         public event ModifyFileEventHandler FileModified;
 
         /// <summary>
+        /// Triggered whenever a file (NOT a folder) is resized.
+        /// </summary>
+        public event ResizeFileEventHandler FileResized;
+
+        /// <summary>
         /// Event to be called every time a new file is added to the file system.
         /// </summary>
         /// <param name="path">Path of the newly added file.</param>
@@ -138,6 +143,17 @@ namespace vfs.core
 
             if (FileModified != null) {
                 FileModified(path, offset, data);
+            }
+        }
+
+        /// <summary>
+        /// Event to be called every time a file (NOT folder) is resized.
+        /// </summary>
+        /// <param name="path">Path to the file.</param>
+        /// <param name="newSize">New size of the file.</param>
+        internal void OnFileResized(string path, long newSize) {
+            if (FileResized != null) {
+                FileResized(path, newSize);
             }
         }
 

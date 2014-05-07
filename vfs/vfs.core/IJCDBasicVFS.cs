@@ -4,6 +4,7 @@ namespace vfs.core
     public delegate void DeleteFileEventHandler(string path);
     public delegate void AddFileEventHandler(string path);
     public delegate void ModifyFileEventHandler(string path, long startByte, byte[] data);
+    public delegate void ResizeFileEventHandler(string path, long newSize);
 
     public interface IJCDBasicVFS
     {
@@ -11,6 +12,7 @@ namespace vfs.core
         event DeleteFileEventHandler FileDeleted;
         event MoveFileEventHandler FileMoved;
         event ModifyFileEventHandler FileModified;
+        event ResizeFileEventHandler FileResized;
 
         //You can't have static methods in an interface
         /*/// <summary>

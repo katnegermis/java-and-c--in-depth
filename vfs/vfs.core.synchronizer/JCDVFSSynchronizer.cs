@@ -9,11 +9,13 @@ namespace vfs.core.synchronizer
 {
     public class JCDVFSSynchronizer : IJCDBasicVFS
     {
+        private IJCDBasicVFS vfs;
+
         public event AddFileEventHandler FileAdded;
         public event DeleteFileEventHandler FileDeleted;
         public event MoveFileEventHandler FileMoved;
         public event ModifyFileEventHandler FileModified;
-        private IJCDBasicVFS vfs;
+        public event ResizeFileEventHandler FileResized;
 
         /// <summary>
         /// Event to be called every time a new file is added to the file system.
@@ -59,13 +61,20 @@ namespace vfs.core.synchronizer
             }
         }
 
-        public JCDVFSSynchronizer(IJCDBasicVFS vfs) {
+        internal void OnFileResized(string path, long newSize) {
+            if (FileResized != null) {
+                FileResized(path, newSize);
+            }
+        }
+
+        private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
             this.vfs = vfs;
 
             FileModified += OnFileModified;
             FileAdded += OnFileAdded;
             FileDeleted += OnFileDeleted;
             FileMoved += OnFileMoved;
+            FileResized += OnFileResized;
         }
 
         /// <summary>

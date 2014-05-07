@@ -186,6 +186,11 @@ namespace vfs.core {
             this.parent.setEntry(this.parentIndex, this.entry);
         }
 
+        /// <summary>
+        /// Expand file by some amount of bytes.
+        /// </summary>
+        /// <param name="expandBytes">Bytes to expand file by.</param>
+        /// <returns>FAT index of the first block that was allocated.</returns>
         internal uint ExpandBytes(long expandBytes) {
             if ((ulong)expandBytes > container.FreeSpace()) {
                 throw new NotEnoughSpaceException();
@@ -223,6 +228,7 @@ namespace vfs.core {
                 this.Size += (ulong)expandBytes;
             }
 
+            container.OnFileResized(Path, (long)this.Size);
             return firstNewBlock;
         }
 
@@ -232,7 +238,7 @@ namespace vfs.core {
         /// </summary>
         /// <param name="shrinkBytes">Amount of bytes to shrink file by.</param>
         internal void ShrinkBytes(long shrinkBytes) {
-            if (shrinkBytes < 0) {
+            if (shrinkBytes <= 0) {
                 return;
             }
 
@@ -250,6 +256,7 @@ namespace vfs.core {
             }
 
             this.Size -= (ulong)shrinkBytes;
+            container.OnFileResized(Path, (long)this.Size);
         }
 
         /// <summary>
@@ -257,22 +264,7 @@ namespace vfs.core {
         /// </summary>
         /// <returns>FAT index of newly allocated block.</returns>
         internal uint ExpandOneBlock() {
-            var prevLastBlock = GetLastBlockId();
-            var newLastBlock = container.GetFreeBlock();
-
-            // Update FAT entries.
-            container.FatSet(prevLastBlock, newLastBlock);
-            container.FatSetEOC(newLastBlock);
-
-            if (this.IsFolder) {
-                // Clear the newly allocated block in case it has old data.
-                container.ZeroBlock(newLastBlock);
-
-                // Update the folder's current size.
-                this.Size += JCDFAT.blockSize;
-            }
-
-            return newLastBlock;
+            return ExpandBytes(JCDFAT.blockSize);
         }
 
         public void SetDirectoryPath(string directoryPath) {
