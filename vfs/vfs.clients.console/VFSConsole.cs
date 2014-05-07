@@ -10,19 +10,8 @@ namespace console.client
 {
     public class VFSConsole
     {
-        private string directory;
         private bool mounted = false;
         private JCDFAT mountedJCDFAT;
-
-        public VFSConsole()
-        {
-            directory = Directory.GetCurrentDirectory();
-        }
-
-        public VFSConsole(string directory)
-        {
-            this.directory = directory;
-        }
 
         public void Start()
         {

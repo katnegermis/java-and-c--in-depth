@@ -6,13 +6,18 @@ using vfs.exceptions;
 using vfs.common;
 
 namespace vfs.core {
+    // We are suppressing a lot of messages on this type. This is because we care deeply
+    // about the precise byte-size of it.
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct JCDDirEntry {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 120)]
         // Name and Size should be updated on an instance of JCDFile if
         // you want them to be updated automatically on disk.
         public string Name; // 240B
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         public ulong Size; // 8B
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
         public bool IsFolder; // 4B
         internal uint FirstBlock; // 4B
 
@@ -42,6 +47,28 @@ namespace vfs.core {
         {
             return (Name.Length == 0 && !IsFolder);
         }
+
+        public static bool operator ==(JCDDirEntry d1, JCDDirEntry d2) {
+            return (d1.Name == d2.Name &&
+                    d1.Size == d2.Size &&
+                    d1.FirstBlock == d2.FirstBlock &&
+                    d1.IsFolder == d2.IsFolder);
+        }
+
+        public static bool operator !=(JCDDirEntry d1, JCDDirEntry d2) {
+            return !(d1 == d2);
+        }
+
+        public override bool Equals(object obj) {
+            if (!(obj is JCDDirEntry)) {
+                return false;
+            }
+            return this == (JCDDirEntry)obj;
+        }
+
+        public override int GetHashCode() {
+            return (int)FirstBlock; // FirstBlock should be unique when the code behaves correctly.
+        }
     }
 
     internal class JCDFile {
@@ -55,12 +82,11 @@ namespace vfs.core {
         internal string Name {
             get { return this.entry.Name; }
             set {
-                var oldName = Name;
                 var oldPath = this.path;
 
                 // Update name
                 this.entry.Name = value;
-                this.UpdateEntry(this.entry);
+                this.UpdateEntryOnParent(this.entry);
 
                 // Update path
                 this.path = Helpers.PathGetDirectoryName(this.path) + value;
@@ -78,7 +104,7 @@ namespace vfs.core {
             get { return this.entry.Size; }
             set {
                 this.entry.Size = value;
-                this.UpdateEntry(this.entry);
+                this.UpdateEntryOnParent(this.entry);
             }
         }
 
@@ -106,7 +132,7 @@ namespace vfs.core {
 
         protected JCDFile(JCDFAT container, JCDDirEntry entry, JCDFolder parent, uint parentIndex, string path, uint level) {
             if(parent != null) {
-                if(entry.Name == "" && (entry.Size != 0 || entry.FirstBlock != 0)) {
+                if(String.IsNullOrEmpty(entry.Name) && (entry.Size != 0 || entry.FirstBlock != 0)) {
                     throw new InvalidFileNameException();
                 }
 
@@ -177,13 +203,13 @@ namespace vfs.core {
             return blockVisitor.Block;
         }
 
-        private void UpdateEntry(JCDDirEntry entry)
+        private void UpdateEntryOnParent(JCDDirEntry dirEntry)
         {
             if (this.parent == null)
             {
                 return;
             }
-            this.parent.setEntry(this.parentIndex, this.entry);
+            this.parent.setEntry(this.parentIndex, dirEntry);
         }
 
         /// <summary>

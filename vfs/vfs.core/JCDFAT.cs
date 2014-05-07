@@ -24,7 +24,6 @@ namespace vfs.core
     public class JCDFAT : IJCDBasicVFS, IDisposable
     {
         internal FileIndex fileIndex;
-        private bool initialized = false;
         private const uint magicNumber = 0x13371337;
         private const uint freeBlock = 0xFFFFFFFF;
         private const uint endOfChain = 0xFFFFFFFE;
@@ -67,9 +66,9 @@ namespace vfs.core
         private JCDFolder rootFolder;
         private JCDFolder currentFolder;
 
-        private FileStream fs;
-        private BinaryWriter bw;
-        private BinaryReader br;
+        private FileStream hfsFileStream;
+        private BinaryWriter hfsBinaryWriter;
+        private BinaryReader hfsBinaryReader;
 
         /// <summary>
         /// Triggered whenever a file has been added to the file system.
@@ -219,23 +218,21 @@ namespace vfs.core
         /// <param name="size">Maximum size of the new JCDVFS-file.</param>
         private JCDFAT(FileStream fs, ulong size)
         {
-            this.fs = fs;
+            this.hfsFileStream = fs;
 
             // TODO: Make sure that the file is empty??
 
             NewFSSetSize(size);
 
-            bw = new BinaryWriter(fs);
-            br = new BinaryReader(fs);
+            hfsBinaryWriter = new BinaryWriter(fs);
+            hfsBinaryReader = new BinaryReader(fs);
 
             NewFSWriteMetaData();
             NewFSInitAndWriteFAT();
             NewFSCreateRootFolder();
             NewFSCreateSearchFile();
             // Make sure that the file system is written to disk.
-            bw.Flush();
-
-            initialized = true;
+            hfsBinaryWriter.Flush();
         }
 
         /// <summary>
@@ -244,10 +241,10 @@ namespace vfs.core
         /// <param name="fs">Stream to a JCDVFS-file, open with read/write access.</param>
         private JCDFAT(FileStream fs)
         {
-            this.fs = fs;
+            this.hfsFileStream = fs;
 
-            bw = new BinaryWriter(fs);
-            br = new BinaryReader(fs);
+            hfsBinaryWriter = new BinaryWriter(fs);
+            hfsBinaryReader = new BinaryReader(fs);
 
             ParseMetaData();
             InitSize(false);
@@ -255,7 +252,6 @@ namespace vfs.core
             InitRootFolder();
             InitSearchFile();
 
-            initialized = true;
             /*var rootDir = (BlockCounterVisitor)WalkFATChain(rootDirBlock, new BlockCounterVisitor());
             Console.WriteLine("Root dir spans {0} blocks", rootDir.Blocks);
             var searchFile = (BlockCounterVisitor)WalkFATChain(searchFileBlock, new BlockCounterVisitor());
@@ -292,7 +288,7 @@ namespace vfs.core
         internal void Write(ulong offset, byte[] data, int arrOffset, int count)
         {
             Seek(offset);
-            fs.Write(data, arrOffset, count);
+            hfsFileStream.Write(data, arrOffset, count);
         }
 
         /// <summary>
@@ -303,7 +299,7 @@ namespace vfs.core
         internal void Write(ulong offset, byte[] data)
         {
             Seek(offset);
-            bw.Write(data);
+            hfsBinaryWriter.Write(data);
         }
 
         /// <summary>
@@ -314,7 +310,7 @@ namespace vfs.core
         internal void Write(ulong offset, ushort data)
         {
             Seek(offset);
-            bw.Write(data);
+            hfsBinaryWriter.Write(data);
         }
 
         /// <summary>
@@ -325,16 +321,16 @@ namespace vfs.core
         internal void Write(ulong offset, uint data)
         {
             Seek(offset);
-            bw.Write(data);
+            hfsBinaryWriter.Write(data);
         }
 
         private void Seek(ulong offset)
         {
-            if (fs.Position == (long)offset)
+            if (hfsFileStream.Position == (long)offset)
             {
                 return;
             }
-            fs.Seek((long)offset, SeekOrigin.Begin);
+            hfsFileStream.Seek((long)offset, SeekOrigin.Begin);
         }
 
         /// <summary>
@@ -346,7 +342,7 @@ namespace vfs.core
         internal byte[] Read(ulong offset, uint length)
         {
             Seek(offset);
-            return br.ReadBytes((int)length);
+            return hfsBinaryReader.ReadBytes((int)length);
         }
 
         /// <summary>
@@ -492,7 +488,7 @@ namespace vfs.core
             freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock;
             firstFreeBlock = 3; // The first free block is after the (initially empty) root dir and search file blocks.
 
-            fs.SetLength((long)currentSize);
+            hfsFileStream.SetLength((long)currentSize);
         }
 
         /// <summary>
@@ -511,7 +507,7 @@ namespace vfs.core
                 {
                     fat[i] = freeBlock;
                 }
-                bw.Write(fat[i]);
+                hfsBinaryWriter.Write(fat[i]);
             }
         }
 
@@ -527,7 +523,7 @@ namespace vfs.core
             }
             else
             {
-                currentNumBlocks = (ulong)(fs.Length) / blockSize;
+                currentNumBlocks = (ulong)(hfsFileStream.Length) / blockSize;
                 currentNumDataBlocks = (uint)(currentNumBlocks - fatBlocks - metaDataBlocks);
             }
             // Cast here to get ulong multiplication, to avoid overflow.
@@ -541,7 +537,7 @@ namespace vfs.core
             Seek(metaDataBlocks * blockSize);
             ByteToUintConverter cnv = new ByteToUintConverter
             {
-                bytes = br.ReadBytes((int)(fatBlocks * blockSize))
+                bytes = hfsBinaryReader.ReadBytes((int)(fatBlocks * blockSize))
             };
             // We're assuming the FAT size in bytes fits into an int, since that's what ReadBytes accepts.
             // This means the FS can't be more than 2TB. This should probably be changed.
@@ -556,14 +552,14 @@ namespace vfs.core
         {
             // Go to start of JCDVFS-file and write meta data continuously.
             Seek(0L);
-            bw.Write(magicNumber);
-            bw.Write(blockSize); // Currently set to 4KB fixed size.
-            bw.Write(fatBlocks); // Number of blocks that the FAT spans.
-            bw.Write(freeBlocks); // Number of free blocks.
-            bw.Write(firstFreeBlock); // First free block. Currently statically set to 2.
-            bw.Write(rootDirBlock); // Currently statically set to 0.
-            bw.Write(searchFileTreeBlock); // Currently statically set to 1.
-            bw.Write(searchFileDataBlock); // Currently statically set to 2.
+            hfsBinaryWriter.Write(magicNumber);
+            hfsBinaryWriter.Write(blockSize); // Currently set to 4KB fixed size.
+            hfsBinaryWriter.Write(fatBlocks); // Number of blocks that the FAT spans.
+            hfsBinaryWriter.Write(freeBlocks); // Number of free blocks.
+            hfsBinaryWriter.Write(firstFreeBlock); // First free block. Currently statically set to 2.
+            hfsBinaryWriter.Write(rootDirBlock); // Currently statically set to 0.
+            hfsBinaryWriter.Write(searchFileTreeBlock); // Currently statically set to 1.
+            hfsBinaryWriter.Write(searchFileDataBlock); // Currently statically set to 2.
         }
 
         private void ParseMetaData()
@@ -571,23 +567,23 @@ namespace vfs.core
             Seek(0L);
 
             // Verify that we're reading a JCDVFS-file.
-            uint tmp = br.ReadUInt32();
+            uint tmp = hfsBinaryReader.ReadUInt32();
             if (tmp != magicNumber)
             {
                 throw new InvalidFileException();
             }
 
             // Make sure that the block size is 2^12, since this isn't configurable yet.
-            tmp = br.ReadUInt32();
+            tmp = hfsBinaryReader.ReadUInt32();
             if (tmp != blockSize)
             {
                 // Only JCDVFS-files with 4KB block sizes are supported.
                 throw new InvalidFileException();
             }
 
-            fatBlocks = br.ReadUInt32();
-            freeBlocks = br.ReadUInt32();
-            firstFreeBlock = br.ReadUInt32();
+            fatBlocks = hfsBinaryReader.ReadUInt32();
+            freeBlocks = hfsBinaryReader.ReadUInt32();
+            firstFreeBlock = hfsBinaryReader.ReadUInt32();
             //rootDirBlock = br.ReadUInt32(); // Statically set
             //searchFileTreeBlock = br.ReadUInt32(); // Statically set.
             //searchFileDataBlock = br.ReadUInt32(); // Statically set.
@@ -725,11 +721,11 @@ namespace vfs.core
         public void Close()
         {
             fileIndex.Close();
-            bw.Flush();
-            fs.Flush();
-            bw.Dispose();
-            br.Dispose();
-            fs.Dispose();
+            hfsBinaryWriter.Flush();
+            hfsFileStream.Flush();
+            hfsBinaryWriter.Dispose();
+            hfsBinaryReader.Dispose();
+            hfsFileStream.Dispose();
         }
 
         public ulong Size()
@@ -747,7 +743,7 @@ namespace vfs.core
             return Size() - FreeSpace();
         }
 
-        private JCDFile BrowseStep(JCDFolder folder, string step) {
+        private static JCDFile BrowseStep(JCDFolder folder, string step) {
             step = Helpers.TrimLastSlash(step);
             if(step == "..") {
                 return folder.Parent;
@@ -786,13 +782,13 @@ namespace vfs.core
             return BrowseStep(ret, segments[i]);
         }
 
-        public void SetCurrentDirectory(string path) {
-            if (path == "~") {
+        public void SetCurrentDirectory(string vfsPath) {
+            if (vfsPath == "~") {
                 currentFolder = rootFolder;
                 return;
             }
 
-            var newDir = GetFile(path);
+            var newDir = GetFile(vfsPath);
             if(newDir == null) {
                 throw new vfs.exceptions.FileNotFoundException();
             }
@@ -802,11 +798,11 @@ namespace vfs.core
             currentFolder = (JCDFolder) newDir;
         }
 
-        public void CreateDirectory(string path, bool createParents) {
+        public void CreateDirectory(string vfsPath, bool createParents) {
             if (createParents) {
-                CreateParents(path);
+                CreateParents(vfsPath);
             }
-            CreateFile(JCDFAT.blockSize, path, true);
+            CreateFile(JCDFAT.blockSize, vfsPath, true);
         }
 
         private void CreateParents(string path) {
@@ -824,7 +820,7 @@ namespace vfs.core
             JCDFile f = GetFile(currentPath);
             // Create parents that don't exist.
             foreach (var dir in parents) {
-                if (dir == "") {
+                if (String.IsNullOrEmpty(dir)) {
                     continue;
                 }
                 currentPath += dir + "/";
@@ -1102,9 +1098,9 @@ namespace vfs.core
             return notNulls.Select(file => { return file.Entry; }).ToArray();
         }
 
-        public void DeleteFile(string path, bool recursive)
+        public void DeleteFile(string vfsPath, bool recursive)
         {
-            var file = GetFile(path);
+            var file = GetFile(vfsPath);
             if (file == null)
             {
                 throw new vfs.exceptions.FileNotFoundException();
@@ -1127,7 +1123,6 @@ namespace vfs.core
             if(!Helpers.FileNameIsValid(newName)) {
                 throw new InvalidFileNameException();
             }
-            var oldName = file.Name;
             file.Name = newName;
         }
 
@@ -1196,12 +1191,12 @@ namespace vfs.core
         }
 
         internal void tryShrink() {
-            long lastUsedBlock = (fs.Length - dataOffsetBlocks * blockSize) / blockSize - 1;
+            long lastUsedBlock = (hfsFileStream.Length - dataOffsetBlocks * blockSize) / blockSize - 1;
             long i;
             for(i = lastUsedBlock; fat[i] == freeBlock; i--);
 
             if(i < lastUsedBlock) {
-                fs.SetLength((i + 1 + dataOffsetBlocks) * blockSize);
+                hfsFileStream.SetLength((i + 1 + dataOffsetBlocks) * blockSize);
             }
         }
 

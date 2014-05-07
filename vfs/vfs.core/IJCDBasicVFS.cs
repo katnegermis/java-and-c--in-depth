@@ -3,7 +3,7 @@ namespace vfs.core
     public delegate void MoveFileEventHandler(string oldPath, string newPath);
     public delegate void DeleteFileEventHandler(string path);
     public delegate void AddFileEventHandler(string path);
-    public delegate void ModifyFileEventHandler(string path, long startByte, byte[] data);
+    public delegate void ModifyFileEventHandler(string path, long offset, byte[] data);
     public delegate void ResizeFileEventHandler(string path, long newSize);
 
     public interface IJCDBasicVFS

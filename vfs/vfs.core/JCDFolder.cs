@@ -5,6 +5,7 @@ using vfs.core.indexing;
 using vfs.core.visitor;
 using vfs.exceptions;
 using vfs.common;
+using vfs.core.exceptions;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {
@@ -49,7 +50,7 @@ namespace vfs.core {
             if (blocksRequired > numBlocks + 1)
             {
                 // TODO: Throw proper exception.
-                throw new Exception("Folders are only allowed to expand by one block at a time!");
+                throw new IllegalFolderExpansion("Folders are only allowed to expand by one block at a time!");
             }
 
             // Expand folder if `index` points beyond the folder's currently allocated blocks.

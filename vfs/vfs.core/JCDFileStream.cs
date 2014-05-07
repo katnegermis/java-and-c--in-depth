@@ -10,7 +10,6 @@ using vfs.common;
 namespace vfs.core {
     public class JCDFileStream : Stream {
         private JCDFile file;
-        private long currentNumBlocks;
         private ModifyFileEventHandler modifiedCallback;
 
         // Implementations.
@@ -40,7 +39,6 @@ namespace vfs.core {
 
         internal JCDFileStream(JCDFile file, ModifyFileEventHandler modifiedCallback) {
             this.file = file;
-            this.currentNumBlocks = (long)Helpers.ruid(file.Size + 1, JCDFAT.blockSize);
             this.position = 0L;
             this.modifiedCallback = modifiedCallback;
         }
@@ -54,7 +52,7 @@ namespace vfs.core {
             if (offset + count > (long)file.Size) {
                 throw new FileTooSmallException();
             }
-            if (buffer.Length < count) {
+            if (buffer == null || buffer.Length < count) {
                 throw new BufferTooSmallException();
             }
             var vfs = file.GetContainer();
@@ -63,25 +61,28 @@ namespace vfs.core {
             return buffer.Length;
         }
 
-        public override void Write(byte[] data, int offset, int count) {
+        public override void Write(byte[] buffer, int offset, int count) {
+            if (buffer == null) {
+                throw new BufferTooSmallException("Buffer was null!");
+            }
+
             // Make sure that we don't try to write more data than we received.
-            if (data.Length < count) {
-                count = data.Length;
+            if (buffer.Length < count) {
+                count = buffer.Length;
             }
 
             var vfs = file.GetContainer();
             // Increase file length in case we're writing beyond #blocks currently allocated.
-            long allocatedBytes = this.currentNumBlocks * JCDFAT.blockSize;
             long requiredBytesTotal = this.position + offset + count;
             if ((ulong)requiredBytesTotal > file.Size) {
                 file.ExpandBytes(requiredBytesTotal - (long)file.Size);
             }
 
-            vfs.WriteFile(data, position + offset, file.Entry.FirstBlock);
+            vfs.WriteFile(buffer, position + offset, file.Entry.FirstBlock);
             // Call modified callback.
             // Copy `data` to new place in memory.
             var dataCopy = new byte[count];
-            Buffer.BlockCopy(data, 0, dataCopy, 0, count);
+            Buffer.BlockCopy(buffer, 0, dataCopy, 0, count);
             modifiedCallback(file.Path, Position, dataCopy);
 
             position += offset + count;

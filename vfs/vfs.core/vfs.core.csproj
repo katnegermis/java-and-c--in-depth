@@ -41,7 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="exceptions\IllegalFolderExpansion.cs" />
     <Compile Include="exceptions\EmptyExceptions.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="JCDFAT.cs" />
     <Compile Include="JCDFile.cs" />

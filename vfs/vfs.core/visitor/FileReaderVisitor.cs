@@ -12,7 +12,7 @@ namespace vfs.core.visitor
         /// <returns>True if next block is wanted, false otherwise</returns>
         public delegate bool GetFileContents(byte[] data, bool lastBlock);
 
-        private GetFileContents f;
+        private GetFileContents func;
         private ulong bytesLeft;
         private ulong firstBlockIndex;
         private uint blockOffset;
@@ -29,7 +29,7 @@ namespace vfs.core.visitor
 
         private void Initialize(ulong size, ulong fileOffset, GetFileContents f) {
             this.blocksTraversed = 0;
-            this.f = f;
+            this.func = f;
             bytesLeft = size;
             this.firstBlockIndex = fileOffset / JCDFAT.blockSize; // Floor division.
             // blockOffset is always 0 <= x <= JCDFAT.blockSize because of floor division above.
@@ -55,7 +55,7 @@ namespace vfs.core.visitor
 
             // Pass contents of block on to f and inform caller whether f wants 
             // the contents of the next block.
-            return f(vfs.Read(vfsOffset, bytesToRead), bytesLeft == 0);
+            return func(vfs.Read(vfsOffset, bytesToRead), bytesLeft == 0);
         }
     }
 }

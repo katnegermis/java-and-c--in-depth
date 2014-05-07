@@ -11,14 +11,12 @@ namespace vfs.core.visitor {
         private int remainingBytes;
         private long blocksTraversed;
         private long startingBlock;
-        private long blocksToWrite;
         private uint blockOffset;
 
         public FileWriterVisitor(byte[] data, long offset) {
             this.data = data;
             this.remainingBytes = data.Length;
             this.blocksTraversed = 0;
-            this.blocksToWrite = Helpers.ruid(data.Length, JCDFAT.blockSize);
             this.startingBlock = offset / JCDFAT.blockSize; // Floor division.
             // This is always >= 0 since the statement above uses floor division.
             // It also fits in to a uint since the block size is only 2^12.
