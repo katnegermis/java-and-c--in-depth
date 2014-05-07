@@ -7,6 +7,7 @@ using vfs.core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using vfs.exceptions;
+using vfs.common;
 namespace vfs.core.tests
 {
 
@@ -799,21 +800,12 @@ namespace vfs.core.tests
 
         #region Helper Functions
         private JCDFAT CreateVFS(string testName, uint size) {
-            DeleteFiles(new string[] { testName });
+            TestHelpers.DeleteFiles(new string[] { testName });
             return JCDFAT.Create(testName, size);
         }
 
         private JCDFAT CreateVFS(string testName) {
             return CreateVFS(testName, 50000000);
-        }
-
-        private void DeleteFiles(string[] files) {
-            foreach (var file in files) {
-                try {
-                    File.Delete(file);
-                }
-                catch (System.IO.FileNotFoundException) { }
-            }
         }
         #endregion
     }

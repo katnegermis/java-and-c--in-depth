@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using vfs.common;
 
 namespace vfs.core.tests {
     [TestClass]
@@ -20,10 +21,10 @@ namespace vfs.core.tests {
 
 
             // Test
-            var data = GenerateRandomData((int)fileSize, 1);
+            var data = TestHelpers.GenerateRandomData((int)fileSize, 1);
             // Add function to be called on FileModified event.
             vfs.FileModified += (path, startByte, inData) => {
-                AreEqual(data, inData);
+                TestHelpers.AreEqual(data, inData);
             };
             fs.Write(data, 0, (int)fileSize);
 
@@ -31,7 +32,7 @@ namespace vfs.core.tests {
         }
 
         private JCDFAT CreateVFS(string testName, uint size) {
-            DeleteFiles(new string[] { testName });
+            TestHelpers.DeleteFiles(new string[] { testName });
             return JCDFAT.Create(testName, size);
         }
 
@@ -41,30 +42,7 @@ namespace vfs.core.tests {
 
         private void CloseVFS(JCDFAT vfs, string testName) {
             vfs.Close();
-            DeleteFiles(new string[] { testName });
-        }
-
-        private void DeleteFiles(string[] files) {
-            foreach (var file in files) {
-                try {
-                    File.Delete(file);
-                }
-                catch (System.IO.FileNotFoundException) { }
-            }
-        }
-
-        private byte[] GenerateRandomData(int size, int seed) {
-            var data = new byte[size];
-            var rnd = new Random(seed);
-            rnd.NextBytes(data);
-            return data;
-        }
-
-        private void AreEqual(byte[] arr1, byte[] arr2) {
-            Assert.AreEqual(arr1.Length, arr2.Length);
-            for (int i = 0; i < arr1.Length; i += 1) {
-                Assert.AreEqual(arr1[i], arr2[i]);
-            }
+            TestHelpers.DeleteFiles(new string[] { testName });
         }
     }
 }

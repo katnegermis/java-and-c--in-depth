@@ -161,9 +161,17 @@ namespace vfs.core
         // - path points to a file (not directory).
         JCDDirEntry[] ListDirectory(string vfsPath);
 
-        // Methods that aren't necessarily needed to be implemented here,
-        // and could easily be implemented a layer above.
+        /// <summary>
+        /// Get a file stream for manipulating a file on the vfs.
+        /// </summary>
+        /// <param name="vfsPath">Path to the file.</param>
+        /// <returns>JCDFileStream</returns>
+        JCDFileStream GetFileStream(string vfsPath);
+
         void SetCurrentDirectory(string vfsPath);
+
         string GetCurrentDirectory();
+
+        
     }
 }

@@ -24,7 +24,7 @@ namespace vfs.core.tests {
             var testName = "test_write_read_10mb";
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             int bytes = MB5 * 2;
-            var dataIn = GenerateRandomData(bytes, 1);
+            var dataIn = TestHelpers.GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
 
 
@@ -33,7 +33,7 @@ namespace vfs.core.tests {
             var dataOut = new byte[bytes];
             stream.Read(dataOut, 0, bytes);
             // Verify that all bytes are the same
-            AreEqual(dataIn, dataOut);
+            TestHelpers.AreEqual(dataIn, dataOut);
             CleanUp(stream, testName);
         }
 
@@ -43,7 +43,7 @@ namespace vfs.core.tests {
             var testName = "test_seek_data";
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
-            var dataIn = GenerateRandomData(bytes, 1);
+            var dataIn = TestHelpers.GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
 
             // Test
@@ -64,7 +64,7 @@ namespace vfs.core.tests {
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var outBytes = MB5 - MB1;
-            var dataIn = GenerateRandomData(bytes, 1);
+            var dataIn = TestHelpers.GenerateRandomData(bytes, 1);
             stream.Write(dataIn, 0, bytes);
             stream.Seek(0L, SeekOrigin.Begin);
 
@@ -84,7 +84,7 @@ namespace vfs.core.tests {
             var testName = "test_seek_write_data";
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
-            var dataIn = GenerateRandomData(bytes, 15);
+            var dataIn = TestHelpers.GenerateRandomData(bytes, 15);
             // Write data 5 megabytes in to file.
             // We expect the file to automatically expand.
             stream.Seek(MB5, SeekOrigin.Begin);
@@ -95,7 +95,7 @@ namespace vfs.core.tests {
             var dataOut = new byte[bytes];
             stream.Seek(MB5, SeekOrigin.Begin);
             stream.Read(dataOut, 0, bytes);
-            AreEqual(dataIn, dataOut);
+            TestHelpers.AreEqual(dataIn, dataOut);
             CleanUp(stream, testName);
         }
 
@@ -107,7 +107,7 @@ namespace vfs.core.tests {
             var datas = new byte[5][];
             // Initialize 5 arrays with random data in them.
             for (int i = 0; i < datas.Length; i += 1) {
-                datas[i] = GenerateRandomData(MB1, i);
+                datas[i] = TestHelpers.GenerateRandomData(MB1, i);
                 stream.Write(datas[i], 0, MB1);
             }
 
@@ -116,7 +116,7 @@ namespace vfs.core.tests {
             for (int i = datas.Length - 1; i >= 0; i -= 1) {
                 stream.Seek(i * MB1, SeekOrigin.Begin);
                 stream.Read(dataOut, 0, MB1);
-                AreEqual(datas[i], dataOut);
+                TestHelpers.AreEqual(datas[i], dataOut);
             }
             CleanUp(stream, testName);
         }
@@ -142,7 +142,7 @@ namespace vfs.core.tests {
         public void TestShrinkFile() {
             // Set up
             var testName = "shrink_file";
-            DeleteFiles(new string[] { testName });
+            TestHelpers.DeleteFiles(new string[] { testName });
             var vfs = JCDFAT.Create(testName, (ulong)MB5);
             var testFileName = "test";
             var fileSize = MB1;
@@ -187,7 +187,7 @@ namespace vfs.core.tests {
         }
 
         private JCDFileStream CreateJCDAndGetFileStream(string vfsFileName, ulong size) {
-            DeleteFiles(new string[] { vfsFileName });
+            TestHelpers.DeleteFiles(new string[] { vfsFileName });
             var vfs = JCDFAT.Create(vfsFileName, size);
             var testFileName = "test";
             vfs.CreateFile(testFileName, 0, false);
@@ -197,30 +197,7 @@ namespace vfs.core.tests {
         private void CleanUp(JCDFileStream stream, string testName) {
             stream.Close();
             stream.GetVFS().Close();
-            DeleteFiles(new string[] { testName });
-        }
-
-        private byte[] GenerateRandomData(int size, int seed) {
-            var data = new byte[size];
-            var rnd = new Random(seed);
-            rnd.NextBytes(data);
-            return data;
-        }
-
-        private void DeleteFiles(string[] files) {
-            foreach (var file in files) {
-                try {
-                    File.Delete(file);
-                }
-                catch (System.IO.FileNotFoundException) { }
-            }
-        }
-
-        private void AreEqual(byte[] arr1, byte[] arr2) {
-            Assert.AreEqual(arr1.Length, arr2.Length);
-            for (int i = 0; i < arr1.Length; i += 1) {
-                Assert.AreEqual(arr1[i], arr2[i]);
-            }
+            TestHelpers.DeleteFiles(new string[] { testName });
         }
     }
 }

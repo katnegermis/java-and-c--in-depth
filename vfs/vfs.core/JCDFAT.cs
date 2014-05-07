@@ -123,14 +123,21 @@ namespace vfs.core
             }
         }
 
-        internal void OnFileModified(string path, long startByte, byte[] data) {
+        /// <summary>
+        /// Event to be called every time a file is modified.
+        /// This does NOT include file resizing!
+        /// </summary>
+        /// <param name="path">File's path.</param>
+        /// <param name="offset">Offset in to file where the data was written.</param>
+        /// <param name="data">Data that was written.</param>
+        internal void OnFileModified(string path, long offset, byte[] data) {
             // Don't track internal files.
             if (path == searchFileDataPath || path == searchFileTreePath) {
                 return;
             }
 
             if (FileModified != null) {
-                FileModified(path, startByte, data);
+                FileModified(path, offset, data);
             }
         }
 

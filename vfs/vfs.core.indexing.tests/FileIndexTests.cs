@@ -384,7 +384,7 @@ namespace vfs.core.indexing.tests {
             // Expects test names to be unique, so that they will operate on different files.
             // This is necessary because the tests are run in parallel.
             var files = CreateTestFileNames(testName);
-            DeleteFiles(files);
+            TestHelpers.DeleteFiles(files);
             return FileIndex.Initialize(files[0], files[1]);
         }
 
@@ -395,17 +395,9 @@ namespace vfs.core.indexing.tests {
 
         private void CleanUp(FileIndex fileIndex, string testName) {
             fileIndex.Close();
-            DeleteFiles(CreateTestFileNames(testName));
+            TestHelpers.DeleteFiles(CreateTestFileNames(testName));
         }
 
-        private void DeleteFiles(string[] files) {
-            foreach (var file in files) {
-                try {
-                    File.Delete(file);
-                }
-                catch (System.IO.FileNotFoundException) { }
-            }
-        }
 
         private IndexedFile[] GenerateFilesArray(int numElements, string fileName, bool sameName) {
             var files = new IndexedFile[numElements];
