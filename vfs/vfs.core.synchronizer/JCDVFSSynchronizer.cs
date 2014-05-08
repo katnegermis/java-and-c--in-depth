@@ -70,11 +70,11 @@ namespace vfs.core.synchronizer
         private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
             this.vfs = vfs;
 
-            FileModified += OnFileModified;
-            FileAdded += OnFileAdded;
-            FileDeleted += OnFileDeleted;
-            FileMoved += OnFileMoved;
-            FileResized += OnFileResized;
+            vfs.FileModified += OnFileModified;
+            vfs.FileAdded += OnFileAdded;
+            vfs.FileDeleted += OnFileDeleted;
+            vfs.FileMoved += OnFileMoved;
+            vfs.FileResized += OnFileResized;
         }
 
         /// <summary>
