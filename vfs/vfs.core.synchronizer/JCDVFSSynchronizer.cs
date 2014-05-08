@@ -80,7 +80,7 @@ namespace vfs.core.synchronizer
             throw new NotImplementedException();
         }
 
-        internal void InformServerFileModified(string path, long startByte, byte[] data) {
+        internal void InformServerFileModified(string path, long offset, byte[] data) {
             throw new NotImplementedException();
         }
 
