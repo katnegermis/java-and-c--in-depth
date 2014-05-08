@@ -67,14 +67,44 @@ namespace vfs.core.synchronizer
             }
         }
 
+        
+        internal void InformServerFileAdded(string path) {
+            throw new NotImplementedException();
+        }
+
+        internal void InformServerFileDeleted(string path) {
+            throw new NotImplementedException();
+        }
+
+        internal void InformServerFileMoved(string oldPath, string newPath) {
+            throw new NotImplementedException();
+        }
+
+        internal void InformServerFileModified(string path, long startByte, byte[] data) {
+            throw new NotImplementedException();
+        }
+
+        internal void InformServerFileResized(string path, long newSize) {
+            throw new NotImplementedException();
+        }
+
         private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
             this.vfs = vfs;
 
+            // Subscribe to events with functions that propagate vfs events to subscribers
+            // of this class.
             vfs.FileModified += OnFileModified;
             vfs.FileAdded += OnFileAdded;
             vfs.FileDeleted += OnFileDeleted;
             vfs.FileMoved += OnFileMoved;
             vfs.FileResized += OnFileResized;
+
+            // Subscribe to vfs events
+            vfs.FileModified += InformServerFileModified;
+            vfs.FileAdded += InformServerFileAdded;
+            vfs.FileDeleted += InformServerFileDeleted;
+            vfs.FileMoved += InformServerFileMoved;
+            vfs.FileResized += InformServerFileResized;
         }
 
         /// <summary>
