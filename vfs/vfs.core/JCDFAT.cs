@@ -43,11 +43,13 @@ namespace vfs.core
         private const uint availableBlockNumbers = (uint)((1L << 32) - reservedBlockNumbers); // 32-bit block numbers
         private const uint metaDataBlocks = 1; // Number of blocks used for meta data (doesn't include the FAT)
         internal const uint blockSize = 1 << 12; // 4KB blocks
-        internal const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
-        //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
         internal const uint dirEntrySize = 1 << 8; // 256B == JCDDirEntry.StructSize();
         internal const uint fatEntriesPerBlock = blockSize / 4;
         internal const uint dirEntriesPerBlock = blockSize / dirEntrySize;
+        internal const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
+        internal const ulong globalMinFSSize = blockSize * fatEntriesPerBlock;
+        //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
+        
 
         private const int freeBlocksOffset = 12;
         private const int firstFreeBlockOffset = 16;
@@ -158,7 +160,8 @@ namespace vfs.core
 
         public static JCDFAT Create(string hfsPath, ulong size) {
             // Make sure the directory exists.
-            if(File.Exists(Path.GetDirectoryName(hfsPath))) {
+            var dirName = Path.GetDirectoryName(hfsPath);
+            if(!String.IsNullOrEmpty(dirName) && !Directory.Exists(dirName)) {
                 throw new DirectoryNotFoundException();
             }
 
@@ -167,9 +170,15 @@ namespace vfs.core
                 throw new FileAlreadyExistsException();
             }
 
+            if (size <= JCDFAT.globalMinFSSize) {
+                throw new InvalidSizeException(
+                    String.Format("The file system must be at least {0} bytes.", JCDFAT.globalMinFSSize));
+            }
+
             if(size >= JCDFAT.globalMaxFSSize) {
                 Console.Write("Global Max FS Size {0}", JCDFAT.globalMaxFSSize);
-                throw new InvalidSizeException();
+                throw new InvalidSizeException(
+                    String.Format("JCDFAT can be at most {0} bytes large.", JCDFAT.globalMaxFSSize));
             }
 
             // Create fsfile.
@@ -242,6 +251,10 @@ namespace vfs.core
         private JCDFAT(FileStream fs)
         {
             this.hfsFileStream = fs;
+            if (fs.Length < blockSize) {
+                throw new InvalidFileException(
+                    String.Format("A valid VFS file is at least {0} bytes!", blockSize));
+            }
 
             hfsBinaryWriter = new BinaryWriter(fs);
             hfsBinaryReader = new BinaryReader(fs);
