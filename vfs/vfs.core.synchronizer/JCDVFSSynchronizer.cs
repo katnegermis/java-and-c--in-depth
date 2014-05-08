@@ -100,11 +100,11 @@ namespace vfs.core.synchronizer
             vfs.FileResized += OnFileResized;
 
             // Subscribe to vfs events
-            vfs.FileModified += InformServerFileModified;
-            vfs.FileAdded += InformServerFileAdded;
-            vfs.FileDeleted += InformServerFileDeleted;
-            vfs.FileMoved += InformServerFileMoved;
-            vfs.FileResized += InformServerFileResized;
+            //vfs.FileModified += InformServerFileModified;
+            //vfs.FileAdded += InformServerFileAdded;
+            //vfs.FileDeleted += InformServerFileDeleted;
+            //vfs.FileMoved += InformServerFileMoved;
+            //vfs.FileResized += InformServerFileResized;
         }
 
         /// <summary>
