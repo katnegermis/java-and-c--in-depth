@@ -7,11 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using vfs.common;
 
-namespace vfs.core.synchronizer.tests
-{
+namespace vfs.core.synchronizer.tests {
     [TestClass]
-    public class JCDVFSSynchronizerTests
-    {
+    public class JCDVFSSynchronizerTests {
         private const uint MB1 = 1000000;
         private const uint MB5 = MB1 * 5;
         Type vfsType = typeof(JCDFAT);

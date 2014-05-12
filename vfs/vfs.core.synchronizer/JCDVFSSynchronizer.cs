@@ -7,9 +7,10 @@ using vfs.core;
 
 namespace vfs.core.synchronizer
 {
-    public class JCDVFSSynchronizer : IJCDBasicVFS
+    public class JCDVFSSynchronizer : IJCDSynchronizedVFS
     {
         private IJCDBasicVFS vfs;
+        private Object conn;
 
         public event AddFileEventHandler FileAdded;
         public event DeleteFileEventHandler FileDeleted;
@@ -88,6 +89,21 @@ namespace vfs.core.synchronizer
             throw new NotImplementedException();
         }
 
+        public JCDSynchronizationMessage LogIn(string username, string password) {
+            // Implement properly.
+            this.conn = new Object();
+            return (JCDSynchronizationMessage)null;
+        }
+
+        public bool LoggedIn() {
+            // Implement properly.
+            return this.conn != null;
+        }
+
+        public void LogOut() {
+            // Not implemented.
+        }
+
         private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
             this.vfs = vfs;
 
@@ -112,11 +128,7 @@ namespace vfs.core.synchronizer
         /// </summary>
         /// <param name="hfsPath">The path of the file on the hard file system</param>
         /// <param name="size">The size of the new vfs</param>
-        /// <returns>An object of an implementation of the IJCDBasicVFS interface</returns>
-        /// <exception cref="System.IO.DirectoryNotFoundException"
-        // - too little space available on HFS
-        // - invalid path string (file name too long/invalid characters).
-        // - no permissions to write on HFS.
+        /// <returns>True if the vfs has been created successfully, false otherwise</returns>
         public static JCDVFSSynchronizer Create(Type vfsType, string hfsPath, ulong size) {
             var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Create", new object[] { hfsPath, size });
             return new JCDVFSSynchronizer(vfs);
@@ -127,7 +139,6 @@ namespace vfs.core.synchronizer
         /// </summary>
         /// <param name="hfsPath">The path of the file on the host file system</param>
         /// <exception cref="System.IO.DirectoryNotFoundException"
-        // - VFS is mounted.
         public static void Delete(Type vfsType, string hfsPath) {
             IJCDBasicTypeCallStaticMethod(vfsType, "Delete", new object[] { hfsPath });
         }
@@ -136,14 +147,11 @@ namespace vfs.core.synchronizer
         /// Mount an existing VFS-file.
         /// </summary>
         /// <param name="hfsPath"> The path of the file on the host file system</param>
-        /// <returns>An object of an implementation of the IJCDBasicVFS interface</returns>
+        /// <returns>True if the VFS has been opened successully and can now be used through this object, false otherwise</returns>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
-        // - VFS file already mounted.
-        // - file is not VFS type.
         public static JCDVFSSynchronizer Open(Type vfsType, string hfsPath) {
             var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
             return new JCDVFSSynchronizer(vfs);
-
         }
 
         /// <summary>
@@ -337,6 +345,18 @@ namespace vfs.core.synchronizer
         public string[] Search(string fileName, bool caseSensitive) {
             lock (this.vfs) {
                 return vfs.Search(fileName, caseSensitive);
+            }
+        }
+
+        public string[] Search(string searchDir, string fileName, bool caseSensitive, bool recursive) {
+            lock (this.vfs) {
+                return vfs.Search(searchDir, fileName, caseSensitive, recursive);
+            }
+        }
+
+        public JCDDirEntry GetFileDetails(string path) {
+            lock (this.vfs) {
+                return vfs.GetFileDetails(path);
             }
         }
 

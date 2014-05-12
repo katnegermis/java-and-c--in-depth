@@ -174,6 +174,10 @@ namespace vfs.core
 
         string GetCurrentDirectory();
 
-        string[] Search(string fileName, bool caseSensitive);        
+        string[] Search(string fileName, bool caseSensitive);
+
+        string[] Search(string searchDir, string fileName, bool caseSensitive, bool recursive);
+
+        JCDDirEntry GetFileDetails(string vfsPath);
     }
 }
