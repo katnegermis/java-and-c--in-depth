@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using vfs.core.synchronizer;
 
 namespace vfs.clients.desktop
 {
@@ -38,29 +37,11 @@ namespace vfs.clients.desktop
             this.directoryListView.ListViewItemSorter = lvwColumnSorter;
         }
 
-        private void MainForm_Shown(object sender, EventArgs e)
-        {
-            if (!makeLogin())
-                this.Close();
-        }
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (session.HasVFSMounted)
+            if (session != null)
                 makeVFSClose();
         }
-
-        private bool makeLogin()
-        {
-            session = new VFSSession();
-
-            var form = new LoginForm();
-            //TODO give the form a reference to the new session
-            form.ShowDialog(this);
-            return form.DialogResult == DialogResult.OK;
-        }
-
-
 
         #region Button Clicks
 
@@ -288,7 +269,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var pos = directoryListView.PointToClient(new Point(e.X, e.Y));
@@ -495,7 +476,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 directoryListView.Items.Clear();
@@ -550,7 +531,7 @@ namespace vfs.clients.desktop
 
         private void setChecksSearchMenuStrip()
         {
-            if (!session.HasVFSMounted)
+            if (session == null)
                 return;
 
             setChecksSearchLocation(session.SearchLocation);
@@ -616,7 +597,7 @@ namespace vfs.clients.desktop
                     var size = form.size;
                     try
                     {
-                        session.CreateVFS(file, size);
+                        VFSSession.CreateVFS(file, size);
                     }
                     catch (Exception ex)
                     {
@@ -644,7 +625,8 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    if (session.OpenVFS(file))
+                    session = VFSSession.OpenVFS(file);
+                    if (session != null)
                     {
                         vfsName = (new FileInfo(file)).Name;
 
@@ -677,7 +659,7 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    session.DeleteVFS(file);
+                    VFSSession.DeleteVFS(file);
                 }
                 catch (Exception ex)
                 {
@@ -693,7 +675,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 session.Close();
@@ -721,7 +703,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 if (session.MoveInto(directory, completePath))
@@ -744,7 +726,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 if (session.MoveBack())
@@ -768,7 +750,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 using (var form = new InputNameForm())
@@ -801,7 +783,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 using (var form = new InputNameAndSizeForm())
@@ -836,7 +818,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var item = directoryListView.FocusedItem;
@@ -871,7 +853,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var names = getSelectedListViewItemTexts();
@@ -891,7 +873,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var names = getSelectedListViewItemTexts();
@@ -913,7 +895,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 session.Paste();
@@ -937,7 +919,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var names = getSelectedListViewItemTexts();
@@ -960,7 +942,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var openFileDialog = new OpenFileDialog();
@@ -995,7 +977,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var folderBrowserDialog = new FolderBrowserDialog();
@@ -1027,7 +1009,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 int count = session.Import(files, targetDir);
@@ -1051,7 +1033,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var names = getSelectedListViewItemTexts();
@@ -1085,7 +1067,7 @@ namespace vfs.clients.desktop
         {
             try
             {
-                if (!session.HasVFSMounted)
+                if (session == null)
                     throw new Exception("No VFS mounted!");
 
                 var found = session.Search(searchString);
@@ -1118,18 +1100,10 @@ namespace vfs.clients.desktop
 
         #endregion
 
-        private void logoutButton_Click(object sender, EventArgs e)
-        {
-            //TODO close the session or so
-
-            if (!makeLogin())
-                this.Close();
-        }
-
         private void synchroButton_Click(object sender, EventArgs e)
         {
             var form = new SynchroManagerForm();
-            form.userName = "pascal";
+            form.session = session;
             form.ShowDialog(this);
         }
 

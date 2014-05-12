@@ -30,14 +30,14 @@ namespace vfs.clients.desktop
     /// <summary>
     /// Enum that represents the possible search locations.
     /// </summary>
-    enum SearchLocation { Folder, SubFolder, Everywhere };
+    public enum SearchLocation { Folder, SubFolder, Everywhere };
 
     /// <summary>
     /// Class that serves as controller class for operations on VFSs.
     /// If a VFS file is mounted, the object is contained in a VFSSession object.
     /// It can only be accessed and modified through the available methods.
     /// </summary>
-    class VFSSession
+    public class VFSSession
     {
         /// <summary>
         /// The currently mounted VFSSynchronizer.
@@ -46,15 +46,21 @@ namespace vfs.clients.desktop
         private JCDVFSSynchronizer vfsSynchronizer;
 
         /// <summary>
-        /// Returns whether the VFSSynchronizer has a mounted VFS
+        /// Returns whether the VFSSynchronizer is logged in or not
         /// </summary>
-        public bool HasVFSMounted
+        public bool IsLoggedIn
         {
             get
             {
-                return (vfsSynchronizer != null && vfsSynchronizer.HasVFSMounted);
+                return (vfsSynchronizer != null && vfsSynchronizer.LoggedIn());
             }
         }
+
+        /// <summary>
+        /// Returns the userName of the logged in user.
+        /// If none is logged in it return null.
+        /// </summary>
+        public string UserName { get; set; }
 
         /// <summary>
         /// The current directory we are in.
@@ -114,9 +120,9 @@ namespace vfs.clients.desktop
         /// </summary>
         public bool SearchCaseSensitive = true;
 
-        public VFSSession()
+        private VFSSession(JCDVFSSynchronizer vfsSynchronizer)
         {
-            this.vfsSynchronizer = new JCDVFSSynchronizer();
+            this.vfsSynchronizer = vfsSynchronizer;
         }
 
         #region VFS Methods
@@ -126,18 +132,18 @@ namespace vfs.clients.desktop
         /// </summary>
         /// <param name="fileToCreate">To create and put the VFS inside</param>
         /// <param name="size">Of the new VFS</param>
-        public void CreateVFS(string fileToCreate, ulong size)
+        public static void CreateVFS(string fileToCreate, ulong size)
         {
-            this.vfsSynchronizer.Create(typeof(JCDFAT), fileToCreate, size);
+            JCDVFSSynchronizer.Create(typeof(JCDFAT), fileToCreate, size).Close();
         }
 
         /// <summary>
         /// Makes the call to delete the given file if it has a VFS in it.
         /// </summary>
         /// <param name="fileToDelete"></param>
-        public void DeleteVFS(string fileToDelete)
+        public static void DeleteVFS(string fileToDelete)
         {
-            this.vfsSynchronizer.Delete(typeof(JCDFAT), fileToDelete);
+            JCDVFSSynchronizer.Delete(typeof(JCDFAT), fileToDelete);
         }
 
         /// <summary>
@@ -145,9 +151,13 @@ namespace vfs.clients.desktop
         /// </summary>
         /// <param name="fileToOpen">The file to open</param>
         /// <returns>True if opened successfully, false otherwise</returns>
-        public bool OpenVFS(string fileToOpen)
+        public static VFSSession OpenVFS(string fileToOpen)
         {
-            return this.vfsSynchronizer.Open(typeof(JCDFAT), fileToOpen);
+            var vfsSynchronizer = JCDVFSSynchronizer.Open(typeof(JCDFAT), fileToOpen);
+            if (vfsSynchronizer != null)
+                return new VFSSession(vfsSynchronizer);
+            else
+                return null;
         }
 
         /// <summary>
@@ -160,6 +170,8 @@ namespace vfs.clients.desktop
         }
 
         #endregion
+
+
 
         #region Core Methods
 
@@ -200,7 +212,6 @@ namespace vfs.clients.desktop
         {
             cutNotCopy = false;
             putIntoClipboard(names);
-
         }
 
         /// <summary>
@@ -410,6 +421,33 @@ namespace vfs.clients.desktop
             return entries;
         }
 
+
+        #endregion
+
+        #region Synchro Methods
+
+
+        public bool Register(string userName, string password)
+        {
+            //var result = vfsSynchronizer.Register(userName, password);
+            //TODO check the statusCode or so
+            this.UserName = userName;
+            return true;
+        }
+
+        public bool LogIn(string userName, string password)
+        {
+            var result = vfsSynchronizer.LogIn(userName, password);
+            //TODO check the statuscode or so
+            this.UserName = userName;
+            return true;
+        }
+
+        public void LogOut()
+        {
+            vfsSynchronizer.LogOut();
+            this.UserName = null;
+        }
 
         #endregion
 

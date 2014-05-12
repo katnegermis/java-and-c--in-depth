@@ -17,7 +17,7 @@ namespace vfs.clients.desktop
     public partial class SynchroManagerForm : Form
     {
 
-        public string userName;
+        public VFSSession session { get; set; }
 
         private const string PATH = @"vfs.xml";
 
@@ -28,24 +28,58 @@ namespace vfs.clients.desktop
             InitializeComponent();
         }
 
-        private void SynchroManagerForm_Load(object sender, EventArgs e)
+        private void SynchroManagerForm_Shown(object sender, EventArgs e)
         {
-            if (!File.Exists(PATH))
-                createNewFile();
-            else
-            {
-                loadVFS();
-                //TODO retrieve from server and add synchronized but not yet added heres
-            }
 
-            populateListView();
         }
 
+        private void SynchroManagerForm_Load(object sender, EventArgs e)
+        {
+            if (session == null)
+                connectButton.Enabled = false;
+            else if (!session.IsLoggedIn)
+                connectButton.Text = "Connect";
+            else
+            {
+                connectButton.Text = "Disconnect";
 
+                if (!File.Exists(PATH))
+                    createNewFile();
+                else
+                {
+                    loadVFS();
+                    retrieveFromServer();
+                }
+
+                populateListView();
+            }
+        }
+
+        private void connectButton_Click(object sender, EventArgs e)
+        {
+            if (session.IsLoggedIn)
+            {
+                storeVFS();
+                session.LogOut();
+                vfsListView.Enabled = false;
+                connectButton.Text = "Connect";
+            }
+            else
+            {
+                if (makeLogin())
+                {
+                    vfsListView.Enabled = true;
+                    connectButton.Text = "Disconnect";
+                    retrieveFromServer();
+                }
+            }
+        }
 
         private void okButton_Click(object sender, EventArgs e)
         {
-            storeVFS();
+            if (session != null && session.IsLoggedIn)
+                storeVFS();
+
             this.Close();
         }
 
@@ -216,65 +250,101 @@ namespace vfs.clients.desktop
             }
         }
 
+
+        private bool makeLogin()
+        {
+            var form = new LoginForm();
+            form.session = session;
+            form.ShowDialog(this);
+
+            return form.DialogResult == DialogResult.OK;
+        }
+
+        private void retrieveFromServer()
+        {
+            //TODO implement
+        }
+
         #region XML methods
 
         private void createNewFile()
         {
-            using (XmlWriter writer = XmlWriter.Create(PATH))
+            try
             {
-                writer.WriteStartDocument();
-                writer.WriteStartElement("Users");
+                using (XmlWriter writer = XmlWriter.Create(PATH))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("Users");
 
-                writer.WriteEndElement();
-                writer.WriteEndDocument();
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void loadVFS()
         {
-            XDocument xmlDoc = XDocument.Load(PATH);
+            try
+            {
+                XDocument xmlDoc = XDocument.Load(PATH);
 
-            vfsList = (from vfs in xmlDoc.Descendants("Users").Descendants("User").Descendants("VFS")
-                       where vfs.Parent.Attribute("UserName").Value == userName
-                       select new VFSEntry
-                       {
-                           Name = vfs.Element("Name").Value,
-                           Path = vfs.Element("Path").Value,
-                           ID = Convert.ToInt32(vfs.Element("ID").Value)
-                       }).ToList<VFSEntry>();
+                vfsList = (from vfs in xmlDoc.Descendants("Users").Descendants("User").Descendants("VFS")
+                           where vfs.Parent.Attribute("UserName").Value == session.UserName
+                           select new VFSEntry
+                           {
+                               Name = vfs.Element("Name").Value,
+                               Path = vfs.Element("Path").Value,
+                               ID = Convert.ToInt32(vfs.Element("ID").Value)
+                           }).ToList<VFSEntry>();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void storeVFS()
         {
-            XDocument xmlDoc = XDocument.Load(PATH);
-
-            var users = from element in xmlDoc.Descendants("Users").Descendants("User")
-                        where element.Attribute("UserName").Value == userName
-                        select element;
-
-            XElement user = null;
-            if (users.Count() > 0)
+            try
             {
-                user = users.ElementAt(0);
-                user.Descendants("VFS").Remove();
-            }
-            else
-            {
-                user = new XElement("User", new XAttribute("UserName", userName));
-                xmlDoc.Element("Users").Add(user);
-            }
+                XDocument xmlDoc = XDocument.Load(PATH);
 
-            foreach (var vfs in vfsList)
-            {
-                XElement elem = new XElement("VFS",
-                    new XElement("Name", vfs.Name),
-                    new XElement("Path", vfs.Path),
-                    new XElement("ID", vfs.ID)
-                );
-                user.Add(elem);
-            }
+                var users = from element in xmlDoc.Descendants("Users").Descendants("User")
+                            where element.Attribute("UserName").Value == session.UserName
+                            select element;
 
-            xmlDoc.Save(PATH);
+                XElement user = null;
+                if (users.Count() > 0)
+                {
+                    user = users.ElementAt(0);
+                    user.Descendants("VFS").Remove();
+                }
+                else
+                {
+                    user = new XElement("User", new XAttribute("UserName", session.UserName));
+                    xmlDoc.Element("Users").Add(user);
+                }
+
+                foreach (var vfs in vfsList)
+                {
+                    XElement elem = new XElement("VFS",
+                        new XElement("Name", vfs.Name),
+                        new XElement("Path", vfs.Path),
+                        new XElement("ID", vfs.ID)
+                    );
+                    user.Add(elem);
+                }
+
+                xmlDoc.Save(PATH);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #endregion
