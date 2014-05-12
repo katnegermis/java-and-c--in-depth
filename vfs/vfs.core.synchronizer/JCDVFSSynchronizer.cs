@@ -10,6 +10,8 @@ namespace vfs.core.synchronizer
     public class JCDVFSSynchronizer : IJCDBasicVFS
     {
         private IJCDBasicVFS vfs;
+        // Temporary field representing a connection.
+        private Object conn;
 
         public event AddFileEventHandler FileAdded;
         public event DeleteFileEventHandler FileDeleted;
@@ -138,7 +140,7 @@ namespace vfs.core.synchronizer
         /// </summary>
         /// <param name="hfsPath">The path of the file on the host file system</param>
         /// <exception cref="System.IO.DirectoryNotFoundException"
-        public void Delete(Type vfsType, string hfsPath) {
+        public static void Delete(Type vfsType, string hfsPath) {
             IJCDBasicTypeCallStaticMethod(vfsType, "Delete", new object[] { hfsPath });
         }
 
