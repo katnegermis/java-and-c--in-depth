@@ -348,5 +348,21 @@ namespace vfs.core.synchronizer
             var method = type.GetMethod(methodName);
             return (IJCDBasicVFS)method.Invoke(null, args);
         }
+
+        public string[] Search(string currentDir, string searchString, bool searchCaseSensitive, bool p)
+        {
+            lock (this.vfs)
+            {
+                return vfs.Search(currentDir, searchString, searchCaseSensitive, p);
+            }
+        }
+
+        public JCDDirEntry GetFileDetails(string path)
+        {
+            lock (this.vfs)
+            {
+                return vfs.GetFileDetails(path);
+            }
+        }
     }
 }
