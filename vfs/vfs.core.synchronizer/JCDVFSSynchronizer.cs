@@ -11,6 +11,14 @@ namespace vfs.core.synchronizer
     {
         private IJCDBasicVFS vfs;
 
+        public bool HasVFSMounted
+        {
+            get
+            {
+                return vfs != null;
+            }
+        }
+
         public event AddFileEventHandler FileAdded;
         public event DeleteFileEventHandler FileDeleted;
         public event MoveFileEventHandler FileMoved;
@@ -137,7 +145,7 @@ namespace vfs.core.synchronizer
         /// Mount an existing VFS-file.
         /// </summary>
         /// <param name="hfsPath"> The path of the file on the host file system</param>
-        /// <returns>True if the VFS has been opened successully and can now be used through this object, false otherwise</returns>
+        /// <returns>True if the VFS has been mounted! successully and can now be used through this object, false otherwise</returns>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         public bool Open(Type vfsType, string hfsPath) {
             var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
@@ -172,7 +180,7 @@ namespace vfs.core.synchronizer
         // - No VFS mounted
         public void Close() {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted");
 
             lock (this.vfs) {
                 vfs.Close();
@@ -186,7 +194,7 @@ namespace vfs.core.synchronizer
         // - No VFS mounted
         public ulong Size() {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -202,7 +210,7 @@ namespace vfs.core.synchronizer
         // - No VFS mounted
         public ulong OccupiedSpace() {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -218,7 +226,7 @@ namespace vfs.core.synchronizer
         /// - No VFS mounted
         public ulong FreeSpace() {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -238,7 +246,7 @@ namespace vfs.core.synchronizer
         // - invalid path string (file name too long/invalid characters).
         public void CreateDirectory(string vfsPath, bool createParents) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -258,7 +266,7 @@ namespace vfs.core.synchronizer
         // - invalid path string (file name too long/invalid characters).
         public void CreateFile(string vfsPath, ulong size, bool createParents) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -276,7 +284,7 @@ namespace vfs.core.synchronizer
         // - invalid VFS path string (file name too long/invalid characters).
         public void ImportFile(string hfsPath, string vfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -295,7 +303,7 @@ namespace vfs.core.synchronizer
         // - invalid VFS path string (file name too long/invalid characters).
         public void ExportFile(string vfsPath, string hfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -312,7 +320,7 @@ namespace vfs.core.synchronizer
         // - path points to a directory (recursive == false).
         public void DeleteFile(string vfsPath, bool recursive) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -329,7 +337,7 @@ namespace vfs.core.synchronizer
         // - no such file on VFS.
         public void RenameFile(string vfsPath, string newName) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -346,7 +354,7 @@ namespace vfs.core.synchronizer
         // - no such file on VFS.
         public void MoveFile(string vfsPath, string newVfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -363,7 +371,7 @@ namespace vfs.core.synchronizer
         // - no such file on VFS.
         public void CopyFile(string vfsPath, string newVfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -379,7 +387,7 @@ namespace vfs.core.synchronizer
         // - path points to a file (not directory).
         public JCDDirEntry[] ListDirectory(string vfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -389,7 +397,7 @@ namespace vfs.core.synchronizer
 
         public void SetCurrentDirectory(string vfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -399,7 +407,7 @@ namespace vfs.core.synchronizer
 
         public string GetCurrentDirectory() {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -409,7 +417,7 @@ namespace vfs.core.synchronizer
 
         public JCDFileStream GetFileStream(string vfsPath) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -419,7 +427,7 @@ namespace vfs.core.synchronizer
 
         public string[] Search(string fileName, bool caseSensitive) {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -430,7 +438,7 @@ namespace vfs.core.synchronizer
         public string[] Search(string currentDir, string searchString, bool searchCaseSensitive, bool p)
         {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
@@ -441,7 +449,7 @@ namespace vfs.core.synchronizer
         public JCDDirEntry GetFileDetails(string path)
         {
             if (this.vfs == null)
-                throw new Exception("No VFS opened");
+                throw new Exception("No VFS mounted!");
 
             lock (this.vfs)
             {
