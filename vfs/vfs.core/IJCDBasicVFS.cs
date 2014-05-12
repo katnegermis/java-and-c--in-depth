@@ -145,7 +145,7 @@ namespace vfs.core
 
         string[] Search(string fileName, bool caseSensitive);
 
-        string[] Search(string searchPath, string fileName, bool caseSensitive, bool recursive);
+        string[] Search(string searchDir, string fileName, bool caseSensitive, bool recursive);
 
         JCDDirEntry GetFileDetails(string vfsPath);
     }
