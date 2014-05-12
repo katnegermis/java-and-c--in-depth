@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using vfs.core.synchronizer;
 
 namespace vfs.clients.desktop
 {
@@ -51,7 +52,10 @@ namespace vfs.clients.desktop
 
         private bool makeLogin()
         {
+            session = new VFSSession(new JCDVFSSynchronizer());
+
             var form = new LoginForm();
+            //TODO give the form a reference to the new session
             form.ShowDialog(this);
             return form.DialogResult == DialogResult.OK;
         }
@@ -612,7 +616,7 @@ namespace vfs.clients.desktop
                     var size = form.size;
                     try
                     {
-                        VFSSession.CreateVFS(file, size);
+                        session.CreateVFS(file, size);
                     }
                     catch (Exception ex)
                     {
@@ -640,8 +644,7 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    session = VFSSession.OpenVFS(file);
-                    if (session != null)
+                    if (session.OpenVFS(file))
                     {
                         vfsName = (new FileInfo(file)).Name;
 
@@ -674,7 +677,7 @@ namespace vfs.clients.desktop
                 var file = openFileDialog.FileName;
                 try
                 {
-                    VFSSession.DeleteVFS(file);
+                    session.DeleteVFS(file);
                 }
                 catch (Exception ex)
                 {
