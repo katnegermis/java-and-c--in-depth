@@ -302,6 +302,10 @@ namespace vfs.core.synchronizer
             return vfs.GetFileStream(vfsPath);
         }
 
+        public string[] Search(string fileName, bool caseSensitive) {
+            return vfs.Search(fileName, caseSensitive);
+        }
+
         internal static object IJCDBasicTypeCallMethod(Type type, string methodName, object[] args) {
             if (type.GetInterface("IJCDBasicVFS") == null) {
                 throw new Exception("Can only be used with objects that implement IJCDBasicVFS");

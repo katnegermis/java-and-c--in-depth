@@ -174,6 +174,6 @@ namespace vfs.core
 
         string GetCurrentDirectory();
 
-        
+        string[] Search(string fileName, bool caseSensitive);        
     }
 }
