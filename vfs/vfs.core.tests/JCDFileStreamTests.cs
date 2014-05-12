@@ -126,7 +126,7 @@ namespace vfs.core.tests {
         public void TestBufferSize() {
             // Set up
             var testName = "buffer_size";
-            var stream = CreateJCDAndGetFileStream(testName, (ulong)MB1);
+            var stream = CreateJCDAndGetFileStream(testName, (ulong)MB5);
             // We have to set the file length to be greater than 0, which is the default
             // by `CreateJCDAndGetFileStream`.
             var length = 10;
