@@ -46,6 +46,17 @@ namespace vfs.clients.desktop
         private JCDVFSSynchronizer vfsSynchronizer;
 
         /// <summary>
+        /// Returns whether the VFSSynchronizer has a mounted VFS
+        /// </summary>
+        public bool HasVFSMounted
+        {
+            get
+            {
+                return (vfsSynchronizer != null && vfsSynchronizer.HasVFSMounted);
+            }
+        }
+
+        /// <summary>
         /// The current directory we are in.
         /// </summary>
         public string CurrentDir
@@ -103,9 +114,9 @@ namespace vfs.clients.desktop
         /// </summary>
         public bool SearchCaseSensitive = true;
 
-        public VFSSession(JCDVFSSynchronizer vfsSynchronizer)
+        public VFSSession()
         {
-            this.vfsSynchronizer = vfsSynchronizer;
+            this.vfsSynchronizer = new JCDVFSSynchronizer();
         }
 
         #region VFS Methods
@@ -117,9 +128,6 @@ namespace vfs.clients.desktop
         /// <param name="size">Of the new VFS</param>
         public void CreateVFS(string fileToCreate, ulong size)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             this.vfsSynchronizer.Create(typeof(JCDFAT), fileToCreate, size);
         }
 
@@ -129,9 +137,6 @@ namespace vfs.clients.desktop
         /// <param name="fileToDelete"></param>
         public void DeleteVFS(string fileToDelete)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             this.vfsSynchronizer.Delete(typeof(JCDFAT), fileToDelete);
         }
 
@@ -142,9 +147,6 @@ namespace vfs.clients.desktop
         /// <returns>True if opened successfully, false otherwise</returns>
         public bool OpenVFS(string fileToOpen)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             return this.vfsSynchronizer.Open(typeof(JCDFAT), fileToOpen);
         }
 
@@ -153,9 +155,6 @@ namespace vfs.clients.desktop
         /// </summary>
         public void Close()
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             vfsSynchronizer.Close();
             vfsSynchronizer = null;
         }
@@ -170,9 +169,6 @@ namespace vfs.clients.desktop
         /// <param name="dirName">Name of the new directory</param>
         public void CreateDir(string dirName)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             vfsSynchronizer.CreateDirectory(Helpers.PathCombine(CurrentDir, dirName), false);
         }
 
@@ -183,9 +179,6 @@ namespace vfs.clients.desktop
         /// <param name="size">Size of the new file</param>
         public void CreateFile(string fileName, ulong size)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             vfsSynchronizer.CreateFile(Helpers.PathCombine(CurrentDir, fileName), size, false);
         }
 
@@ -196,9 +189,6 @@ namespace vfs.clients.desktop
         /// <param name="newName">New name to set</param>
         public void Rename(string oldName, string newName)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             vfsSynchronizer.RenameFile(Helpers.PathCombine(CurrentDir, oldName), newName);
         }
 
@@ -208,9 +198,6 @@ namespace vfs.clients.desktop
         /// <param name="names">Names of the files/dirs</param>
         public void Copy(string[] names)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             cutNotCopy = false;
             putIntoClipboard(names);
 
@@ -222,9 +209,6 @@ namespace vfs.clients.desktop
         /// <param name="names">Names of the files/dirs</param>
         public void Cut(string[] names)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             cutNotCopy = true;
             putIntoClipboard(names);
         }
@@ -235,9 +219,6 @@ namespace vfs.clients.desktop
         /// <returns>An integer with the number of top level files/dirs that have been pasted.</returns>
         public int Paste()
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             int count = 0;
             foreach (string path in clipboardPaths)
             {
@@ -266,9 +247,6 @@ namespace vfs.clients.desktop
         /// <returns>An integer with the number of top level files/dirs that have been deleted</returns>
         public int Delete(string[] names)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             int count = 0;
             foreach (string name in names)
             {
@@ -337,9 +315,6 @@ namespace vfs.clients.desktop
         /// <returns>The number of moved files/dirs.</returns>
         public int DragDrop(string[] names, string dir, bool removeAfterwards)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             int count = 0;
             foreach (string name in names)
             {
@@ -369,9 +344,6 @@ namespace vfs.clients.desktop
         /// <returns>DirectoryEntry Array with the found files.</returns>
         public DirectoryEntry[] Search(string searchString)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             switch (SearchLocation)
             {
                 case SearchLocation.Everywhere:
@@ -395,9 +367,6 @@ namespace vfs.clients.desktop
         /// <returns>True if moved, false otherwise</returns>
         public bool MoveBack()
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             var path = ParentDirOf(CurrentDir);
             if (path == CurrentDir)
                 return false;
@@ -414,9 +383,6 @@ namespace vfs.clients.desktop
         /// <returns>True if moved, false otherwise</returns>
         public bool MoveInto(string directory, bool completePath)
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             if (completePath)
                 moveIntoDirectory(directory);
             else
@@ -432,9 +398,6 @@ namespace vfs.clients.desktop
         /// <returns>The entries in the current directory</returns>
         public DirectoryEntry[] ListCurrentDirectory()
         {
-            if (vfsSynchronizer == null)
-                throw new Exception("No VFSSynchronizer set!");
-
             var dirList = vfsSynchronizer.ListDirectory(CurrentDir);
             var entries = new DirectoryEntry[dirList.Length];
             for (int i = 0; i < dirList.Length; i++)
