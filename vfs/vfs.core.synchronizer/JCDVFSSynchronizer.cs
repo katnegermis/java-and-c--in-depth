@@ -118,7 +118,7 @@ namespace vfs.core.synchronizer
         // - invalid path string (file name too long/invalid characters).
         // - no permissions to write on HFS.
         public static JCDVFSSynchronizer Create(Type vfsType, string hfsPath, ulong size) {
-            var vfs = (IJCDBasicVFS)IJCDBasicTypeCallMethod(vfsType, "Create", new object[] { hfsPath, size });
+            var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Create", new object[] { hfsPath, size });
             return new JCDVFSSynchronizer(vfs);
         }
 
@@ -129,7 +129,7 @@ namespace vfs.core.synchronizer
         /// <exception cref="System.IO.DirectoryNotFoundException"
         // - VFS is mounted.
         public static void Delete(Type vfsType, string hfsPath) {
-            IJCDBasicTypeCallMethod(vfsType, "Delete", new object[] { hfsPath });
+            IJCDBasicTypeCallStaticMethod(vfsType, "Delete", new object[] { hfsPath });
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace vfs.core.synchronizer
         // - VFS file already mounted.
         // - file is not VFS type.
         public static JCDVFSSynchronizer Open(Type vfsType, string hfsPath) {
-            var vfs = (IJCDBasicVFS)IJCDBasicTypeCallMethod(vfsType, "Open", new object[] { hfsPath });
+            var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
             return new JCDVFSSynchronizer(vfs);
 
         }
@@ -151,7 +151,9 @@ namespace vfs.core.synchronizer
         /// </summary>
         // - No VFS mounted
         public void Close() {
-            vfs.Close();
+            lock (this.vfs) {
+                vfs.Close();
+            }
         }
 
         /// <summary>
@@ -160,7 +162,9 @@ namespace vfs.core.synchronizer
         /// <returns>Size of mounted VFS.</returns>
         // - No VFS mounted
         public ulong Size() {
-            return vfs.Size();
+            lock (this.vfs) {
+                return vfs.Size();
+            }
         }
 
         /// <summary>
@@ -170,7 +174,9 @@ namespace vfs.core.synchronizer
         /// <remarks>It should hold that OccupiedSpace + UnoccupiedSpace == Size</remarks>
         // - No VFS mounted
         public ulong OccupiedSpace() {
-            return vfs.OccupiedSpace();
+            lock (this.vfs) {
+                return vfs.OccupiedSpace();
+            }
         }
 
         /// <summary>
@@ -180,7 +186,9 @@ namespace vfs.core.synchronizer
         /// <remarks>It should hold that OccupiedSpace + UnoccupiedSpace == Size</remarks>
         /// - No VFS mounted
         public ulong FreeSpace() {
-            return vfs.FreeSpace();
+            lock (this.vfs) {
+                return vfs.FreeSpace();
+            }
         }
 
         /// <summary>
@@ -194,7 +202,9 @@ namespace vfs.core.synchronizer
         // - too little space available on VFS.
         // - invalid path string (file name too long/invalid characters).
         public void CreateDirectory(string vfsPath, bool createParents) {
-            vfs.CreateDirectory(vfsPath, createParents);
+            lock (this.vfs) {
+                vfs.CreateDirectory(vfsPath, createParents);
+            }
         }
 
         /// <summary>
@@ -208,7 +218,9 @@ namespace vfs.core.synchronizer
         // - too little space available on VFS.
         // - invalid path string (file name too long/invalid characters).
         public void CreateFile(string vfsPath, ulong size, bool createParents) {
-            vfs.CreateFile(vfsPath, size, createParents);
+            lock (this.vfs) {
+                vfs.CreateFile(vfsPath, size, createParents);
+            }
         }
 
         /// <summary>
@@ -220,7 +232,9 @@ namespace vfs.core.synchronizer
         // - invalid HFS path string (file name too long/invalid characters).
         // - invalid VFS path string (file name too long/invalid characters).
         public void ImportFile(string hfsPath, string vfsPath) {
-            vfs.ImportFile(hfsPath, vfsPath);
+            lock (this.vfs) {
+                vfs.ImportFile(hfsPath, vfsPath);
+            }
         }
 
         /// <summary>
@@ -233,7 +247,9 @@ namespace vfs.core.synchronizer
         // - invalid HFS path string (file name too long/invalid characters).
         // - invalid VFS path string (file name too long/invalid characters).
         public void ExportFile(string vfsPath, string hfsPath) {
-            vfs.ExportFile(vfsPath, hfsPath);
+            lock (this.vfs) {
+                vfs.ExportFile(vfsPath, hfsPath);
+            }
         }
 
         /// <summary>
@@ -244,7 +260,9 @@ namespace vfs.core.synchronizer
         // - no such path.
         // - path points to a directory (recursive == false).
         public void DeleteFile(string vfsPath, bool recursive) {
-            vfs.DeleteFile(vfsPath, recursive);
+            lock (this.vfs) {
+                vfs.DeleteFile(vfsPath, recursive);
+            }
         }
 
         ///<summary>
@@ -255,7 +273,9 @@ namespace vfs.core.synchronizer
         // - invalid file name (too long/invalid characters).
         // - no such file on VFS.
         public void RenameFile(string vfsPath, string newName) {
-            vfs.RenameFile(vfsPath, newName);
+            lock (this.vfs) {
+                vfs.RenameFile(vfsPath, newName);
+            }
         }
 
         /// <summary>
@@ -266,7 +286,9 @@ namespace vfs.core.synchronizer
         // - invalid file name (too long/invalid characters).
         // - no such file on VFS.
         public void MoveFile(string vfsPath, string newVfsPath) {
-            vfs.MoveFile(vfsPath, newVfsPath);
+            lock (this.vfs) {
+                vfs.MoveFile(vfsPath, newVfsPath);
+            }
         }
 
         /// <summary>
@@ -277,7 +299,9 @@ namespace vfs.core.synchronizer
         // - invalid file name (too long/invalid characters).
         // - no such file on VFS.
         public void CopyFile(string vfsPath, string newVfsPath) {
-            vfs.CopyFile(vfsPath, newVfsPath);
+            lock (this.vfs) {
+                vfs.CopyFile(vfsPath, newVfsPath);
+            }
         }
 
         /// <summary>
@@ -287,26 +311,36 @@ namespace vfs.core.synchronizer
         // Exceptions:
         // - path points to a file (not directory).
         public JCDDirEntry[] ListDirectory(string vfsPath) {
-            return vfs.ListDirectory(vfsPath);
+            lock (this.vfs) {
+                return vfs.ListDirectory(vfsPath);
+            }
         }
 
         public void SetCurrentDirectory(string vfsPath) {
-            vfs.SetCurrentDirectory(vfsPath);
+            lock (this.vfs) {
+                vfs.SetCurrentDirectory(vfsPath);
+            }
         }
 
         public string GetCurrentDirectory() {
-            return vfs.GetCurrentDirectory();
+            lock (this.vfs) {
+                return vfs.GetCurrentDirectory();
+            }
         }
 
         public JCDFileStream GetFileStream(string vfsPath) {
-            return vfs.GetFileStream(vfsPath);
+            lock (this.vfs) {
+                return vfs.GetFileStream(vfsPath);
+            }
         }
 
         public string[] Search(string fileName, bool caseSensitive) {
-            return vfs.Search(fileName, caseSensitive);
+            lock (this.vfs) {
+                return vfs.Search(fileName, caseSensitive);
+            }
         }
 
-        internal static object IJCDBasicTypeCallMethod(Type type, string methodName, object[] args) {
+        internal static object IJCDBasicTypeCallStaticMethod(Type type, string methodName, object[] args) {
             if (type.GetInterface("IJCDBasicVFS") == null) {
                 throw new Exception("Can only be used with objects that implement IJCDBasicVFS");
             }
