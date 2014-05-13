@@ -52,24 +52,17 @@ namespace vfs.clients.web {
             Page.Form.DefaultButton = "";
 
             if(!Page.IsPostBack) {
+                hideSearch();
                 showPage();
             }
-            /*else if(upload.HasFile) {
-                string files = "";
-                foreach(HttpPostedFile file in upload.PostedFiles) {
-                    files +=" '" + file.FileName +"'";
-                }
-                Master.errorText = "apa" + files;
-                showPage();
-            }*/
         }
 
         protected void up(object sender, EventArgs e) {
             Master.checkSession();
 
             Global.vfsSession.MoveBack();
-            hideSearch();
 
+            hideSearch();
             showPage();
         }
 
@@ -78,8 +71,8 @@ namespace vfs.clients.web {
 
             LinkButton b = (LinkButton) sender;
             Global.vfsSession.MoveInto(Server.HtmlDecode(b.Text), false);
-            hideSearch();
 
+            hideSearch();
             showPage();
         }
 
@@ -106,6 +99,7 @@ namespace vfs.clients.web {
                 Master.errorText = ex.ToString();
             }
 
+            hideSearch();
             showPage();
         }
 
@@ -122,6 +116,7 @@ namespace vfs.clients.web {
                 Master.errorText = ex.ToString();
             }
 
+            hideSearch();
             showPage();
         }
 
@@ -136,6 +131,7 @@ namespace vfs.clients.web {
                 Master.errorText = ex.ToString();
             }
 
+            hideSearch();
             showPage();
         }
 
@@ -151,6 +147,7 @@ namespace vfs.clients.web {
                 Master.errorText = ex.ToString();
             }
 
+            hideSearch();
             showPage();
         }
 
@@ -192,9 +189,11 @@ namespace vfs.clients.web {
             HttpContext.Current.Session["editOldName"] = Server.HtmlDecode(l.Text);
 
             filesView.EditIndex = rowIndex;
+            hideSearch();
             showPage();
             filesView.Rows[rowIndex].FindControl("changeFileName").Focus();
             Page.Form.DefaultButton = filesView.Rows[rowIndex].FindControl("saveButton").UniqueID;
+
         }
 
         protected void RowCancelingEditing(object sender, GridViewCancelEditEventArgs e) {
@@ -233,16 +232,16 @@ namespace vfs.clients.web {
         protected void makeSearch(object sender, EventArgs e) {
             Master.checkSession();
 
-            string searchText = search.Text.Trim();
-
-            if(searchText == "") {
+            if(search.Text.Trim() == "") {
                 hideSearch();
             }
             else {
                 Global.vfsSession.SearchCaseSensitive = caseSensitive.Checked;
                 Global.vfsSession.SearchLocation = (noSubfolders.Checked ? SearchLocation.Folder : SearchLocation.SubFolder);
+                //var count = Global.vfsSession.Search(search.Text).Length;
                 Global.vfsSession.Search(search.Text);
                 resultsView.Visible = true;
+                //Master.errorText = (search.Text == Global.vfsSession.ListCurrentDirectory()[0].Name).ToString() + " " + count.ToString();
             }
 
             showPage();
@@ -276,6 +275,7 @@ namespace vfs.clients.web {
                 Global.vfsSession.Upload(upload.PostedFiles);
             }
 
+            hideSearch();
             showPage();
         }
     }

@@ -39,3 +39,8 @@ span.shortcut
         padding: 0;
     }
 }
+
+a
+{
+    white-space: pre-wrap;
+}
