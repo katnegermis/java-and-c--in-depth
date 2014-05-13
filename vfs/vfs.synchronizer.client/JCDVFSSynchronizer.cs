@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.core;
+using vfs.synchronizer.server;
+using Microsoft.AspNet.SignalR.Client;
+using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.client
 {
@@ -11,7 +14,8 @@ namespace vfs.synchronizer.client
     {
         private IJCDBasicVFS vfs;
         // Temporary field representing a connection.
-        private Object conn;
+        private HubConnection hubConn;
+        private IHubProxy hubProxy;
 
         public event AddFileEventHandler FileAdded;
         public event DeleteFileEventHandler FileDeleted;
@@ -87,18 +91,24 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileResized(string path, long newSize) {
-            throw new NotImplementedException();
+            if (!(LoggedIn())) {
+                // Log to disk
+                return;
+            }
+            var reply = HubInvoke<JCDSynchronizerReply>("FileResized", path, newSize);
         }
 
-        public JCDSynchronizationMessage LogIn(string username, string password) {
+        public JCDSynchronizerReply LogIn(string username, string password) {
             // Implement properly.
-            this.conn = new Object();
-            return (JCDSynchronizationMessage)null;
+            if (this.hubConn == null) {
+                ConnectToHub();
+            }
+            return HubInvoke<JCDSynchronizerReply>("LogIn", username, password);
         }
 
         public bool LoggedIn() {
             // Implement properly.
-            return this.conn != null;
+            return this.hubConn != null;
         }
 
         public void LogOut() {
@@ -369,6 +379,16 @@ namespace vfs.synchronizer.client
 
             var method = type.GetMethod(methodName);
             return (IJCDBasicVFS)method.Invoke(null, args);
+        }
+
+        private void ConnectToHub() {
+            this.hubConn = new HubConnection(JCDSynchronizerSettings.PublicAddress);
+            this.hubProxy = this.hubConn.CreateHubProxy(JCDSynchronizerSettings.HubName);
+            this.hubConn.Start().Wait();
+        }
+
+        private T HubInvoke<T>(string methodName, params object[] args) {
+            return this.hubProxy.Invoke<T>(methodName, args).Result;
         }
     }
 }

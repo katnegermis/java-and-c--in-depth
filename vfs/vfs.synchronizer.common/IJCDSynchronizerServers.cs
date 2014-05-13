@@ -3,37 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.core;
 
-namespace vfs.core {
-    public struct JCDSynchronizerReply {
-        private string message;
-        public string Message { get { return message; } }
-
-        private SynchronizerStatusCode statusCode;
-        public SynchronizerStatusCode StatusCode { get { return statusCode; } }
-
-        private object data;
-        public object Data { get { return data; } }
-
-        public JCDSynchronizerReply(string msg, SynchronizerStatusCode status) {
-            this.message = msg;
-            this.statusCode = status;
-            this.data = null;
-        }
-
-        public JCDSynchronizerReply(string msg, SynchronizerStatusCode status, object data) {
-            this.message = msg;
-            this.statusCode = status;
-            this.data = data;
-        }
-    }
-
-    public enum SynchronizerStatusCode {
-        OK,
-        FAILED,
-    }
-
-    public interface IJCDSynchronizedVFS : IJCDBasicVFS {
+namespace vfs.synchronizer.common {
+    public interface IJCDSynchronizerServer : IJCDSynchronizerCommon {
         JCDSynchronizerReply Register(string username, string password);
 
         JCDSynchronizerReply LogIn(string username, string password);
@@ -42,6 +15,8 @@ namespace vfs.core {
          * The following functions assume that the user is logged in, and that  *
          * the server knows which VFSes belong to a particular user.            *
          ************************************************************************/
+
+        JCDSynchronizerReply LogOut();
 
         /// <summary>
         /// Retrieve a list of tuples of VFS ids and names.
