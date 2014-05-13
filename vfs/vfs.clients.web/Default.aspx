@@ -46,6 +46,9 @@
     <asp:Button ID="delete" Text="Delete (r)" OnClick="makeDelete" AccessKey="r" TabIndex="-1" runat="server" />
     <asp:Button ID="paste" Text="Paste (v)" OnClick="makePaste" AccessKey="v" TabIndex="-1" runat="server" />
     <asp:Button ID="newFolder" Text="Create new folder (i)" OnClick="makeCreateFolder" AccessKey="i" TabIndex="-1" runat="server" />
+    
+    &nbsp;&nbsp;Upload Files (p): &nbsp;<asp:FileUpload ID="upload" AllowMultiple="true" runat="server" AccessKey="p"  TabIndex="-1" onchange="document.getElementById('uploadFile').click()" />
+    <asp:Button ID="uploadFile" runat="server" Text="" ClientIDMode="Static" OnClick="makeUpload" TabIndex="-1" class="hidden" />
     <br />
 
     <asp:GridView ID="resultsView" AutoGenerateColumns="False" Font-Size="Larger" runat="server">

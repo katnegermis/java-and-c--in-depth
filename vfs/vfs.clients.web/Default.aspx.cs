@@ -54,6 +54,14 @@ namespace vfs.clients.web {
             if(!Page.IsPostBack) {
                 showPage();
             }
+            /*else if(upload.HasFile) {
+                string files = "";
+                foreach(HttpPostedFile file in upload.PostedFiles) {
+                    files +=" '" + file.FileName +"'";
+                }
+                Master.errorText = "apa" + files;
+                showPage();
+            }*/
         }
 
         protected void up(object sender, EventArgs e) {
@@ -261,6 +269,14 @@ namespace vfs.clients.web {
             Label size = (Label) b.Parent.Parent.FindControl("fileSize");
             //Master.errorText = "'" + size.Text + "'";
             Global.vfsSession.Download(Server.HtmlDecode(b.Text), size.Text, Response);
+        }
+
+        public void makeUpload(object sender, EventArgs e) {
+            if(upload.HasFile) {
+                Global.vfsSession.Upload(upload.PostedFiles);
+            }
+
+            showPage();
         }
     }
 }

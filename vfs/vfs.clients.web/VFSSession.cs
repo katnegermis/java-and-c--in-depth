@@ -334,16 +334,13 @@ namespace vfs.clients.web
             return count;
         }
 
-        public int Import(string[] files, string targetDir)
+        public void Upload(IList<HttpPostedFile> files)
         {
-            int count = 0;
-            foreach (string file in files)
+            foreach(HttpPostedFile file in files)
             {
-                var name = new FileInfo(file).Name;
-                mountedVFS.ImportFile(file, Helpers.PathCombine(targetDir, name));
-                count++;
+                var path = Helpers.PathCombine(CurrentDir, file.FileName);
+                mountedVFS.ImportFile(file.InputStream, path);
             }
-            return count;
         }
 
         public void Download(string name, string size, HttpResponse response)

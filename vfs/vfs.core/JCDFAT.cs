@@ -946,6 +946,10 @@ namespace vfs.core
             }
         }
 
+        public void ImportFile(Stream file, string path) {
+            ImportFile(file, path, null);
+        }
+
         private void ImportFile(Stream file, string path, string fileName) {
             uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
