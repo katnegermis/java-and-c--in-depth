@@ -35,7 +35,7 @@ namespace vfs.core
         internal string searchFileTreePath = "/searchfiletree";
         internal string searchFileDataPath = "/searchfiledata";
 
-        private const uint readBufferSize = 40 * 1024; //In blocks
+        private const uint readBufferSize = 25 * 1024; //In blocks
 
         // All sizes in this class are given in bytes unless otherwise specified.
         internal const uint reservedBlockNumbers = 2; // End-of-chain and free

@@ -22,13 +22,13 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.TextBox vfsPath;
         
         /// <summary>
-        /// submit control.
+        /// Submit control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button submit;
+        protected global::System.Web.UI.WebControls.Button Submit;
         
         /// <summary>
         /// Master property.

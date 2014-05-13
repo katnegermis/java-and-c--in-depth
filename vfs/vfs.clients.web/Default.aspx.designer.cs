@@ -67,6 +67,15 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.Button paste;
         
         /// <summary>
+        /// newFolder control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button newFolder;
+        
+        /// <summary>
         /// Master property.
         /// </summary>
         /// <remarks>

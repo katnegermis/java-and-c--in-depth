@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core", "vfs.core\vfs.core.csproj", "{F283EE69-4609-4C8F-A26C-48B9E72EBFAB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.console", "vfs.clients.console\vfs.clients.console.csproj", "{89E4FC44-DA37-4A6B-A644-CE713898C5D5}"
@@ -14,6 +16,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.indexing.tests", "vfs.core.indexing.tests\vfs.core.indexing.tests.csproj", "{74A5D888-19A0-4B06-BA7D-E0A61DB7F97B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.web", "vfs.clients.web\vfs.clients.web.csproj", "{3D614E01-795B-40CD-BC86-346A16312B87}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1FAD4D59-C2E9-43F9-A544-125DE616AB2C} = {1FAD4D59-C2E9-43F9-A544-125DE616AB2C}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.common", "vfs.common\vfs.common.csproj", "{1FAD4D59-C2E9-43F9-A544-125DE616AB2C}"
 EndProject

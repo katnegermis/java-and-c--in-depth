@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using vfs.core;
+using vfs.common;
 
 namespace vfs.clients.web
 {
@@ -52,6 +53,11 @@ namespace vfs.clients.web
         /// If none is mounted, then null.
         /// </summary>
         private JCDFAT mountedVFS;
+
+        /// <summary>
+        /// The location of the currently open VFS.
+        /// </summary>
+        public string mountedVFSpath;
 
         /// <summary>
         /// The current directory we are in.
@@ -111,9 +117,10 @@ namespace vfs.clients.web
         /// </summary>
         public bool SearchCaseSensitive = true;
 
-        private VFSSession(JCDFAT vfs)
+        private VFSSession(JCDFAT vfs, string path)
         {
             mountedVFS = vfs;
+            mountedVFSpath = path;
         }
 
         #region VFS Methods
@@ -123,18 +130,35 @@ namespace vfs.clients.web
         /// </summary>
         /// <param name="fileToCreate">To create and put the VFS inside</param>
         /// <param name="size">Of the new VFS</param>
-        public static void CreateVFS(string fileToCreate, ulong size)
+        /// /// <returns>A new VFSSession object if the VFS was created successfully or null otherwise</returns>
+        public static VFSSession CreateVFS(string fileToCreate, ulong size)
         {
-            JCDFAT.Create(fileToCreate, size).Close();
+            var vfs = JCDFAT.Create(fileToCreate, size);
+            if(vfs != null)
+                return new VFSSession(vfs, fileToCreate);
+            else
+                return null;
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Makes the call to delete the given file if it has a VFS in it.
         /// </summary>
         /// <param name="fileToDelete"></param>
         public static void DeleteVFS(string fileToDelete)
         {
             JCDFAT.Delete(fileToDelete);
+        }*/
+
+        /// <summary>
+        /// Delete the currently open VFS
+        /// </summary>
+        public void DeleteVFS() {
+            if(mountedVFS == null)
+                throw new Exception("No VFS mounted!");
+
+            string VFSpath = mountedVFSpath;
+            Close();
+            JCDFAT.Delete(VFSpath);
         }
 
         /// <summary>
@@ -142,12 +166,12 @@ namespace vfs.clients.web
         /// Then returns a new VFSSession object.
         /// </summary>
         /// <param name="fileToOpen">The file to open</param>
-        /// <returns>A new VFSSession object if the VFS object was created successfully or null otherwise</returns>
+        /// <returns>A new VFSSession object if the VFS was opened successfully or null otherwise</returns>
         public static VFSSession OpenVFS(string fileToOpen)
         {
             var vfs = JCDFAT.Open(fileToOpen);
             if (vfs != null)
-                return new VFSSession(vfs);
+                return new VFSSession(vfs, fileToOpen);
             else
                 return null;
         }
@@ -162,6 +186,7 @@ namespace vfs.clients.web
 
             mountedVFS.Close();
             mountedVFS = null;
+            mountedVFSpath = null;
         }
 
         #endregion
@@ -202,6 +227,9 @@ namespace vfs.clients.web
         {
             if (mountedVFS == null)
                 throw new Exception("No VFS mounted!");
+
+            if(oldName == newName)
+                return;
 
             mountedVFS.RenameFile(Helpers.PathCombine(CurrentDir, oldName), newName);
         }
@@ -339,7 +367,7 @@ namespace vfs.clients.web
             return count;
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Makes the drag and drop operation with the given files/dirs from the current directory to the target.
         /// If set so, the given files are removed afterwards.
         /// </summary>
@@ -371,7 +399,7 @@ namespace vfs.clients.web
                 }
             }
             return count;
-        }
+        }*/
 
         /// <summary>
         /// Searches for the given string and returns the found files.

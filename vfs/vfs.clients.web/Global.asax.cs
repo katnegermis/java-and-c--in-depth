@@ -25,14 +25,8 @@ namespace vfs.clients.web {
             }
         }
 
-        void Application_Start(object sender, EventArgs e) {
-            // Code that runs on application startup
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
-        }
-
-        public void Session_OnEnd() {
-            if(vfsSession != null) {
+        public static void TerminateSession() {
+            if(HttpContext.Current != null && vfsSession != null) {
                 try {
                     vfsSession.Close();
                 }
@@ -41,6 +35,16 @@ namespace vfs.clients.web {
                 }
                 vfsSession = null;
             }
+        }
+
+        void Application_Start(object sender, EventArgs e) {
+            // Code that runs on application startup
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
+        }
+
+        public void Session_OnEnd() {
+            TerminateSession();
         }
     }
 }
