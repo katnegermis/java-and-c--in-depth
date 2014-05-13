@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.common;
+using vfs.synchronizer.client;
 
 namespace vfs.core.synchronizer.tests {
     [TestClass]

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using vfs.core;
-using vfs.core.synchronizer;
+using vfs.synchronizer.client;
 using vfs.common;
 
 namespace vfs.clients.desktop

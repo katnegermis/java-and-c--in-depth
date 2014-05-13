@@ -17,9 +17,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.web", "vfs.clie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.common", "vfs.common\vfs.common.csproj", "{1FAD4D59-C2E9-43F9-A544-125DE616AB2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.synchronizer", "vfs.core.synchronizer\vfs.core.synchronizer.csproj", "{1B359E51-C882-4832-8A8E-80B0C8ADD040}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.client", "vfs.synchronizer.client\vfs.synchronizer.client.csproj", "{1B359E51-C882-4832-8A8E-80B0C8ADD040}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.synchronizer.tests", "vfs.core.synchronizer.tests\vfs.core.synchronizer.tests.csproj", "{21FF8237-03AB-4FC7-8D6B-83915615B099}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.tests", "vfs.synchronizer.tests\vfs.synchronizer.tests.csproj", "{21FF8237-03AB-4FC7-8D6B-83915615B099}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

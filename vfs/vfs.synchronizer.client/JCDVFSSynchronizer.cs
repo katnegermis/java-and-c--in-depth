@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using vfs.core;
 
-namespace vfs.core.synchronizer
+namespace vfs.synchronizer.client
 {
     public class JCDVFSSynchronizer : IJCDBasicVFS
     {

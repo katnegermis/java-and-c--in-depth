@@ -7,8 +7,8 @@
     <ProjectGuid>{1B359E51-C882-4832-8A8E-80B0C8ADD040}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vfs.core.synchronizer</RootNamespace>
-    <AssemblyName>vfs.core.synchronizer</AssemblyName>
+    <RootNamespace>vfs.synchronizer.client</RootNamespace>
+    <AssemblyName>vfs.synchronizer.client</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
