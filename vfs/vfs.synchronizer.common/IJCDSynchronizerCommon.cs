@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace vfs.core.synchronizer {
-    public interface ISynchronizerBase {
-
+namespace vfs.synchronizer.common {
+    public interface IJCDSynchronizerCommon {
         /// <summary>
         /// Inform the other party that a file was added.
         /// </summary>
         /// <param name="path">Path of the file.</param>
         /// <param name="data">Data of the file.</param>
-        [OperationContract(IsOneWay = true)]
         void FileAdded(string path, byte[] data);
 
         /// <summary>
         /// Inform the other party that a file was deleted.
         /// </summary>
         /// <param name="path">Path to the file.</param>
-        [OperationContract(IsOneWay=true)]
         void FileDeleted(string path);
 
         /// <summary>
@@ -28,7 +24,6 @@ namespace vfs.core.synchronizer {
         /// </summary>
         /// <param name="oldPath">Old path of the file.</param>
         /// <param name="newPath">New (current) path of the file.</param>
-        [OperationContract(IsOneWay = true)]
         void FileMoved(string oldPath, string newPath);
 
         /// <summary>
@@ -37,7 +32,6 @@ namespace vfs.core.synchronizer {
         /// <param name="path">Path of the file.</param>
         /// <param name="offset">Offset from which the file was modified.</param>
         /// <param name="data">New data to be written, starting from offset.</param>
-        [OperationContract(IsOneWay = true)]
         void FileModified(string path, long offset, byte[] data);
 
         /// <summary>
@@ -50,7 +44,6 @@ namespace vfs.core.synchronizer {
         /// </summary>
         /// <param name="path">Path to the file.</param>
         /// <param name="newSize">New size of the file.</param>
-        [OperationContract(IsOneWay = true)]
         void FileResized(string path, long newSize);
     }
 }

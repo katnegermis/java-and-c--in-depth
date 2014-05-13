@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{21FF8237-03AB-4FC7-8D6B-83915615B099}</ProjectGuid>
+    <ProjectGuid>{1B359E51-C882-4832-8A8E-80B0C8ADD040}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vfs.core.synchronizer.tests</RootNamespace>
-    <AssemblyName>vfs.core.synchronizer.tests</AssemblyName>
+    <RootNamespace>vfs.synchronizer.client</RootNamespace>
+    <AssemblyName>vfs.synchronizer.client</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,9 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.AspNet.SignalR.Client">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.0.3\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,24 +44,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JCDVFSSynchronizerTests.cs" />
+    <Compile Include="JCDSynchronizationClient.cs" />
+    <Compile Include="JCDVFSSynchronizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\vfs.common\vfs.common.csproj">
-      <Project>{1fad4d59-c2e9-43f9-a544-125de616ab2c}</Project>
-      <Name>vfs.common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\vfs.core.synchronizer\vfs.core.synchronizer.csproj">
-      <Project>{1b359e51-c882-4832-8a8e-80b0c8add040}</Project>
-      <Name>vfs.core.synchronizer</Name>
-    </ProjectReference>
     <ProjectReference Include="..\vfs.core\vfs.core.csproj">
       <Project>{f283ee69-4609-4c8f-a26c-48b9e72ebfab}</Project>
       <Name>vfs.core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\vfs.synchronizer.common\vfs.synchronizer.common.csproj">
+      <Project>{47a95fb7-fb8a-40dd-9f89-cc51c9f52a4e}</Project>
+      <Name>vfs.synchronizer.common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\vfs.synchronizer.server\vfs.synchronizer.server.csproj">
+      <Project>{6279061c-d60f-4fbe-8ead-9435c702f577}</Project>
+      <Name>vfs.synchronizer.server</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

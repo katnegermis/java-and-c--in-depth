@@ -22,9 +22,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.clients.web", "vfs.clie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.common", "vfs.common\vfs.common.csproj", "{1FAD4D59-C2E9-43F9-A544-125DE616AB2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.synchronizer", "vfs.core.synchronizer\vfs.core.synchronizer.csproj", "{1B359E51-C882-4832-8A8E-80B0C8ADD040}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.client", "vfs.synchronizer.client\vfs.synchronizer.client.csproj", "{1B359E51-C882-4832-8A8E-80B0C8ADD040}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core.synchronizer.tests", "vfs.core.synchronizer.tests\vfs.core.synchronizer.tests.csproj", "{21FF8237-03AB-4FC7-8D6B-83915615B099}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.tests", "vfs.synchronizer.tests\vfs.synchronizer.tests.csproj", "{21FF8237-03AB-4FC7-8D6B-83915615B099}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.server", "vfs.synchronizer.server\vfs.synchronizer.server.csproj", "{6279061C-D60F-4FBE-8EAD-9435C702F577}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.common", "vfs.synchronizer.common\vfs.synchronizer.common.csproj", "{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +76,14 @@ Global
 		{21FF8237-03AB-4FC7-8D6B-83915615B099}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21FF8237-03AB-4FC7-8D6B-83915615B099}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21FF8237-03AB-4FC7-8D6B-83915615B099}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6279061C-D60F-4FBE-8EAD-9435C702F577}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6279061C-D60F-4FBE-8EAD-9435C702F577}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6279061C-D60F-4FBE-8EAD-9435C702F577}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6279061C-D60F-4FBE-8EAD-9435C702F577}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

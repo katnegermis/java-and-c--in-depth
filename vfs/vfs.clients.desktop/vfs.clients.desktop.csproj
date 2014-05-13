@@ -145,6 +145,10 @@
       <Project>{f283ee69-4609-4c8f-a26c-48b9e72ebfab}</Project>
       <Name>vfs.core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\vfs.synchronizer.client\vfs.synchronizer.client.csproj">
+      <Project>{1b359e51-c882-4832-8a8e-80b0c8add040}</Project>
+      <Name>vfs.synchronizer.client</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -14,37 +14,6 @@ namespace vfs.core
         event ModifyFileEventHandler FileModified;
         event ResizeFileEventHandler FileResized;
 
-        //You can't have static methods in an interface
-        /*/// <summary>
-        /// Create a new VFS-file.
-        /// </summary>
-        /// <param name="hfsPath">The path of the file on the hard file system</param>
-        /// <param name="size">The size of the new vfs</param>
-        /// <returns>An object of an implementation of the IJCDBasicVFS interface</returns>
-        /// <exception cref="System.IO.DirectoryNotFoundException"
-        // - too little space available on HFS
-        // - invalid path string (file name too long/invalid characters).
-        // - no permissions to write on HFS.
-        static IJCDBasicVFS Create(string hfsPath, ulong size);
-
-        /// <summary>
-        /// Delete an unmounted VFS from HFS.
-        /// </summary>
-        /// <param name="hfsPath">The path of the file on the host file system</param>
-        /// <exception cref="System.IO.DirectoryNotFoundException"
-        // - VFS is mounted.
-        static void Delete(string hfsPath);
-
-        /// <summary>
-        /// Mount an existing VFS-file.
-        /// </summary>
-        /// <param name="hfsPath"> The path of the file on the host file system</param>
-        /// <returns>An object of an implementation of the IJCDBasicVFS interface</returns>
-        /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
-        // - VFS file already mounted.
-        // - file is not VFS type.
-        static IJCDBasicVFS Open(string hfsPath);*/
-
         /// <summary>
         /// Unmount a mounted VFS.
         /// </summary>
@@ -174,6 +143,10 @@ namespace vfs.core
 
         string GetCurrentDirectory();
 
-        
+        string[] Search(string fileName, bool caseSensitive);
+
+        string[] Search(string searchDir, string fileName, bool caseSensitive, bool recursive);
+
+        JCDDirEntry GetFileDetails(string vfsPath);
     }
 }

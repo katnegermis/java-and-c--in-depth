@@ -12,6 +12,9 @@ namespace vfs.clients.desktop
 {
     public partial class LoginForm : Form
     {
+
+        public VFSSession session { get; set; }
+
         public LoginForm()
         {
             InitializeComponent();
@@ -22,10 +25,11 @@ namespace vfs.clients.desktop
             string userName = NameLabel.Text;
             string password = pwLabel.Text;
 
-            //TODO make login
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            if (makeLogin(userName, password))
+            {
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
         }
 
         private void registerButton_Click(object sender, EventArgs e)
@@ -38,5 +42,22 @@ namespace vfs.clients.desktop
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
+
+        private bool makeLogin(string userName, string password)
+        {
+            if (session.LogIn(userName, password))
+            {
+                return true;
+            }
+            else
+            {
+                var result = MessageBox.Show(this, "Could not login successfully.", "Login", MessageBoxButtons.RetryCancel, MessageBoxIcon.Exclamation);
+                if (result == DialogResult.Retry)
+                    makeLogin(userName, password);
+            }
+            return false;
+        }
+
+
     }
 }

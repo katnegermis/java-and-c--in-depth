@@ -37,26 +37,11 @@ namespace vfs.clients.desktop
             this.directoryListView.ListViewItemSorter = lvwColumnSorter;
         }
 
-        private void MainForm_Shown(object sender, EventArgs e)
-        {
-            if (!makeLogin())
-                this.Close();
-        }
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (session != null)
                 makeVFSClose();
         }
-
-        private bool makeLogin()
-        {
-            var form = new LoginForm();
-            form.ShowDialog(this);
-            return form.DialogResult == DialogResult.OK;
-        }
-
-
 
         #region Button Clicks
 
@@ -1115,18 +1100,10 @@ namespace vfs.clients.desktop
 
         #endregion
 
-        private void logoutButton_Click(object sender, EventArgs e)
-        {
-            //TODO close the session or so
-
-            if (!makeLogin())
-                this.Close();
-        }
-
         private void synchroButton_Click(object sender, EventArgs e)
         {
             var form = new SynchroManagerForm();
-            form.userName = "pascal";
+            form.session = session;
             form.ShowDialog(this);
         }
 

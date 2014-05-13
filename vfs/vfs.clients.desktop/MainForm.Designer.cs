@@ -38,7 +38,6 @@
             this.deleteButton = new System.Windows.Forms.Button();
             this.closeButton = new System.Windows.Forms.Button();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
-            this.logoutButton = new System.Windows.Forms.Button();
             this.synchroButton = new System.Windows.Forms.Button();
             this.updateButton = new System.Windows.Forms.Button();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -184,7 +183,6 @@
             // 
             // flowLayoutPanel2
             // 
-            this.flowLayoutPanel2.Controls.Add(this.logoutButton);
             this.flowLayoutPanel2.Controls.Add(this.synchroButton);
             this.flowLayoutPanel2.Controls.Add(this.updateButton);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -196,20 +194,9 @@
             this.flowLayoutPanel2.TabIndex = 18;
             this.flowLayoutPanel2.WrapContents = false;
             // 
-            // logoutButton
-            // 
-            this.logoutButton.Location = new System.Drawing.Point(217, 0);
-            this.logoutButton.Margin = new System.Windows.Forms.Padding(0, 0, 3, 3);
-            this.logoutButton.Name = "logoutButton";
-            this.logoutButton.Size = new System.Drawing.Size(75, 23);
-            this.logoutButton.TabIndex = 11;
-            this.logoutButton.Text = "Logout";
-            this.logoutButton.UseVisualStyleBackColor = true;
-            this.logoutButton.Click += new System.EventHandler(this.logoutButton_Click);
-            // 
             // synchroButton
             // 
-            this.synchroButton.Location = new System.Drawing.Point(101, 0);
+            this.synchroButton.Location = new System.Drawing.Point(179, 0);
             this.synchroButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.synchroButton.Name = "synchroButton";
             this.synchroButton.Size = new System.Drawing.Size(110, 23);
@@ -220,13 +207,14 @@
             // 
             // updateButton
             // 
-            this.updateButton.Location = new System.Drawing.Point(20, 0);
+            this.updateButton.Location = new System.Drawing.Point(98, 0);
             this.updateButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
             this.updateButton.Name = "updateButton";
             this.updateButton.Size = new System.Drawing.Size(75, 23);
             this.updateButton.TabIndex = 9;
             this.updateButton.Text = "Update";
             this.updateButton.UseVisualStyleBackColor = true;
+            this.updateButton.Visible = false;
             this.updateButton.Click += new System.EventHandler(this.updateButton_Click);
             // 
             // tableLayoutPanel2
@@ -568,7 +556,6 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "VFS Ravioli";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.formFlowLayoutPanel.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel4.ResumeLayout(false);
@@ -628,7 +615,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
         private System.Windows.Forms.Button updateButton;
         private System.Windows.Forms.Button synchroButton;
-        private System.Windows.Forms.Button logoutButton;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
