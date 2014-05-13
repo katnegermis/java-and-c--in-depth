@@ -183,7 +183,7 @@ namespace vfs.clients.web {
 
             char[] invalid = System.IO.Path.GetInvalidPathChars();
 
-            foreach(char c in newName) { //Ugly, slow, works (probably)
+            foreach(char c in invalid) { //Ugly, slow, works (probably)
                 newName = newName.Replace(c.ToString(), "");
             }
 
