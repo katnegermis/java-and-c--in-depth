@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using vfs.core;
 using vfs.common;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace vfs.clients.web
 {
@@ -210,7 +214,7 @@ namespace vfs.clients.web
             mountedVFS.CreateDirectory(Helpers.PathCombine(CurrentDir, dirName), false);
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Creates a fiel with the given name and size in the current directory of the VFS.
         /// </summary>
         /// <param name="fileName">Name of the new file</param>
@@ -221,7 +225,8 @@ namespace vfs.clients.web
                 throw new Exception("No VFS mounted!");
 
             mountedVFS.CreateFile(Helpers.PathCombine(CurrentDir, fileName), size, false);
-        }
+        }*/
+
 
         /// <summary>
         /// Renames the file/dir with the given name in the current directory to the new name.
@@ -329,12 +334,6 @@ namespace vfs.clients.web
             return count;
         }
 
-        /// <summary>
-        /// Imports the given files/dirs from the host file system into the current directory.
-        /// </summary>
-        /// <param name="files">File/dir paths to import</param>
-        /// <param name="targetDir">Dir to import the files/dirs to.</param>
-        /// <returns>The number of top level files/dirs that have been imported</returns>
         public int Import(string[] files, string targetDir)
         {
             int count = 0;
@@ -347,29 +346,24 @@ namespace vfs.clients.web
             return count;
         }
 
-        /// <summary>
-        /// Exports the files/dirs with the given names from the current directory to the target path in the host file system.
-        /// </summary>
-        /// <param name="names">Names of the files/dirs to export</param>
-        /// <param name="targetPath">Path to export the files/dirs to</param>
-        /// <returns>The number of top level files/dirs that have been exported</returns>
-        public int Export(string[] names, string targetPath)
+        public void Download(string name, string size, HttpResponse response)
         {
-            int count = 0;
-            foreach (string name in names)
-            {
-                try
-                {
-                    var file = Helpers.PathCombine(CurrentDir, name);
-                    mountedVFS.ExportFile(file, targetPath);
-                }
-                catch (Exception)
-                {
-                    //log or just ignore
-                }
-                count++;
+            try {
+                var file = Helpers.PathCombine(CurrentDir, name);
+                response.Clear();
+                response.ClearHeaders();
+                response.ClearContent();
+                response.AppendHeader("Content-Disposition", "attachment; filename=\"" + name + "\"");
+                response.AppendHeader("Content-Length", size);
+                response.AppendHeader("Cache-Control", "private, max-age=0, no-cache");
+                response.ContentType = "application/octet-stream";
+                response.Flush();
+                mountedVFS.ExportFile(file, response.OutputStream);
+                response.End();
             }
-            return count;
+            catch(Exception) {
+                //log or just ignore
+            }
         }
 
         /*/// <summary>

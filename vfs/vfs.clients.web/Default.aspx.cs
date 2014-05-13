@@ -80,7 +80,7 @@ namespace vfs.clients.web {
             foreach(GridViewRow r in filesView.Rows) {
                 CheckBox c = (CheckBox) r.FindControl("selectBox");
                 if(c.Checked) {
-                    Label l = (Label) r.FindControl("fileName");
+                    LinkButton l = (LinkButton) r.FindControl("fileName");
                     names.Add(Server.HtmlDecode(l.Text));
                 }
             }
@@ -180,7 +180,7 @@ namespace vfs.clients.web {
         }
 
         private void RowEditing(int rowIndex) {
-            Label l = (Label) filesView.Rows[rowIndex].FindControl("fileName");
+            LinkButton l = (LinkButton) filesView.Rows[rowIndex].FindControl("fileName");
             HttpContext.Current.Session["editOldName"] = Server.HtmlDecode(l.Text);
 
             filesView.EditIndex = rowIndex;
@@ -254,6 +254,13 @@ namespace vfs.clients.web {
             Global.vfsSession.MoveInto(Helpers.PathGetDirectoryName(Server.HtmlDecode(b.Text)), true);
 
             showPage();
+        }
+
+        public void makeDownload(object sender, EventArgs e) {
+            LinkButton b = (LinkButton) sender;
+            Label size = (Label) b.Parent.Parent.FindControl("fileSize");
+            //Master.errorText = "'" + size.Text + "'";
+            Global.vfsSession.Download(Server.HtmlDecode(b.Text), size.Text, Response);
         }
     }
 }

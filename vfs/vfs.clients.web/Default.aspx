@@ -3,9 +3,9 @@
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
     <asp:ImageButton id="parentFolder" ImageUrl="parent.png" OnClick="up" AccessKey="u" TabIndex="-1" runat="server" />
-    <asp:TextBox ID="search" runat="server" AutoPostBack="true" OnTextChanged="makeSearch" placeholder="Search in this folder..."></asp:TextBox><br />
-    <asp:CheckBox ID="caseSensitive" Text="Case sensitive" AutoPostBack="true" OnCheckedChanged="makeSearch" runat="server"/>
-    <asp:CheckBox ID="noSubfolders" Text="Don't search in subfolders" AutoPostBack="true" OnCheckedChanged="makeSearch" runat="server"/><br />
+    <asp:TextBox ID="search" runat="server" AutoPostBack="true" OnTextChanged="makeSearch" placeholder="Search in this folder... (a)" AccessKey="a" TabIndex="-1"></asp:TextBox><br />
+    <asp:CheckBox ID="caseSensitive" Text="Case sensitive (t)" AutoPostBack="true" OnCheckedChanged="makeSearch" AccessKey="t" TabIndex="-1" runat="server"/>
+    <asp:CheckBox ID="noSubfolders" Text="Don't search in subfolders (b)" AutoPostBack="true" OnCheckedChanged="makeSearch" AccessKey="b" TabIndex="-1" runat="server"/><br />
     <asp:GridView ID="filesView" AutoGenerateColumns="False" Font-Size="Larger" runat="server"
         OnRowEditing="RowEditing" OnRowCancelingEdit="RowCancelingEditing" OnRowUpdating="RowUpdating">
         <Columns>
@@ -23,7 +23,7 @@
                     <ItemTemplate>
                         <asp:ImageButton ID="editButton" ImageUrl="edit.png" CommandName="Edit" TabIndex="4" runat="server" />
                         <asp:LinkButton ID="openButton" runat="server" Text='<%#: Bind("Name") %>' OnClick="cd" Visible='<%# Eval("IsFolder") %>' TabIndex="2"></asp:LinkButton>
-                        <asp:Label ID="fileName" runat="server" Text='<%#: Bind("Name") %>' Visible='<%# !(bool)Eval("IsFolder") %>'></asp:Label>
+                        <asp:LinkButton ID="fileName" runat="server" Text='<%#: Bind("Name") %>' OnClick="makeDownload" Visible='<%# !(bool)Eval("IsFolder") %>' TabIndex="2"></asp:LinkButton>
                     </ItemTemplate>
                     <EditItemTemplate>
                         <asp:ImageButton ID="saveButton" ImageUrl="save.png" CommandName="Update" TabIndex="1" runat="server" />
@@ -31,7 +31,11 @@
                         <asp:TextBox ID="changeFileName" runat="server" Text='<%# Bind("Name") %>'></asp:TextBox> 
                     </EditItemTemplate> 
                 </asp:TemplateField>
-            <asp:BoundField HeaderText="Size" DataField="Size" ReadOnly="true" />
+            <asp:TemplateField HeaderText="Size">
+                <ItemTemplate>
+                    <asp:Label ID="fileSize" runat="server" Text='<%#: Eval("Size") %>'></asp:Label>
+                </ItemTemplate>
+            </asp:TemplateField>
         </Columns>
         <EmptyDataTemplate>(Empty directory)</EmptyDataTemplate>
     </asp:GridView>

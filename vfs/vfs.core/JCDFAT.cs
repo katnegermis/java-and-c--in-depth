@@ -1032,7 +1032,7 @@ namespace vfs.core
             
             try {
                 outputFile = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                ExportFile(outputFile, file);
+                ExportFile(outputFile, file, false);
             }
             finally {
                 outputFile.Close();
@@ -1059,7 +1059,23 @@ namespace vfs.core
             ExportFile(hfsPath, file);
         }
 
-        private void ExportFile(Stream outputFile, JCDFile file) {
+        public void ExportFile(string vfsPath, Stream output) {
+
+            var file = GetFile(vfsPath);
+            if(file == null) {
+                throw new vfs.exceptions.FileNotFoundException();
+            }
+
+            // Export folder
+            if(file.IsFolder) {
+                throw new IsAFolderException();
+            }
+
+            // Export file
+            ExportFile(output, file, true);
+        }
+
+        private void ExportFile(Stream outputFile, JCDFile file, bool flush) {
             int bufSize = (int)(readBufferSize * blockSize);
             var buffer = new byte[bufSize];
             int bufPos = 0;
@@ -1069,6 +1085,7 @@ namespace vfs.core
                 if (bufPos >= bufSize)
                 {
                     outputFile.Write(buffer, 0, bufSize);
+                    if(flush) outputFile.Flush();
                     bufPos = 0;
                 }
 
@@ -1189,7 +1206,7 @@ namespace vfs.core
             }
             else {
                 MemoryStream ms = new MemoryStream((int)Math.Min(oldFile.Size, (ulong) Int32.MaxValue));
-                ExportFile(ms, oldFile);
+                ExportFile(ms, oldFile, false);
                 ImportFile(ms, newVfsPath, null);
             }
         }
