@@ -10,7 +10,7 @@ using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.client
 {
-    public class JCDVFSSynchronizer : IJCDBasicVFS
+    public class JCDVFSSynchronizer : IJCDBasicVFS, IJCDSynchronizedVFS
     {
         private IJCDBasicVFS vfs;
         // Temporary field representing a connection.
@@ -72,22 +72,37 @@ namespace vfs.synchronizer.client
                 FileResized(path, newSize);
             }
         }
-
         
-        internal void InformServerFileAdded(string path) {
-            throw new NotImplementedException();
+        internal void InformServerFileAdded(string path, byte[] data) {
+            if (!(LoggedIn())) {
+                // Log to disk
+                return;
+            }
+            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", path, data);
         }
 
         internal void InformServerFileDeleted(string path) {
-            throw new NotImplementedException();
+            if (!(LoggedIn())) {
+                // Log to disk
+                return;
+            }
+            var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", path);
         }
 
         internal void InformServerFileMoved(string oldPath, string newPath) {
-            throw new NotImplementedException();
+            if (!(LoggedIn())) {
+                // Log to disk
+                return;
+            }
+            var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", oldPath, newPath);
         }
 
         internal void InformServerFileModified(string path, long offset, byte[] data) {
-            throw new NotImplementedException();
+            if (!(LoggedIn())) {
+                // Log to disk
+                return;
+            }
+            var reply = HubInvoke<JCDSynchronizerReply>("FileModified", path, offset, data);
         }
 
         internal void InformServerFileResized(string path, long newSize) {
@@ -106,13 +121,54 @@ namespace vfs.synchronizer.client
             return HubInvoke<JCDSynchronizerReply>("LogIn", username, password);
         }
 
+        public static JCDSynchronizerReply Register(string username, string password) {
+            // Implement properly.
+            var conns = ConnectToHubStatic();
+            return HubInvoke<JCDSynchronizerReply>(conns.Item2, "Register", username, password);
+        }
+
+        public static JCDSynchronizerReply ListVFSes(string username, string password) {
+            var conns = ConnectToHubStatic();
+            return HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
+        }
+
+        /// <summary>
+        /// Start synchronizing the underlying VFS with the server.
+        /// </summary>
+        /// <returns></returns>
+        public JCDSynchronizerReply AddVFS() {
+            // We should probably use the hfsPath instead of vfsName here, since we don't track
+            // vfs names in this file.
+            byte[] data = new byte[1]; // Get vfs data.
+            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", data);
+        }
+
+
+        /// <summary>
+        /// Stop synchronizing the underlying VFS with the server.
+        /// </summary>
+        /// <returns></returns>
+        public JCDSynchronizerReply RemoveVFS() {
+            // TODO: Implement properly.
+            int vfsId = 0; // Get real VFS id, this.vfs.GetId();
+            var conns = ConnectToHubStatic();
+            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "DeleteVFS", vfsId);
+        }
+
+        public JCDSynchronizerReply RetrieveVFS(int vfsId) {
+            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "RetrieveVFS", vfsId);
+        }
+
         public bool LoggedIn() {
             // Implement properly.
             return this.hubConn != null;
         }
 
         public void LogOut() {
-            // Not implemented.
+            var result = HubInvoke<JCDSynchronizerReply>("LogOut");
+            if (result.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new Exception("Error logging out: " + result.Message);
+            }
         }
 
         private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
@@ -382,13 +438,24 @@ namespace vfs.synchronizer.client
         }
 
         private void ConnectToHub() {
-            this.hubConn = new HubConnection(JCDSynchronizerSettings.PublicAddress);
-            this.hubProxy = this.hubConn.CreateHubProxy(JCDSynchronizerSettings.HubName);
-            this.hubConn.Start().Wait();
+            var conns = ConnectToHubStatic();
+            this.hubConn = conns.Item1;
+            this.hubProxy = conns.Item2;
         }
 
+        private static Tuple<HubConnection, IHubProxy> ConnectToHubStatic() {
+            var hubConn = new HubConnection(JCDSynchronizerSettings.PublicAddress);
+            var hubProxy = hubConn.CreateHubProxy(JCDSynchronizerSettings.HubName);
+            hubConn.Start().Wait();
+            return Tuple.Create(hubConn, hubProxy);
+        }
+        
         private T HubInvoke<T>(string methodName, params object[] args) {
-            return this.hubProxy.Invoke<T>(methodName, args).Result;
+            return HubInvoke<T>(this.hubProxy, methodName, args);
+        }
+
+        private static T HubInvoke<T>(IHubProxy hubProxy, string methodName, params object[] args) {
+            return hubProxy.Invoke<T>(methodName, args).Result;
         }
     }
 }

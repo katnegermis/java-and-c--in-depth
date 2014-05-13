@@ -12,12 +12,12 @@ namespace vfs.synchronizer.server {
 
         public JCDSynchronizerReply Register(string username, string password) {
             Console.WriteLine("Client called Register({0}, {1})", username, password);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
         public JCDSynchronizerReply LogIn(string username, string password) {
             Console.WriteLine("Client called LogIn({0}, {1})", username, password);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
         /************************************************************************
@@ -27,7 +27,7 @@ namespace vfs.synchronizer.server {
 
         public JCDSynchronizerReply LogOut() {
             Console.WriteLine("Client called LogOut()");
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
         public JCDSynchronizerReply ListVFSes() {
@@ -35,22 +35,24 @@ namespace vfs.synchronizer.server {
             var tuple = Tuple.Create(0, "test");
             var lst = new List<Tuple<int, string>>();
             lst.Add(tuple);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED, lst);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED,
+                                            new object[] { lst });
         }
 
         public JCDSynchronizerReply AddVFS(string vfsName, byte[] data) {
             Console.WriteLine("Client called AddVFS({0}, [data])", vfsName);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED, 1);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED,
+                                            new object[] { 1 });
         }
 
         public JCDSynchronizerReply DeleteVFS(int id) {
             Console.WriteLine("Client called DeleteVFS");
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
         public JCDSynchronizerReply RetrieveVFS(int vfsId) {
             Console.WriteLine("Client called RetrieveVFS");
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", SynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
         public void FileAdded(string path, byte[] data) {
