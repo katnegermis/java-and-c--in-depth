@@ -8,6 +8,7 @@ using System.Web.UI.WebControls;
 using vfs.core;
 using vfs.core.indexing;
 using vfs.exceptions;
+using vfs.common;
 
 namespace vfs.clients.web {
 
@@ -15,12 +16,20 @@ namespace vfs.clients.web {
 
         private void showPage() {
             ls();
+            search_ls();
             checkOperationsEnabled(null, null);
         }
 
         private void ls() {
             filesView.DataSource = Global.vfsSession.ListCurrentDirectory();
             filesView.DataBind();
+        }
+
+        private void search_ls() {
+            if(Global.vfsSession.currentSearchResults != null) {
+                resultsView.DataSource = Global.vfsSession.currentSearchResults;
+                resultsView.DataBind();
+            }
         }
 
         protected void checkOperationsEnabled(object sender, EventArgs e) {
@@ -40,6 +49,8 @@ namespace vfs.clients.web {
         protected void Page_Load(object sender, EventArgs e) {
             Master.checkSession();
 
+            Page.Form.DefaultButton = "";
+
             if(!Page.IsPostBack) {
                 showPage();
             }
@@ -49,6 +60,7 @@ namespace vfs.clients.web {
             Master.checkSession();
 
             Global.vfsSession.MoveBack();
+            hideSearch();
 
             showPage();
         }
@@ -58,6 +70,7 @@ namespace vfs.clients.web {
 
             LinkButton b = (LinkButton) sender;
             Global.vfsSession.MoveInto(Server.HtmlDecode(b.Text), false);
+            hideSearch();
 
             showPage();
         }
@@ -134,6 +147,8 @@ namespace vfs.clients.web {
         }
 
         protected void makeCreateFolder(object sender, EventArgs e) {
+            Master.checkSession();
+
             string newFolderName = "New Folder";
             uint index = 1;
             bool success = false;
@@ -159,6 +174,8 @@ namespace vfs.clients.web {
         }
 
         protected void RowEditing(object sender, GridViewEditEventArgs e) {
+            Master.checkSession();
+
             RowEditing(e.NewEditIndex);
         }
 
@@ -173,14 +190,19 @@ namespace vfs.clients.web {
         }
 
         protected void RowCancelingEditing(object sender, GridViewCancelEditEventArgs e) {
+            Master.checkSession();
+
             e.Cancel = true;
             filesView.EditIndex = -1;
             showPage();
         }
 
         protected void RowUpdating(object sender, GridViewUpdateEventArgs e) {
+            Master.checkSession();
+
             string newName = e.NewValues["Name"].ToString();
 
+            //To avoid error in Path.Combine()
             char[] invalid = System.IO.Path.GetInvalidPathChars();
 
             foreach(char c in invalid) { //Ugly, slow, works (probably)
@@ -196,6 +218,40 @@ namespace vfs.clients.web {
                 Master.errorText = "While trying to rename \"" + HttpContext.Current.Session["editOldName"] + "\" to \""
                     + newName + "\"\n" + ex.ToString();
             }
+
+            showPage();
+        }
+
+        protected void makeSearch(object sender, EventArgs e) {
+            Master.checkSession();
+
+            string searchText = search.Text.Trim();
+
+            if(searchText == "") {
+                hideSearch();
+            }
+            else {
+                Global.vfsSession.SearchCaseSensitive = caseSensitive.Checked;
+                Global.vfsSession.SearchLocation = (noSubfolders.Checked ? SearchLocation.Folder : SearchLocation.SubFolder);
+                Global.vfsSession.Search(search.Text);
+                resultsView.Visible = true;
+            }
+
+            showPage();
+        }
+
+        private void hideSearch() {
+            Global.vfsSession.currentSearchResults = null;
+            search.Text = "";
+            resultsView.DataBind();
+            resultsView.Visible = false;
+        }
+
+        public void openContainingFolder(object sender, EventArgs e) {
+            Master.checkSession();
+
+            LinkButton b = (LinkButton) sender;
+            Global.vfsSession.MoveInto(Helpers.PathGetDirectoryName(Server.HtmlDecode(b.Text)), true);
 
             showPage();
         }

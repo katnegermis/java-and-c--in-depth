@@ -113,6 +113,11 @@ namespace vfs.clients.web
         public SearchLocation SearchLocation = SearchLocation.SubFolder;
 
         /// <summary>
+        /// Stores the current search results.
+        /// </summary>
+        public DirectoryEntry[] currentSearchResults;
+
+        /// <summary>
         /// Boolean that represents whether a search is done case sensitive or insensitive.
         /// </summary>
         public bool SearchCaseSensitive = true;
@@ -414,14 +419,19 @@ namespace vfs.clients.web
             switch (SearchLocation)
             {
                 case SearchLocation.Everywhere:
-                    return getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
+                    break;
                 case SearchLocation.SubFolder:
-                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
+                    break;
                 case SearchLocation.Folder:
-                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
+                    break;
                 default:
                     throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
+
+            return currentSearchResults;
         }
 
         #endregion

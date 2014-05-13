@@ -22,6 +22,33 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.ImageButton parentFolder;
         
         /// <summary>
+        /// search control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox search;
+        
+        /// <summary>
+        /// caseSensitive control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox caseSensitive;
+        
+        /// <summary>
+        /// noSubfolders control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox noSubfolders;
+        
+        /// <summary>
         /// filesView control.
         /// </summary>
         /// <remarks>
@@ -74,6 +101,15 @@ namespace vfs.clients.web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button newFolder;
+        
+        /// <summary>
+        /// resultsView control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView resultsView;
         
         /// <summary>
         /// Master property.

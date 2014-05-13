@@ -3,6 +3,9 @@
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
     <asp:ImageButton id="parentFolder" ImageUrl="parent.png" OnClick="up" AccessKey="u" TabIndex="-1" runat="server" />
+    <asp:TextBox ID="search" runat="server" AutoPostBack="true" OnTextChanged="makeSearch" placeholder="Search in this folder..."></asp:TextBox><br />
+    <asp:CheckBox ID="caseSensitive" Text="Case sensitive" AutoPostBack="true" OnCheckedChanged="makeSearch" runat="server"/>
+    <asp:CheckBox ID="noSubfolders" Text="Don't search in subfolders" AutoPostBack="true" OnCheckedChanged="makeSearch" runat="server"/><br />
     <asp:GridView ID="filesView" AutoGenerateColumns="False" Font-Size="Larger" runat="server"
         OnRowEditing="RowEditing" OnRowCancelingEdit="RowCancelingEditing" OnRowUpdating="RowUpdating">
         <Columns>
@@ -30,13 +33,29 @@
                 </asp:TemplateField>
             <asp:BoundField HeaderText="Size" DataField="Size" ReadOnly="true" />
         </Columns>
+        <EmptyDataTemplate>(Empty directory)</EmptyDataTemplate>
     </asp:GridView>
     <br />
+
     <asp:Button ID="copy" Text="Copy (c)" OnClick="makeCopy" AccessKey="c" TabIndex="-1" runat="server" />
     <asp:Button ID="cut" Text="Cut (x)" OnClick="makeCut" AccessKey="x" TabIndex="-1" runat="server" />
     <asp:Button ID="delete" Text="Delete (r)" OnClick="makeDelete" AccessKey="r" TabIndex="-1" runat="server" />
     <asp:Button ID="paste" Text="Paste (v)" OnClick="makePaste" AccessKey="v" TabIndex="-1" runat="server" />
     <asp:Button ID="newFolder" Text="Create new folder (i)" OnClick="makeCreateFolder" AccessKey="i" TabIndex="-1" runat="server" />
+    <br />
 
+    <asp:GridView ID="resultsView" AutoGenerateColumns="False" Font-Size="Larger" runat="server">
+        <Columns>
+            <asp:ImageField HeaderText="" DataImageUrlField="TypeURL">
+            </asp:ImageField>
+            <asp:TemplateField HeaderText="Name" SortExpression="Name">
+                    <ItemTemplate>
+                        <asp:LinkButton ID="openDirButton" runat="server" Text='<%#: Eval("Path") %>' OnClick="openContainingFolder" TabIndex="2"></asp:LinkButton>
+                    </ItemTemplate>
+                </asp:TemplateField>
+            <asp:BoundField HeaderText="Size" DataField="Size" ReadOnly="true" />
+        </Columns>
+        <EmptyDataTemplate>(Nothing found)</EmptyDataTemplate>
+    </asp:GridView>
 
 </asp:Content>
