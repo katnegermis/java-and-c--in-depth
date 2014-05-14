@@ -1,0 +1,2 @@
+﻿<%@ Page Title="Close VFS" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Close.aspx.cs" Inherits="vfs.clients.web.Close" %>
+<%@ MasterType virtualpath="~/Site.Master" %>

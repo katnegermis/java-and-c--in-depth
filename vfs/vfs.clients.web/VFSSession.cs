@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using vfs.core;
+using vfs.common;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace vfs.clients.web
 {
@@ -52,6 +57,11 @@ namespace vfs.clients.web
         /// If none is mounted, then null.
         /// </summary>
         private JCDFAT mountedVFS;
+
+        /// <summary>
+        /// The location of the currently open VFS.
+        /// </summary>
+        public string mountedVFSpath;
 
         /// <summary>
         /// The current directory we are in.
@@ -107,13 +117,19 @@ namespace vfs.clients.web
         public SearchLocation SearchLocation = SearchLocation.SubFolder;
 
         /// <summary>
+        /// Stores the current search results.
+        /// </summary>
+        public DirectoryEntry[] currentSearchResults;
+
+        /// <summary>
         /// Boolean that represents whether a search is done case sensitive or insensitive.
         /// </summary>
         public bool SearchCaseSensitive = true;
 
-        private VFSSession(JCDFAT vfs)
+        private VFSSession(JCDFAT vfs, string path)
         {
             mountedVFS = vfs;
+            mountedVFSpath = path;
         }
 
         #region VFS Methods
@@ -123,18 +139,35 @@ namespace vfs.clients.web
         /// </summary>
         /// <param name="fileToCreate">To create and put the VFS inside</param>
         /// <param name="size">Of the new VFS</param>
-        public static void CreateVFS(string fileToCreate, ulong size)
+        /// /// <returns>A new VFSSession object if the VFS was created successfully or null otherwise</returns>
+        public static VFSSession CreateVFS(string fileToCreate, ulong size)
         {
-            JCDFAT.Create(fileToCreate, size).Close();
+            var vfs = JCDFAT.Create(fileToCreate, size);
+            if(vfs != null)
+                return new VFSSession(vfs, fileToCreate);
+            else
+                return null;
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Makes the call to delete the given file if it has a VFS in it.
         /// </summary>
         /// <param name="fileToDelete"></param>
         public static void DeleteVFS(string fileToDelete)
         {
             JCDFAT.Delete(fileToDelete);
+        }*/
+
+        /// <summary>
+        /// Delete the currently open VFS
+        /// </summary>
+        public void DeleteVFS() {
+            if(mountedVFS == null)
+                throw new Exception("No VFS mounted!");
+
+            string VFSpath = mountedVFSpath;
+            Close();
+            JCDFAT.Delete(VFSpath);
         }
 
         /// <summary>
@@ -142,12 +175,12 @@ namespace vfs.clients.web
         /// Then returns a new VFSSession object.
         /// </summary>
         /// <param name="fileToOpen">The file to open</param>
-        /// <returns>A new VFSSession object if the VFS object was created successfully or null otherwise</returns>
+        /// <returns>A new VFSSession object if the VFS was opened successfully or null otherwise</returns>
         public static VFSSession OpenVFS(string fileToOpen)
         {
             var vfs = JCDFAT.Open(fileToOpen);
             if (vfs != null)
-                return new VFSSession(vfs);
+                return new VFSSession(vfs, fileToOpen);
             else
                 return null;
         }
@@ -162,6 +195,7 @@ namespace vfs.clients.web
 
             mountedVFS.Close();
             mountedVFS = null;
+            mountedVFSpath = null;
         }
 
         #endregion
@@ -180,7 +214,7 @@ namespace vfs.clients.web
             mountedVFS.CreateDirectory(Helpers.PathCombine(CurrentDir, dirName), false);
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Creates a fiel with the given name and size in the current directory of the VFS.
         /// </summary>
         /// <param name="fileName">Name of the new file</param>
@@ -191,7 +225,8 @@ namespace vfs.clients.web
                 throw new Exception("No VFS mounted!");
 
             mountedVFS.CreateFile(Helpers.PathCombine(CurrentDir, fileName), size, false);
-        }
+        }*/
+
 
         /// <summary>
         /// Renames the file/dir with the given name in the current directory to the new name.
@@ -202,6 +237,9 @@ namespace vfs.clients.web
         {
             if (mountedVFS == null)
                 throw new Exception("No VFS mounted!");
+
+            if(oldName == newName)
+                return;
 
             mountedVFS.RenameFile(Helpers.PathCombine(CurrentDir, oldName), newName);
         }
@@ -296,50 +334,36 @@ namespace vfs.clients.web
             return count;
         }
 
-        /// <summary>
-        /// Imports the given files/dirs from the host file system into the current directory.
-        /// </summary>
-        /// <param name="files">File/dir paths to import</param>
-        /// <param name="targetDir">Dir to import the files/dirs to.</param>
-        /// <returns>The number of top level files/dirs that have been imported</returns>
-        public int Import(string[] files, string targetDir)
+        public void Upload(IList<HttpPostedFile> files)
         {
-            int count = 0;
-            foreach (string file in files)
+            foreach(HttpPostedFile file in files)
             {
-                var name = new FileInfo(file).Name;
-                mountedVFS.ImportFile(file, Helpers.PathCombine(targetDir, name));
-                count++;
+                var path = Helpers.PathCombine(CurrentDir, file.FileName);
+                mountedVFS.ImportFile(file.InputStream, path);
             }
-            return count;
         }
 
-        /// <summary>
-        /// Exports the files/dirs with the given names from the current directory to the target path in the host file system.
-        /// </summary>
-        /// <param name="names">Names of the files/dirs to export</param>
-        /// <param name="targetPath">Path to export the files/dirs to</param>
-        /// <returns>The number of top level files/dirs that have been exported</returns>
-        public int Export(string[] names, string targetPath)
+        public void Download(string name, string size, HttpResponse response)
         {
-            int count = 0;
-            foreach (string name in names)
-            {
-                try
-                {
-                    var file = Helpers.PathCombine(CurrentDir, name);
-                    mountedVFS.ExportFile(file, targetPath);
-                }
-                catch (Exception)
-                {
-                    //log or just ignore
-                }
-                count++;
+            try {
+                var file = Helpers.PathCombine(CurrentDir, name);
+                response.Clear();
+                response.ClearHeaders();
+                response.ClearContent();
+                response.AppendHeader("Content-Disposition", "attachment; filename=\"" + name + "\"");
+                response.AppendHeader("Content-Length", size);
+                response.AppendHeader("Cache-Control", "private, max-age=0, no-cache");
+                response.ContentType = "application/octet-stream";
+                response.Flush();
+                mountedVFS.ExportFile(file, response.OutputStream);
+                response.End();
             }
-            return count;
+            catch(Exception) {
+                //log or just ignore
+            }
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Makes the drag and drop operation with the given files/dirs from the current directory to the target.
         /// If set so, the given files are removed afterwards.
         /// </summary>
@@ -371,7 +395,7 @@ namespace vfs.clients.web
                 }
             }
             return count;
-        }
+        }*/
 
         /// <summary>
         /// Searches for the given string and returns the found files.
@@ -386,14 +410,19 @@ namespace vfs.clients.web
             switch (SearchLocation)
             {
                 case SearchLocation.Everywhere:
-                    return getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
+                    break;
                 case SearchLocation.SubFolder:
-                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
+                    break;
                 case SearchLocation.Folder:
-                    return getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
+                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
+                    break;
                 default:
                     throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
+
+            return currentSearchResults;
         }
 
         #endregion

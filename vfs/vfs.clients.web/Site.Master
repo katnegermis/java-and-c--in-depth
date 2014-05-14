@@ -45,15 +45,15 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" runat="server" href="~/">Ravioli VFS</a>
+                    <a class="navbar-brand" runat="server" href="~/" tabindex="-1">Ravioli VFS</a>
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li><a runat="server" href="~/">Browse</a></li>
-                        <li><a runat="server" href="~/Create">Create VFS</a></li>
-                        <li><a runat="server" href="~/Open">Open VFS</a></li>
-                        <li><a runat="server" href="~/Delete">Delete VFS</a></li>
-                        <li><a runat="server" href="~/Close">Close VFS</a></li>
+                        <li><a runat="server" href="~/" accesskey="b" tabindex="-1"><span class="shortcut">B</span>rowse</a></li>
+                        <li><a runat="server" href="~/Create" accesskey="n" tabindex="-1">Create <span class="shortcut">n</span>ew VFS</a></li>
+                        <li><a runat="server" href="~/Open" accesskey="o" tabindex="-1"><span class="shortcut">O</span>pen VFS</a></li>
+                        <li><a runat="server" href="~/Delete" accesskey="l" tabindex="-1">De<span class="shortcut">l</span>ete VFS</a></li>
+                        <li><a runat="server" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
                     </ul>
                 </div>
             </div>

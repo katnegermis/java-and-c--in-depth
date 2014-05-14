@@ -51,6 +51,14 @@ namespace vfs.exceptions {
     }
 
     [Serializable]
+    public class IsAFolderException : FileNotFoundException {
+        public IsAFolderException() : base() { }
+        public IsAFolderException(string msg) : base(msg) { }
+        public IsAFolderException(string msg, Exception e) : base(msg, e) { }
+        protected IsAFolderException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
+    }
+
+    [Serializable]
     public class FileExistsException : Exception {
         public FileExistsException() : base() { }
         public FileExistsException(string msg) : base(msg) { }

@@ -8,10 +8,15 @@ using System.Web.UI.WebControls;
 namespace vfs.clients.web {
     public partial class Open : System.Web.UI.Page {
         protected void Page_Load(object sender, EventArgs e) {
-
+            vfsPath.Focus();
         }
 
         public void openVFS(object sender, EventArgs e) {
+            if(vfsPath.Text == "") {
+                Master.errorText = "Please enter a path";
+                return;
+            }
+
             //submit.Text = vfsPath.Text;
             if(Global.vfsSession != null) {
                 try {

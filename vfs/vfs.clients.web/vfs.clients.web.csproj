@@ -98,10 +98,12 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Close.aspx" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Create.aspx" />
+    <Content Include="Delete.aspx" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Open.aspx" />
     <Content Include="packages.config" />
@@ -157,6 +159,13 @@
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Close.aspx.cs">
+      <DependentUpon>Close.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Close.aspx.designer.cs">
+      <DependentUpon>Close.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Create.aspx.cs">
       <DependentUpon>Create.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -170,6 +179,13 @@
     </Compile>
     <Compile Include="Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Delete.aspx.cs">
+      <DependentUpon>Delete.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Delete.aspx.designer.cs">
+      <DependentUpon>Delete.aspx</DependentUpon>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -206,6 +222,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\vfs.common\vfs.common.csproj">
+      <Project>{1fad4d59-c2e9-43f9-a544-125de616ab2c}</Project>
+      <Name>vfs.common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\vfs.core.indexing\vfs.core.indexing.csproj">
       <Project>{d922d70b-31ee-4c36-a2eb-886407fd83c5}</Project>
       <Name>vfs.core.indexing</Name>
