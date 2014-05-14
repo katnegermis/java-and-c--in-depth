@@ -21,7 +21,7 @@ namespace vfs.core {
             this.data = null;
         }
 
-        public JCDSynchronizerReply(string msg, JCDSynchronizerStatusCode status, object[] data) {
+        public JCDSynchronizerReply(string msg, JCDSynchronizerStatusCode status, params object[] data) {
             this.message = msg;
             this.statusCode = status;
             this.data = data;
@@ -34,7 +34,15 @@ namespace vfs.core {
     }
 
     public interface IJCDSynchronizedVFS : IJCDBasicVFS {
-        JCDSynchronizerReply LogIn(string username, string password);
+
+        /// <summary>
+        /// Log in to the server.
+        /// 
+        /// </summary>
+        /// <exception cref="FailedToLogIn">A FailedToLogIn exception will be thrown if logging in fails.</exception>
+        /// <param name="username">Username to log in with</param>
+        /// <param name="password">Password to log in with</param>
+        void LogIn(string username, string password);
 
         /************************************************************************
          * The following functions assume that the user is logged in, and that  *
@@ -43,18 +51,17 @@ namespace vfs.core {
 
         /// <summary>
         /// Add a VFS to the user account.
-        /// SynchronizerReply.Data will be set to an int, the new id of the VFS.
         /// </summary>
         /// <param name="vfsName">Name of the VFS.</param>
         /// <param name="data">The data of the VFS</param>
-        /// <returns>SynchronizerReply with Data being the id (int) of the VFS.</returns>
-        JCDSynchronizerReply AddVFS();
+        /// <returns>Server assigned id of the VFS.</returns>
+        int AddVFS();
 
         /// <summary>
         /// Delete a VFS from the user account.
         /// </summary>
         /// <param name="id">ID of the VFS to delete.</param>
-        JCDSynchronizerReply RemoveVFS();
+        void RemoveVFS();
 
         /*/// <summary>
         /// Retrieve an entire VFS.

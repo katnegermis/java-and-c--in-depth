@@ -162,7 +162,7 @@ namespace vfs.clients.web {
                     Global.vfsSession.CreateDir(newFolderName);
                     success = true;
                 }
-                catch(FileAlreadyExistsException ex) {
+                catch(FileAlreadyExistsException) {
                     newFolderName = String.Format("New Folder ({0})", index++);
                 }
             }

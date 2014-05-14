@@ -103,9 +103,9 @@ namespace vfs.core
         /// Event to be called every time a new file is added to the file system.
         /// </summary>
         /// <param name="path">Path of the newly added file.</param>
-        internal void OnFileAdded(string path) {
+        internal void OnFileAdded(string path, bool isFolder) {
             if (FileAdded != null) {
-                FileAdded(path);
+                FileAdded(path, isFolder);
             }
         }
 
@@ -675,7 +675,7 @@ namespace vfs.core
             fileIndex = FileIndex.Open(treeFileStream, dataFileStream);
             
             // Add event handlers
-            FileAdded += path => {
+            FileAdded += (path, isFolder) => {
                 fileIndex.Put(path);
             };
 
@@ -901,7 +901,7 @@ namespace vfs.core
             }
             
             var result = ((JCDFolder) container).AddDirEntry(entry);
-            OnFileAdded(result.Path);
+            OnFileAdded(result.Path, isFolder);
             return result;
         }
 

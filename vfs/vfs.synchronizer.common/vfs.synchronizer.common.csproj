@@ -39,8 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IJCDSynchronizerCommon.cs" />
-    <Compile Include="IJCDSynchronizerServers.cs" />
+    <Compile Include="IJCDSynchronizerClient.cs" />
+    <Compile Include="IJCDSynchronizerServer.cs" />
     <Compile Include="JCDSynchronizerSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

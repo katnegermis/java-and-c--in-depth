@@ -30,7 +30,7 @@ namespace vfs.clients.web {
                 try {
                     vfsSession.Close();
                 }
-                catch(Exception e) {
+                catch(Exception) {
                     //Response.Write(e.ToString());
                 }
                 vfsSession = null;

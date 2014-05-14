@@ -145,4 +145,20 @@ namespace vfs.exceptions {
         public ReachedEndOfFileException(string msg, Exception e) : base(msg, e) { }
         protected ReachedEndOfFileException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
+
+    [Serializable]
+    public class AlreadySynchronizedVFSException : Exception {
+        public AlreadySynchronizedVFSException() : base() { }
+        public AlreadySynchronizedVFSException(string msg) : base(msg) { }
+        public AlreadySynchronizedVFSException(string msg, Exception e) : base(msg, e) { }
+        protected AlreadySynchronizedVFSException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
+    }
+
+    [Serializable]
+    public class VFSSynchronizationServerException : Exception {
+        public VFSSynchronizationServerException() : base() { }
+        public VFSSynchronizationServerException(string msg) : base(msg) { }
+        public VFSSynchronizationServerException(string msg, Exception e) : base(msg, e) { }
+        protected VFSSynchronizationServerException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
+    }
 }

@@ -429,16 +429,20 @@ namespace vfs.clients.desktop
 
         public bool Register(string userName, string password)
         {
-            //var result = vfsSynchronizer.Register(userName, password);
-            //TODO check the statusCode or so
+            JCDVFSSynchronizer.Register(userName, password);
             this.UserName = userName;
             return true;
         }
 
         public bool LogIn(string userName, string password)
         {
-            var result = vfsSynchronizer.LogIn(userName, password);
-            //TODO check the statuscode or so
+            try {
+                vfsSynchronizer.LogIn(userName, password);
+            }
+            catch (vfs.exceptions.VFSSynchronizationServerException e) {
+                //TODO check the statuscode or so
+                throw e;
+            }
             this.UserName = userName;
             return true;
         }

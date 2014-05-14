@@ -32,17 +32,15 @@ namespace vfs.synchronizer.server {
 
         public JCDSynchronizerReply ListVFSes() {
             Console.WriteLine("Client called ListVFSes");
-            var tuple = Tuple.Create(0, "test");
-            var lst = new List<Tuple<int, string>>();
+            var tuple = Tuple.Create(1, 1);
+            var lst = new List<Tuple<int, int>>();
             lst.Add(tuple);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED,
-                                            new object[] { lst });
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, lst);
         }
 
         public JCDSynchronizerReply AddVFS(string vfsName, byte[] data) {
             Console.WriteLine("Client called AddVFS({0}, [data])", vfsName);
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED,
-                                            new object[] { 1 });
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, 1);
         }
 
         public JCDSynchronizerReply DeleteVFS(int id) {
@@ -55,24 +53,34 @@ namespace vfs.synchronizer.server {
             return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
-        public void FileAdded(string path, byte[] data) {
+        public JCDSynchronizerReply FileAdded(string path, byte[] data) {
             Console.WriteLine("Client called FileAdded");
+            var currentId = 1;
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
         }
 
-        public void FileDeleted(string path) {
+        public JCDSynchronizerReply FileDeleted(string path) {
             Console.WriteLine("Client called FileDeleted");
+            var currentId = 1;
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
         }
 
-        public void FileMoved(string oldPath, string newPath) {
+        public JCDSynchronizerReply FileMoved(string oldPath, string newPath) {
             Console.WriteLine("Client called FileMoved");
+            var currentId = 1;
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
         }
 
-        public void FileModified(string path, long offset, byte[] data) {
+        public JCDSynchronizerReply FileModified(string path, long offset, byte[] data) {
             Console.WriteLine("Client called FileModified");
+            var currentId = 1;
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
         }
 
-        public void FileResized(string path, long newSize) {
+        public JCDSynchronizerReply FileResized(string path, long newSize) {
             Console.WriteLine("Client called FileResized");
+            var currentId = 1;
+            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
         }
     }
 }

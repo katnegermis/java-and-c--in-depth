@@ -5,13 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace vfs.synchronizer.common {
-    public interface IJCDSynchronizerCommon {
+    public interface IJCDSynchronizerClient {
         /// <summary>
         /// Inform the other party that a file was added.
         /// </summary>
         /// <param name="path">Path of the file.</param>
-        /// <param name="data">Data of the file.</param>
-        void FileAdded(string path, byte[] data);
+        void FileAdded(string path);
 
         /// <summary>
         /// Inform the other party that a file was deleted.

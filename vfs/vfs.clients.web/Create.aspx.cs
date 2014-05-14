@@ -32,7 +32,7 @@ namespace vfs.clients.web {
                 try {
                     Global.vfsSession.Close();
                 }
-                catch(Exception ex) {
+                catch(Exception) {
                 }
             }
 

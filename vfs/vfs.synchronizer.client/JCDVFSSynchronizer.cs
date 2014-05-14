@@ -7,13 +7,21 @@ using vfs.core;
 using vfs.synchronizer.server;
 using Microsoft.AspNet.SignalR.Client;
 using vfs.synchronizer.common;
+using System.Reflection;
+using vfs.exceptions;
+using System.IO;
 
 namespace vfs.synchronizer.client
 {
     public class JCDVFSSynchronizer : IJCDBasicVFS, IJCDSynchronizedVFS
     {
+        private const int NotSynchronizedId = 0;
+
+        // Path to the underlying VFS.
+        private string hfsPath;
+
         private IJCDBasicVFS vfs;
-        // Temporary field representing a connection.
+        private Type vfsType;
         private HubConnection hubConn;
         private IHubProxy hubProxy;
 
@@ -27,9 +35,9 @@ namespace vfs.synchronizer.client
         /// Event to be called every time a new file is added to the file system.
         /// </summary>
         /// <param name="path">Path of the newly added file.</param>
-        internal void OnFileAdded(string path) {
+        internal void OnFileAdded(string path, bool isFolder) {
             if (FileAdded != null) {
-                FileAdded(path);
+                FileAdded(path, isFolder);
             }
         }
 
@@ -113,34 +121,52 @@ namespace vfs.synchronizer.client
             var reply = HubInvoke<JCDSynchronizerReply>("FileResized", path, newSize);
         }
 
-        public JCDSynchronizerReply LogIn(string username, string password) {
-            // Implement properly.
+        public void LogIn(string username, string password) {
             if (this.hubConn == null) {
                 ConnectToHub();
             }
-            return HubInvoke<JCDSynchronizerReply>("LogIn", username, password);
+            var res = HubInvoke<JCDSynchronizerReply>("LogIn", username, password);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
         }
 
-        public static JCDSynchronizerReply Register(string username, string password) {
-            // Implement properly.
+        public static void Register(string username, string password) {
             var conns = ConnectToHubStatic();
-            return HubInvoke<JCDSynchronizerReply>(conns.Item2, "Register", username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "Register", username, password);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
         }
 
-        public static JCDSynchronizerReply ListVFSes(string username, string password) {
+        public static List<Tuple<int, int>>  ListVFSes(string username, string password) {
             var conns = ConnectToHubStatic();
-            return HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
+            return (List<Tuple<int, int>>)res.Data[0];
         }
 
         /// <summary>
         /// Start synchronizing the underlying VFS with the server.
         /// </summary>
         /// <returns></returns>
-        public JCDSynchronizerReply AddVFS() {
-            // We should probably use the hfsPath instead of vfsName here, since we don't track
-            // vfs names in this file.
-            byte[] data = new byte[1]; // Get vfs data.
-            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", data);
+        public int AddVFS() {
+            if (vfs.GetId() != NotSynchronizedId) {
+                throw new AlreadySynchronizedVFSException("This VFS is already being synchronized!");
+            }
+
+            // Close VFS so that we can read its data.
+            vfs.Close();
+            var data = File.ReadAllBytes(hfsPath);
+            vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });            
+
+            var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", data);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
+            return (int)res.Data[0];
         }
 
 
@@ -148,11 +174,13 @@ namespace vfs.synchronizer.client
         /// Stop synchronizing the underlying VFS with the server.
         /// </summary>
         /// <returns></returns>
-        public JCDSynchronizerReply RemoveVFS() {
-            // TODO: Implement properly.
-            int vfsId = 0; // Get real VFS id, this.vfs.GetId();
-            var conns = ConnectToHubStatic();
-            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "DeleteVFS", vfsId);
+        public void RemoveVFS() {
+            int vfsId = GetId();
+            SetId(NotSynchronizedId);
+            var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "DeleteVFS", vfsId);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
         }
 
         public JCDSynchronizerReply RetrieveVFS(int vfsId) {
@@ -171,8 +199,10 @@ namespace vfs.synchronizer.client
             }
         }
 
-        private JCDVFSSynchronizer(IJCDBasicVFS vfs) {
+        private JCDVFSSynchronizer(IJCDBasicVFS vfs, Type vfsType, string path) {
             this.vfs = vfs;
+            this.vfsType = vfsType;
+            this.hfsPath = path;
 
             // Subscribe to events with functions that propagate vfs events to subscribers
             // of this class.
@@ -198,7 +228,7 @@ namespace vfs.synchronizer.client
         /// <returns>True if the vfs has been created successfully, false otherwise</returns>
         public static JCDVFSSynchronizer Create(Type vfsType, string hfsPath, ulong size) {
             var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Create", new object[] { hfsPath, size });
-            return new JCDVFSSynchronizer(vfs);
+            return new JCDVFSSynchronizer(vfs, vfsType, hfsPath);
         }
 
         /// <summary>
@@ -218,7 +248,7 @@ namespace vfs.synchronizer.client
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         public static JCDVFSSynchronizer Open(Type vfsType, string hfsPath) {
             var vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
-            return new JCDVFSSynchronizer(vfs);
+            return new JCDVFSSynchronizer(vfs, vfsType, hfsPath);
 
         }
 
@@ -436,10 +466,6 @@ namespace vfs.synchronizer.client
             return vfs.GetId();
         }
 
-        public void ClearId() {
-            SetId(0);
-        }
-
         internal static object IJCDBasicTypeCallStaticMethod(Type type, string methodName, object[] args) {
             if (type.GetInterface("IJCDBasicVFS") == null) {
                 throw new Exception("Can only be used with objects that implement IJCDBasicVFS");
@@ -453,6 +479,7 @@ namespace vfs.synchronizer.client
             var conns = ConnectToHubStatic();
             this.hubConn = conns.Item1;
             this.hubProxy = conns.Item2;
+            SetHubEvents(this.hubProxy);
         }
 
         private static Tuple<HubConnection, IHubProxy> ConnectToHubStatic() {
@@ -460,6 +487,44 @@ namespace vfs.synchronizer.client
             var hubProxy = hubConn.CreateHubProxy(JCDSynchronizerSettings.HubName);
             hubConn.Start().Wait();
             return Tuple.Create(hubConn, hubProxy);
+        }
+
+        private void SetHubEvents(IHubProxy hub) {
+            // TODO: It is going to be a problem that these events will be propagated to the
+            // server again. We must do something to stop this from happening.
+
+            // The point of these functions is that they should implement 
+            // vfs.synchronizer.common.ISynchronizerClient.
+            hub.On<string, bool>("FileAdded", (path, isFolder) => {
+                if (isFolder) {
+                    vfs.CreateDirectory(path, false);
+                }
+                else {
+                    vfs.CreateFile(path, 0, false);
+                }
+            });
+
+            hub.On<string, long, byte[]>("FileModified", (path, offset, data) => {
+                using(var stream = vfs.GetFileStream(path)) {
+                    stream.Seek(offset, System.IO.SeekOrigin.Begin);
+                    stream.Write(data, 0, 0);
+                }
+            });
+
+            hub.On<string, long>("FileResized", (path, size) => {
+                using(var stream = vfs.GetFileStream(path)) {
+                    stream.SetLength(size);
+                }
+            });
+
+            hub.On<string>("FileDeleted", path => {
+                var details = vfs.GetFileDetails(path);
+                vfs.DeleteFile(path, details.IsFolder);
+            });
+
+            hub.On<string, string>("FileMoved", (oldPath, newPath) => {
+                vfs.MoveFile(oldPath, newPath);
+            });
         }
         
         private T HubInvoke<T>(string methodName, params object[] args) {
