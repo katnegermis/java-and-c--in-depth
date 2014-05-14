@@ -28,7 +28,7 @@ namespace vfs.core.tests {
             var files = vfs.Search(fileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(filePath, files[0]);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace vfs.core.tests {
             // Make sure that file can't be found
             var noFile = vfs.Search(fileName, true);
             Assert.AreEqual(0, noFile.Length);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace vfs.core.tests {
             // Test
             var noFiles = vfs.Search(fileName, true);
             Assert.AreEqual(0, noFiles.Length);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -85,7 +85,7 @@ namespace vfs.core.tests {
             // Make sure that file can't be found
             var noFile = vfs.Search(dirName, true);
             Assert.AreEqual(0, noFile.Length);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -115,7 +115,7 @@ namespace vfs.core.tests {
             for (int i = 0; i < numFiles; i += 1) {
                 Assert.AreEqual(0, vfs.Search(files[i], true).Length);
             }
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -138,7 +138,7 @@ namespace vfs.core.tests {
             for (int i = 0; i < numFiles; i += 1) {
                 Assert.AreEqual(files[i], foundFiles[i]);
             }
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -166,7 +166,7 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -195,7 +195,7 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -239,7 +239,7 @@ namespace vfs.core.tests {
                 Assert.AreEqual(1, oneFile.Length);
                 Assert.AreEqual(newFiles[i], oneFile[0]);
             }
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -266,7 +266,7 @@ namespace vfs.core.tests {
             var files = vfs.Search(newFileName, true);
             Assert.AreEqual(1, files.Length);
             Assert.AreEqual(newFilePath, files[0]);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -310,7 +310,7 @@ namespace vfs.core.tests {
                 Assert.AreEqual(1, oneFile.Length);
                 Assert.AreEqual(newFiles[i], oneFile[0]);
             }
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod]
@@ -335,30 +335,21 @@ namespace vfs.core.tests {
             // Verify that files aren't found nonrecursively.
             var noFiles = vfs.Search("/", fileName, true, false);
             Assert.AreEqual(0, noFiles.Length);
-            CloseVFS(vfs, testName);
+            CloseJCDFAT(vfs, testName);
         }
 
-        private JCDFAT CreateVFS(string testName, uint size) {
-            DeleteFiles(new string[] { testName });
+        private JCDFAT CreateJCDFAT(string testName, uint size) {
+            TestHelpers.DeleteFiles(new string[] { testName });
             return JCDFAT.Create(testName, size);
         }
 
         private JCDFAT CreateVFS(string testName) {
-            return CreateVFS(testName, MB50);
+            return CreateJCDFAT(testName, MB50);
         }
 
-        private void CloseVFS(JCDFAT vfs, string testName) {
+        private void CloseJCDFAT(JCDFAT vfs, string testName) {
             vfs.Close();
-            DeleteFiles(new string[] { testName });
-        }
-
-        private void DeleteFiles(string[] files) {
-            foreach (var file in files) {
-                try {
-                    File.Delete(file);
-                }
-                catch (System.IO.FileNotFoundException) { }
-            }
+           TestHelpers.DeleteFiles(new string[] { testName });
         }
     }
 }

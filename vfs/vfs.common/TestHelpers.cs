@@ -18,6 +18,10 @@ namespace vfs.common {
             }
         }
 
+        public static void DeleteFiles(string file) {
+            DeleteFiles(new string[] { file });
+        }
+
         public static byte[] GenerateRandomData(int size, int seed) {
             var data = new byte[size];
             var rnd = new Random(seed);
