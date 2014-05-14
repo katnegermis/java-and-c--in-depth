@@ -26,26 +26,34 @@ namespace vfs.synchronizer.common {
 
         /// <summary>
         /// Add a VFS to the user account.
-        /// SynchronizerReply.Data will be set to an int, the new id of the VFS.
+        /// SynchronizerReply.Data will be set to a long, the new id of the VFS.
         /// </summary>
         /// <param name="vfsName">Name of the VFS.</param>
         /// <param name="data">The data of the VFS</param>
-        /// <returns>SynchronizerReply with Data being the id (int) of the VFS.</returns>
+        /// <returns>SynchronizerReply with Data being the id (long) of the VFS.</returns>
         JCDSynchronizerReply AddVFS(string vfsName, byte[] data);
 
         /// <summary>
         /// Delete a VFS from the user account.
         /// </summary>
         /// <param name="id">ID of the VFS to delete.</param>
-        JCDSynchronizerReply DeleteVFS(int id);
+        JCDSynchronizerReply DeleteVFS(long vfsId);
 
         /// <summary>
         /// Retrieve an entire VFS.
         /// SynchronizerReply.Data will be set to a byte array which is the data of the full VFS.
         /// </summary>
         /// <param name="vfsId">ID of the vfs to retrieve. Can be found by calling ListVFSes</param>
-        /// <returns>SynchronizerReply with Data set to a byte array which contains the full VFS.</returns>
-        JCDSynchronizerReply RetrieveVFS(int vfsId);
+        /// <returns>SynchronizerReply with Data set to a tuple with the version id first and then a byte array which contains the full VFS as second item.</returns>
+        JCDSynchronizerReply RetrieveVFS(long vfsId);
+
+        /// <summary>
+        /// Retrieve the changes of a VFS that happened after the given version.
+        /// </summary>
+        /// <param name="vfsId">ID of the VFS to retrieve the changes from. Can be found by calling ListVFSes</param>
+        /// <param name="lastVersionId">ID of the local version. Can be found by calling ListVFSes </param>
+        /// <returns>SynchronizerReply </returns>
+        JCDSynchronizerReply RetrieveChanges(long vfsId, long lastVersionId);
 
         /// <summary>
         /// Inform the other party that a file was added.
@@ -53,14 +61,14 @@ namespace vfs.synchronizer.common {
         /// <param name="path">Path of the file.</param>
         /// <param name="data">Data of the file.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileAdded(string path, byte[] data);
+        JCDSynchronizerReply FileAdded(long vfsId, string path, byte[] data);
 
         /// <summary>
         /// Inform the other party that a file was deleted.
         /// </summary>
         /// <param name="path">Path to the file.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileDeleted(string path);
+        JCDSynchronizerReply FileDeleted(long vfsId, string path);
 
         /// <summary>
         /// Inform the other party that a file was moved.
@@ -68,7 +76,7 @@ namespace vfs.synchronizer.common {
         /// <param name="oldPath">Old path of the file.</param>
         /// <param name="newPath">New (current) path of the file.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileMoved(string oldPath, string newPath);
+        JCDSynchronizerReply FileMoved(long vfsId, string oldPath, string newPath);
 
         /// <summary>
         /// Inform the other party that a file was modified.
@@ -77,7 +85,7 @@ namespace vfs.synchronizer.common {
         /// <param name="offset">Offset from which the file was modified.</param>
         /// <param name="data">New data to be written, starting from offset.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileModified(string path, long offset, byte[] data);
+        JCDSynchronizerReply FileModified(long vfsId, string path, long offset, byte[] data);
 
         /// <summary>
         /// Inform the other party that a file was resized.
@@ -90,6 +98,6 @@ namespace vfs.synchronizer.common {
         /// <param name="path">Path to the file.</param>
         /// <param name="newSize">New size of the file.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileResized(string path, long newSize);
+        JCDSynchronizerReply FileResized(long vfsId, string path, long newSize);
     }
 }
