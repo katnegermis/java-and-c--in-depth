@@ -782,7 +782,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestCreateParents() {
             // Set up
-            var vfs = CreateVFS("create_parents");
+            var vfs = InternalHelpers.CreateJCDFAT("create_parents");
             var dirName = "/1/2/3/4/5/";
             vfs.CreateDirectory(dirName, true);
 
@@ -794,7 +794,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestCreateParentsAlreadyExist() {
             // Set up
-            var vfs = CreateVFS("create_parents_already_exist");
+            var vfs = InternalHelpers.CreateJCDFAT("create_parents_already_exist");
             var dirName1 = "/1/2/3/";
             var dirName2 = "/1/2/3/4/5/";
             vfs.CreateDirectory(dirName1, true);
@@ -806,14 +806,55 @@ namespace vfs.core.tests
         }
         #endregion
 
-        #region Helper Functions
-        private JCDFAT CreateVFS(string testName, uint size) {
-            TestHelpers.DeleteFiles(new string[] { testName });
-            return JCDFAT.Create(testName, size);
+        #region VFS id Tests
+        [TestMethod]
+        public void TestInitialId() {
+            // Set up
+            var testName = "initial_id";
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            
+            // Test
+            Assert.AreEqual(0, vfs.GetId());
         }
 
-        private JCDFAT CreateVFS(string testName) {
-            return CreateVFS(testName, 50000000);
+        [TestMethod]
+        public void TestSetId() {
+            // Set up
+            var testName = "set_id";
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            int id = 1337;
+
+            // Test
+            vfs.SetId(id);
+            Assert.AreEqual(id, vfs.GetId());
+        }
+
+        [TestMethod]
+        public void TestSetIdCloseGetId() {
+            // Set up
+            var testName = "set_id_close_get_id";
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            int id = 1337;
+            vfs.SetId(id);
+            vfs.Close();
+            vfs = InternalHelpers.OpenJCDFAT(testName);
+            
+            // Test
+            Assert.AreEqual(id, vfs.GetId());
+        }
+
+        [TestMethod]
+        public void TestSetIdCloseGetIdNegativeNumber() {
+            // Set up
+            var testName = "set_id_close_get_id_negative_number";
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            int id = -1337;
+            vfs.SetId(id);
+            vfs.Close();
+            vfs = InternalHelpers.OpenJCDFAT(testName);
+
+            // Test
+            Assert.AreEqual(id, vfs.GetId());
         }
         #endregion
     }
@@ -831,6 +872,10 @@ namespace vfs.core.tests
 
         public static JCDFAT CreateJCDFAT(string testName) {
             return CreateJCDFAT(testName, MB50);
+        }
+
+        public static JCDFAT OpenJCDFAT(string testName) {
+            return JCDFAT.Open(GetTestFileName(testName));
         }
 
         public static void CloseJCDFAT(JCDFAT vfs, string testName) {
