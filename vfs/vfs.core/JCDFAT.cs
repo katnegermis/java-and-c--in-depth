@@ -63,6 +63,7 @@ namespace vfs.core
         private uint dataOffsetBlocks;
         private uint freeBlocks;
         private uint firstFreeBlock;
+        private uint vfsId;
         private uint[] fat;
 
         private JCDFolder rootFolder;
@@ -573,6 +574,27 @@ namespace vfs.core
             hfsBinaryWriter.Write(rootDirBlock); // Currently statically set to 0.
             hfsBinaryWriter.Write(searchFileTreeBlock); // Currently statically set to 1.
             hfsBinaryWriter.Write(searchFileDataBlock); // Currently statically set to 2.
+            hfsBinaryWriter.Write(vfsId);
+        }
+
+        /// <summary>
+        /// Update the meta-data on disk to the current values of the variables in memory.
+        /// 
+        /// This function currently does _exactly_ the same as NewFSWriteMetaData, but in 
+        /// case that function is changed in the future, we don't want to use that one.
+        /// </summary>
+        private void UpdateMetaData() {
+            // Go to start of JCDVFS-file and write meta data continuously.
+            Seek(0L);
+            hfsBinaryWriter.Write(magicNumber);
+            hfsBinaryWriter.Write(blockSize); // Currently set to 4KB fixed size.
+            hfsBinaryWriter.Write(fatBlocks); // Number of blocks that the FAT spans.
+            hfsBinaryWriter.Write(freeBlocks); // Number of free blocks.
+            hfsBinaryWriter.Write(firstFreeBlock); // First free block. Currently statically set to 2.
+            hfsBinaryWriter.Write(rootDirBlock); // Currently statically set to 0.
+            hfsBinaryWriter.Write(searchFileTreeBlock); // Currently statically set to 1.
+            hfsBinaryWriter.Write(searchFileDataBlock); // Currently statically set to 2.
+            hfsBinaryWriter.Write(vfsId);
         }
 
         private void ParseMetaData()
@@ -597,9 +619,12 @@ namespace vfs.core
             fatBlocks = hfsBinaryReader.ReadUInt32();
             freeBlocks = hfsBinaryReader.ReadUInt32();
             firstFreeBlock = hfsBinaryReader.ReadUInt32();
-            //rootDirBlock = br.ReadUInt32(); // Statically set
-            //searchFileTreeBlock = br.ReadUInt32(); // Statically set.
-            //searchFileDataBlock = br.ReadUInt32(); // Statically set.
+            // The following three are statically set consts.
+            // We want to read them anyway, to move the pointer forward.
+            hfsBinaryReader.ReadUInt32(); // rootDirBlock
+            hfsBinaryReader.ReadUInt32(); // searchFileTreeBlock
+            hfsBinaryReader.ReadUInt32(); // searchFileDataBlock
+            vfsId = hfsBinaryReader.ReadUInt32();
         }
 
         private void NewFSCreateRootFolder()
@@ -1264,6 +1289,15 @@ namespace vfs.core
         public JCDFileStream GetFileStream(string vfsPath) {
             var file = GetFile(vfsPath);
             return new JCDFileStream(file, OnFileModified);
+        }
+
+        public int GetId() {
+            return (int)vfsId;
+        }
+
+        public void SetId(int id) {
+            this.vfsId = (uint)id;
+            UpdateMetaData();
         }
     }
 }

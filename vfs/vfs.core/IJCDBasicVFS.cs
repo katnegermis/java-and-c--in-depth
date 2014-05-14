@@ -148,5 +148,8 @@ namespace vfs.core
         string[] Search(string searchDir, string fileName, bool caseSensitive, bool recursive);
 
         JCDDirEntry GetFileDetails(string vfsPath);
+
+        int GetId();
+        void SetId(int id);
     }
 }

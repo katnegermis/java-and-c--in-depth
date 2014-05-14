@@ -428,6 +428,18 @@ namespace vfs.synchronizer.client
             }
         }
 
+        public void SetId(int id) {
+            vfs.SetId(id);
+        }
+
+        public int GetId() {
+            return vfs.GetId();
+        }
+
+        public void ClearId() {
+            SetId(0);
+        }
+
         internal static object IJCDBasicTypeCallStaticMethod(Type type, string methodName, object[] args) {
             if (type.GetInterface("IJCDBasicVFS") == null) {
                 throw new Exception("Can only be used with objects that implement IJCDBasicVFS");
