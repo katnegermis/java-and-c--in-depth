@@ -40,5 +40,9 @@ namespace vfs.common {
                 Assert.AreEqual(arr1[i], arr2[i]);
             }
         }
+
+        public static string GetTestFileName(string name) {
+            return name + ".test";
+        }
     }
 }
