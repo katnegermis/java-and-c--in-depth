@@ -1048,10 +1048,16 @@ namespace vfs.core
 
             // Make sure parent directory exists on hfs.
             var dirName = Path.GetDirectoryName(hfsPath);
+
+            // In case hfsPath is relative, dirName would return an empty string.
+            if (dirName.Length == 0) {
+                dirName = Directory.GetCurrentDirectory();   
+            }
+
             // In case hfsPath is C:\\, dirName would return null. But
             // in the same case, GetPathRoot wouldn't.
             // We use this to make sure that dirName is a valid directory.
-            if (dirName == null && Path.GetPathRoot(hfsPath) != null) {
+            if (String.IsNullOrEmpty(dirName) && Path.GetPathRoot(hfsPath) != null) {
                 dirName = hfsPath;
             }
             if (!Directory.Exists(dirName)) {

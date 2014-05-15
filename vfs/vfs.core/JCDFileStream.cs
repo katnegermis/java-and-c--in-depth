@@ -53,7 +53,9 @@ namespace vfs.core {
             }
             var vfs = file.GetContainer();
             var bytesRead = vfs.ReadFile(buffer, (ulong)(position + offset), (ulong)count, file.Entry.FirstBlock);
-            position += offset + count;
+            if (bytesRead != 0) {
+                position += offset + count;
+            }
             return bytesRead;
         }
 
