@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.core;
 
 namespace vfs.synchronizer.common
 {
@@ -84,36 +86,41 @@ namespace vfs.synchronizer.common
             switch (type)
             {
                 case JCDSynchronizationEventType.Added:
-                    if (args != 2)
+                    if (args != NumArgs(typeof(AddFileEventHandler)))
                     {
                         throw new SerializationException("Incorret number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Deleted:
-                    if (args != 1)
+                    if (args != NumArgs(typeof(DeleteFileEventHandler)))
                     {
                         throw new SerializationException("Incorret number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Modified:
-                    if (args != 3)
+                    if (args != NumArgs(typeof(ModifyFileEventHandler)))
                     {
                         throw new SerializationException("Incorret number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Moved:
-                    if (args != 2)
+                    if (args != NumArgs(typeof(MoveFileEventHandler)))
                     {
                         throw new SerializationException("Incorret number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Resized:
-                    if (args != 2)
+                    if (args != NumArgs(typeof(ResizeFileEventHandler)))
                     {
                         throw new SerializationException("Incorret number of args for this type!");
                     }
                     break;
             }
+        }
+
+        private static int NumArgs(Type type) {
+            var v = type.GetMethod("Invoke");
+            return v.GetParameters().Length;
         }
     }
 }
