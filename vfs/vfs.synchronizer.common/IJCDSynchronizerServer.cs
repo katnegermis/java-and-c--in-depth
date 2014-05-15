@@ -59,9 +59,9 @@ namespace vfs.synchronizer.common {
         /// Inform the other party that a file was added.
         /// </summary>
         /// <param name="path">Path of the file.</param>
-        /// <param name="data">Data of the file.</param>
+        /// <param name="isFolder">Whether the file is a folder or not.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileAdded(long vfsId, string path, long size, byte[] data);
+        JCDSynchronizerReply FileAdded(long vfsId, string path, long size, bool isFolder);
 
         /// <summary>
         /// Inform the other party that a file was deleted.

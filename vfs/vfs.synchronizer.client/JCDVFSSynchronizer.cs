@@ -451,6 +451,7 @@ namespace vfs.synchronizer.client
             // The point of these functions is that they should implement 
             // vfs.synchronizer.common.ISynchronizerClient.
             hub.On<string, bool>("FileAdded", (path, isFolder) => {
+                Console.WriteLine("Server called FileAdded");
                 if (isFolder) {
                     vfs.CreateDirectory(path, false);
                 }
@@ -460,6 +461,7 @@ namespace vfs.synchronizer.client
             });
 
             hub.On<string, long, byte[]>("FileModified", (path, offset, data) => {
+                Console.WriteLine("Server called FileModified");
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.Seek(offset, System.IO.SeekOrigin.Begin);
                     stream.Write(data, 0, 0);
@@ -467,17 +469,20 @@ namespace vfs.synchronizer.client
             });
 
             hub.On<string, long>("FileResized", (path, size) => {
+                Console.WriteLine("Server called FileResized");
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.SetLength(size);
                 }
             });
 
             hub.On<string>("FileDeleted", path => {
+                Console.WriteLine("Server called FileDeleted");
                 var details = vfs.GetFileDetails(path);
                 vfs.DeleteFile(path, details.IsFolder);
             });
 
             hub.On<string, string>("FileMoved", (oldPath, newPath) => {
+                Console.WriteLine("Server called FileMoved");
                 vfs.MoveFile(oldPath, newPath);
             });
         }
