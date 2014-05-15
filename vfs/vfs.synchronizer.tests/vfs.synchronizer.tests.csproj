@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JCDSynchronizerSerializationTests.cs" />
     <Compile Include="JCDVFSSynchronizerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -56,6 +57,10 @@
     <ProjectReference Include="..\vfs.core\vfs.core.csproj">
       <Project>{f283ee69-4609-4c8f-a26c-48b9e72ebfab}</Project>
       <Name>vfs.core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\vfs.synchronizer.common\vfs.synchronizer.common.csproj">
+      <Project>{47a95fb7-fb8a-40dd-9f89-cc51c9f52a4e}</Project>
+      <Name>vfs.synchronizer.common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,11 @@ namespace vfs.common {
             DeleteFiles(new string[] { file });
         }
 
+        public static byte[] GenerateRandomData(int size) {
+            var rnd = new Random();
+            return GenerateRandomData(size, rnd.Next());
+        }
+
         public static byte[] GenerateRandomData(int size, int seed) {
             var data = new byte[size];
             var rnd = new Random(seed);
