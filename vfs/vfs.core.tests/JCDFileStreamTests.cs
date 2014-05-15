@@ -139,7 +139,6 @@ namespace vfs.core.tests {
         }
 
         [TestMethod]
-        [ExpectedException(typeof(FileTooSmallException), "Expected file to be too small.")]
         public void TestShrinkFile() {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
@@ -163,10 +162,6 @@ namespace vfs.core.tests {
             var blocksShrunk = (fileSize - shrinkBytes) / jcdBlockSize;
             var newFreeSpace = oldFreeSpace + (ulong)(blocksShrunk * jcdBlockSize);
             Assert.AreEqual(newFreeSpace, vfs.FreeSpace());
-
-            // Check that an exception is thrown when we try read beyond the length of the file.
-            var data = new byte[1];
-            stream.Read(data, shrinkBytes, 1); // Throws FileTooSmallException
         }
 
         [TestMethod]
