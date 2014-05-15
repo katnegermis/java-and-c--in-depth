@@ -63,7 +63,7 @@ namespace vfs.core
         private uint dataOffsetBlocks;
         private uint freeBlocks;
         private uint firstFreeBlock;
-        private uint vfsId;
+        private long vfsId;
         private uint[] fat;
 
         private JCDFolder rootFolder;
@@ -602,29 +602,36 @@ namespace vfs.core
             Seek(0L);
 
             // Verify that we're reading a JCDVFS-file.
-            uint tmp = hfsBinaryReader.ReadUInt32();
-            if (tmp != magicNumber)
+            if (hfsBinaryReader.ReadUInt32() != magicNumber)
             {
-                throw new InvalidFileException();
+                throw new InvalidFileException("Invalid magic number!");
             }
 
             // Make sure that the block size is 2^12, since this isn't configurable yet.
-            tmp = hfsBinaryReader.ReadUInt32();
-            if (tmp != blockSize)
+            if (hfsBinaryReader.ReadUInt32() != blockSize)
             {
                 // Only JCDVFS-files with 4KB block sizes are supported.
-                throw new InvalidFileException();
+                throw new InvalidFileException("Invalid block size!");
             }
 
             fatBlocks = hfsBinaryReader.ReadUInt32();
             freeBlocks = hfsBinaryReader.ReadUInt32();
             firstFreeBlock = hfsBinaryReader.ReadUInt32();
-            // The following three are statically set consts.
-            // We want to read them anyway, to move the pointer forward.
-            hfsBinaryReader.ReadUInt32(); // rootDirBlock
-            hfsBinaryReader.ReadUInt32(); // searchFileTreeBlock
-            hfsBinaryReader.ReadUInt32(); // searchFileDataBlock
-            vfsId = hfsBinaryReader.ReadUInt32();
+            
+
+            if (hfsBinaryReader.ReadUInt32() != rootDirBlock) {
+                throw new InvalidFileException("Invalid rootDirBlock!");
+            }
+
+            if (hfsBinaryReader.ReadUInt32() != searchFileTreeBlock) {
+                throw new InvalidFileException("Invalid search data file!");
+            }
+
+            if (hfsBinaryReader.ReadUInt32() != searchFileDataBlock) {
+                throw new InvalidFileException("Invalid search tree file!");
+            }
+
+            vfsId = hfsBinaryReader.ReadInt64();
         }
 
         private void NewFSCreateRootFolder()
@@ -1312,12 +1319,12 @@ namespace vfs.core
             return new JCDFileStream(file, OnFileModified);
         }
 
-        public int GetId() {
-            return (int)vfsId;
+        public long GetId() {
+            return vfsId;
         }
 
-        public void SetId(int id) {
-            this.vfsId = (uint)id;
+        public void SetId(long id) {
+            this.vfsId = id;
             UpdateMetaData();
         }
     }
