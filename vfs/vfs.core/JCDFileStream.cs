@@ -48,17 +48,13 @@ namespace vfs.core {
         }
 
         public override int Read(byte[] buffer, int offset, int count) {
-            // Make sure that offset and count don't go beyond bound of file
-            if (offset + count > (long)file.Size) {
-                throw new FileTooSmallException();
-            }
             if (buffer == null || buffer.Length < count) {
                 throw new BufferTooSmallException();
             }
             var vfs = file.GetContainer();
-            vfs.ReadFile(buffer, (ulong)(position + offset), (ulong)count, file.Entry.FirstBlock);
+            var bytesRead = vfs.ReadFile(buffer, (ulong)(position + offset), (ulong)count, file.Entry.FirstBlock);
             position += offset + count;
-            return buffer.Length;
+            return bytesRead;
         }
 
         public override void Write(byte[] buffer, int offset, int count) {
