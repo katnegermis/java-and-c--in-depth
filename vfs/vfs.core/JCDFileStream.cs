@@ -8,7 +8,7 @@ using vfs.exceptions;
 using vfs.common;
 
 namespace vfs.core {
-    public class JCDFileStream : Stream {
+    public class JCDFileStream : Stream, IDisposable {
         private JCDFile file;
         private ModifyFileEventHandler modifiedCallback;
 
@@ -117,6 +117,17 @@ namespace vfs.core {
 
         public JCDFAT GetVFS() {
             return file.GetContainer();
+        }
+
+        public void Dispose() {
+            Dispose(true);
+        }
+
+        protected void Dispose(bool disposing) {
+            if (disposing) {
+                Flush();
+            }
+            Close();
         }
     }
 }
