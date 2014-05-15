@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.server
 {
@@ -55,7 +56,7 @@ namespace vfs.synchronizer.server
                     command.ExecuteNonQuery();
 
                     // Changes
-                    command.CommandText = "CREATE TABLE IF NOT EXISTS Changes ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, event_type INTEGER NOT NULL, dataPath TEXT, file_id INTEGER NOT NULL, FOREIGN KEY(file_id) REFERENCES Files(id) );";
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Changes ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, event_type INTEGER NOT NULL, dataPath TEXT UNIQUE NOT NULL, file_id INTEGER NOT NULL, FOREIGN KEY(file_id) REFERENCES Files(id) );";
                     command.ExecuteNonQuery();
                 }
             }
@@ -137,6 +138,7 @@ namespace vfs.synchronizer.server
                     command.CommandText = "SELECT id, initPath FROM VFS WHERE user_id = @userId;";
                     command.Parameters.Add("@userId", System.Data.DbType.Int64).Value = userId;
 
+                    var list = new List<Tuple<long, string>>();
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -144,10 +146,10 @@ namespace vfs.synchronizer.server
                             long id = Convert.ToInt64(reader["id"]);
                             string path = Convert.ToString(reader["initPath"]);
                             string name = Path.GetFileName(path.Remove(path.Length - 5));
-                            //TODO: put into some object to then give back directly or serialize
+                            list.Add(new Tuple<long, string>(id, name));
                         }
                     }
-                    return null;
+                    return list;
                 }
             }
             catch (Exception ex)
@@ -176,7 +178,9 @@ namespace vfs.synchronizer.server
                     string hfsPath = vfsId + @"/";
                     string initPath = hfsPath + vfsName + ".init";
                     string currentPath = hfsPath + vfsName + ".curr";
-                    //TODO store to disk as init and current in own folder (vfsId)
+
+                    writeToFile(currentPath, data);
+                    writeToFile(initPath, data);
 
                     command.CommandText = "INSERT INTO VFS (id, user_id, initPath, currentPath) VALUES(@id, @userId, @initPath, @currentPath);";
                     command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
@@ -234,11 +238,17 @@ namespace vfs.synchronizer.server
             {
                 using (var command = new SQLiteCommand(connection))
                 {
-                    //TODO implement
-                    command.CommandText = "SELECT V.currentPath, F.id FROM VFS AS V JOIN Files AS F JOIN Changes AS C WHERE id = @id;";
+                    command.CommandText = "SELECT V.currentPath FROM VFS WHERE id = @id;";
                     command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
 
-                    command.ExecuteScalar();
+                    var path = command.ExecuteScalar().ToString();
+
+                    command.CommandText = "SELECT MAX(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                    var versionId = (long)command.ExecuteScalar();
+
+                    var data = readFromFile(path);
 
                     return new Tuple<long, byte[]>(123L, new byte[0]);
                 }
@@ -251,63 +261,35 @@ namespace vfs.synchronizer.server
         }
 
         /// <summary>
-        /// Tries to add a new change to a vfs file.
+        /// Adds the creation of a new file to the changes of the given VFS.
         /// </summary>
-        /// <param name="eventType">The type of the change.</param>
-        /// <param name="vfsId">The id of the vfs where a change happaned.</param>
-        /// <param name="vfsPath">The path of the file that has been changed.</param>
-        /// <param name="data">The change data.</param>
-        /// <returns>The newly created version id if successfully created, null otherwise.</returns>
-        internal string AddChange(int eventType, long vfsId, string vfsPath, byte[] data)
+        /// <param name="vfsId">The ID of the VFS the file has been added to.</param>
+        /// <param name="vfsPath">The path of the file in the VFS.</param>
+        /// <param name="data">The file data.</param>
+        /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
+        internal string AddFile(long vfsId, string vfsPath, byte[] data)
         {
             try
             {
                 using (var command = new SQLiteCommand(connection))
                 {
-                    command.CommandText = "SELECT id FROM Files WHERE vfs_id = @vfsId AND vfsPath = @vfsPath;";
-                    command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
-                    command.Parameters.Add("@vfsPath", System.Data.DbType.String, vfsPath.Length).Value = vfsPath;
+                    long fileId = addFileRow(vfsId, vfsPath);
+                    if (fileId == -1)
+                        fileId = getFileId(vfsId, vfsPath);
 
-                    var result = command.ExecuteScalar();
-                    long fileId = result != null ? (long)result : -1;
-
-                    if (fileId < 0)
+                    if (fileId > 0)
                     {
-                        command.CommandText = "INSERT INTO Files (vfsPath, vfs_id) VALUES(@vfsPath, @vfsId);";
-                        command.Parameters.Add("@vfsPath", System.Data.DbType.String, vfsPath.Length).Value = vfsPath;
-                        command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, new object[2] { vfsPath, data });
+                        var versionId = addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
 
-                        command.ExecuteNonQuery();
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        command.CommandText = "SELECT last_insert_rowid();";
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Added, changeData);
 
-                        fileId = (long)command.ExecuteScalar();
+                        return versionId;
                     }
-
-                    if (data == null)
-                    {
-                        command.CommandText = "INSERT INTO Changes (event_type, file_id) VALUES(@event_type, @fileId);";
-                        command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
-                        command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
-                    }
-                    else
-                    {
-                        //TODO store the data to disk
-                        var dataPath = @"vfsId/" + fileId + DateTime.Now.Ticks;
-
-                        command.CommandText = "INSERT INTO Changes (event_type, dataPath, file_id) VALUES(@event_type, @dataPath, @fileId);";
-                        command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
-                        command.Parameters.Add("@dataPath", System.Data.DbType.String, dataPath.Length).Value = dataPath;
-                        command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
-
-                    }
-                    command.ExecuteNonQuery();
-
-                    command.CommandText = "SELECT last_insert_rowid();";
-
-                    long versionId = (long)command.ExecuteScalar();
-
-                    return versionId.ToString();
                 }
             }
             catch (Exception ex)
@@ -317,14 +299,287 @@ namespace vfs.synchronizer.server
             return null;
         }
 
+        /// <summary>
+        /// Adds the delete of a file to the changes of the given VFS.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS the file has been deleted from.</param>
+        /// <param name="vfsPath">The path of the file in the VFS.</param>
+        /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
+        internal string DeleteFile(long vfsId, string vfsPath)
+        {
+            try
+            {
+                using (var command = new SQLiteCommand(connection))
+                {
+                    var fileId = getFileId(vfsId, vfsPath);
+                    if (fileId < 0)
+                        fileId = addFileRow(vfsId, vfsPath);
+
+                    if (fileId > 0)
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, new object[1] { vfsPath });
+                        var versionId = addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
+
+                        return versionId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return null;
+        }
 
         /// <summary>
-        /// 
+        /// Adds the moving of a file to the changes of the given VFS.
         /// </summary>
-        /// <param name="vfsId"></param>
-        /// <param name="lastVersionId"></param>
-        /// <returns></returns>
-        internal string RetrieveChanges(long vfsId, long lastVersionId)
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <param name="oldPath">The path of the file that has been moved.</param>
+        /// <param name="newPath">The new path of the file.</param>
+        /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
+        internal string MoveFile(long vfsId, string oldPath, string newPath)
+        {
+            try
+            {
+                using (var command = new SQLiteCommand(connection))
+                {
+                    var fileId = getFileId(vfsId, oldPath);
+                    if (fileId < 0)
+                        fileId = addFileRow(vfsId, oldPath);
+
+                    if (fileId > 0)
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, new object[2] { oldPath, newPath });
+                        var versionId = addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Moved, changeData);
+
+                        return versionId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Adds the modification of a file to the changes of the given VFS.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <param name="vfsPath">The path of the file that has been modified.</param>
+        /// <param name="offset">The offset of the change.</param>
+        /// <param name="data">The new data at the given offset.</param>
+        /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
+        internal string ModifyFile(long vfsId, string vfsPath, long offset, byte[] data)
+        {
+            try
+            {
+                using (var command = new SQLiteCommand(connection))
+                {
+                    var fileId = getFileId(vfsId, vfsPath);
+                    if (fileId < 0)
+                        fileId = addFileRow(vfsId, vfsPath);
+
+                    if (fileId > 0)
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, new object[3] { vfsPath, offset, data });
+                        var versionId = addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Modified, changeData);
+
+                        return versionId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Adds the resizing of a file to the changes of the given VFS.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <param name="vfsPath">The path of the file that has been resized.</param>
+        /// <param name="newSize">The new size of the file.</param>
+        /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
+        internal string ResizeFile(long vfsId, string vfsPath, long newSize)
+        {
+            try
+            {
+                using (var command = new SQLiteCommand(connection))
+                {
+                    var fileId = getFileId(vfsId, vfsPath);
+                    if (fileId < 0)
+                        fileId = addFileRow(vfsId, vfsPath);
+
+                    if (fileId > 0)
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, new object[2] { vfsPath, newSize });
+                        var versionId = addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Resized, changeData);
+
+                        return versionId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Tries to add a file row into the File table.
+        /// </summary>
+        /// <param name="vfsId">ID of the VFs.</param>
+        /// <param name="vfsPath">Path of the file to add.</param>
+        /// <returns>The new file's ID if successfully added, -1 otherwise.</returns>
+        private long addFileRow(long vfsId, string vfsPath)
+        {
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "INSERT INTO Files (vfsPath, vfs_id) VALUES(@vfsPath, @vfsId);";
+                command.Parameters.Add("@vfsPath", System.Data.DbType.String, vfsPath.Length).Value = vfsPath;
+                command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
+
+                var res = command.ExecuteNonQuery();
+
+                long fileId = -1;
+                if (res > 0)
+                {
+                    command.CommandText = "SELECT last_insert_rowid();";
+                    fileId = (long)command.ExecuteScalar();
+                }
+
+                return fileId;
+            }
+        }
+
+        /// <summary>
+        /// Tries to add a new change to a vfs file.
+        /// </summary>
+        /// <param name="eventType">The type of the change.</param>
+        /// <param name="fileId">The id of the file that has been changed.</param>
+        /// <param name="data">The change data.</param>
+        /// <returns>The newly created version id if successfully created, null otherwise.</returns>
+        private string addChange(int eventType, long fileId, byte[] data)
+        {
+            using (var command = new SQLiteCommand(connection))
+            {
+                var dataPath = @"vfsId/" + fileId + DateTime.Now.Ticks;
+                writeToFile(dataPath, data);
+
+                command.CommandText = "INSERT INTO Changes (event_type, dataPath, file_id) VALUES(@event_type, @dataPath, @fileId);";
+                command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
+                command.Parameters.Add("@dataPath", System.Data.DbType.String, dataPath.Length).Value = dataPath;
+                command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
+
+                command.ExecuteNonQuery();
+
+                command.CommandText = "SELECT last_insert_rowid();";
+                long versionId = (long)command.ExecuteScalar();
+
+                return versionId.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Tries to add a new change to a vfs file without storing data.
+        /// </summary>
+        /// <param name="eventType">The type of the change.</param>
+        /// <param name="vfsPath">The id of the file that has been changed.</param>
+        /// <returns>The newly created version id if successfully created, null otherwise.</returns>
+        /* private string addChangeWithoutData(int eventType, long fileId)
+         {
+             using (var command = new SQLiteCommand(connection))
+             {
+                 command.CommandText = "INSERT INTO Changes (event_type, file_id) VALUES(@event_type, @fileId);";
+                 command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
+                 command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
+
+                 command.ExecuteNonQuery();
+
+                 command.CommandText = "SELECT last_insert_rowid();";
+                 long versionId = (long)command.ExecuteScalar();
+
+                 return versionId.ToString();
+             }
+         }*/
+
+        /// <summary>
+        /// Tries to retrieve the file ID of the file with the given vfsPath in the VFS with the given ID.
+        /// </summary>
+        /// <param name="vfsId">ID of the VFS.</param>
+        /// <param name="vfsPath">Path of the file in the VFS.</param>
+        /// <returns>The ID if found, -1 otherwise.</returns>
+        private long getFileId(long vfsId, string vfsPath)
+        {
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT id FROM Files WHERE vfs_id = @vfsId AND vfsPath = @vfsPath;";
+                command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
+                command.Parameters.Add("@vfsPath", System.Data.DbType.String, vfsPath.Length).Value = vfsPath;
+
+                var result = command.ExecuteScalar();
+                return result != null ? (long)result : -1;
+            }
+        }
+
+        /// <summary>
+        /// Tries to retrieve the path of the current VFS file of the VFS with the given ID.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <returns>The path of the current VFS file.</returns>
+        private string getCurrentVFSPath(long vfsId)
+        {
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT currentPath FROM VFS WHERE id = @id;";
+                command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                var result = command.ExecuteScalar();
+                return result != null ? result.ToString() : null;
+            }
+        }
+
+
+        /// <summary>
+        /// Retrieve the changes for the given vfs that happened after the given version.
+        /// The result is a Tuple with the new highest version ID and a list with the changes.
+        /// Each change is a Tuple with the int of the JCDSynchronizationEventType and a byte[] 
+        /// that comes from the JCDSynchronizerSerialization.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <param name="lastVersionId">The Version ID from which on the changes are to be retrieved.</param>
+        /// <returns>Tuple with the new version ID and a list of event IDs and event data.</returns>
+        internal Tuple<long, List<Tuple<int, byte[]>>> RetrieveChanges(long vfsId, long lastVersionId)
         {
             try
             {
@@ -339,16 +594,20 @@ namespace vfs.synchronizer.server
 
                     using (var reader = command.ExecuteReader())
                     {
+                        var list = new List<Tuple<int, byte[]>>();
+                        long id = -1;
                         while (reader.Read())
                         {
-                            long id = Convert.ToInt64(reader["id"]);
-                            int event_type = Convert.ToInt32(reader["event_type"]);
-                            string vfsPath = Convert.ToString(reader["vfsPath"]);
+                            id = Convert.ToInt64(reader["id"]);
+                            int eventType = Convert.ToInt32(reader["event_type"]);
                             string dataPath = Convert.ToString(reader["dataPath"]);
-                            //TODO: put into some object to then give back directly or serialize
+                            var data = readFromFile(dataPath);
+
+                            list.Add(new Tuple<int, byte[]>(eventType, data));
                         }
+                        if (id > 0)
+                            return new Tuple<long, List<Tuple<int, byte[]>>>(id, list);
                     }
-                    return null;
                 }
             }
             catch (Exception ex)
@@ -361,13 +620,43 @@ namespace vfs.synchronizer.server
         /// <summary>
         /// Closes the db connection.
         /// </summary>
-        internal void closeDbConnection()
+        internal void CloseDbConnection()
         {
             if (connection != null)
             {
                 connection.Close();
                 connection.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Creates a new file with the given path and writes the data to it.
+        /// </summary>
+        /// <param name="path">To write the data to.</param>
+        /// <param name="data">To write into the new file.</param>
+        private void writeToFile(string path, byte[] data)
+        {
+            if (File.Exists(path))
+                throw new Exception(String.Format("File '{0}' already exists!", path));
+
+            using (var fileStream = new FileStream(path, FileMode.CreateNew))
+            using (var writer = new BinaryWriter(fileStream))
+                writer.Write(data);
+        }
+
+        /// <summary>
+        /// Reads and returns the bytes in the given file.
+        /// </summary>
+        /// <param name="path">Path to the file.</param>
+        /// <returns>The bytes.</returns>
+        private byte[] readFromFile(string path)
+        {
+            if (!File.Exists(path))
+                throw new Exception(String.Format("File '{0}' not exists!", path));
+
+            using (var fileStream = new FileStream(path, FileMode.Open))
+            using (var reader = new BinaryReader(fileStream))
+                return reader.ReadBytes(Convert.ToInt32(fileStream.Length));
         }
     }
 }
