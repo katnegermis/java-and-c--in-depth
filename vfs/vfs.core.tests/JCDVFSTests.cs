@@ -42,7 +42,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFileName = InternalHelpers.GetTestFileName(testName);
+            var testFileName = TestHelpers.GetTestFileName(testName);
 
             // Test
             var testVFS = JCDFAT.Create(testFileName, InternalHelpers.MB50);
@@ -59,7 +59,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var nonExistentFolder = "non_existent_folder";
 
             // Test
@@ -73,7 +73,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
 
             // Test
             JCDFAT.Create(testFile, UInt64.MaxValue);
@@ -86,7 +86,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFile);
 
             // Test
@@ -100,7 +100,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.Create(testFile);
             stream.Flush();
             stream.Close();
@@ -129,7 +129,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
             stream.Flush();
@@ -148,7 +148,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
 
             // Test
             var testVFS = JCDFAT.Open(testFile);
@@ -179,7 +179,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
             stream.Flush();
@@ -196,7 +196,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             
             // Test
             JCDFAT.Delete(testFile);
@@ -633,13 +633,14 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(Exception),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to move does not exist was discovered.")]
         public void MoveFileNotExistingTest()
         {
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
             testVFS.CreateDirectory("dir", false);
             testVFS.MoveFile("file", "dir");
-            Assert.Inconclusive("Should throw some exception");
         }
 
         #endregion
@@ -867,7 +868,7 @@ namespace vfs.core.tests
         public const uint MB50 = 10 * MB5;
 
         public static JCDFAT CreateJCDFAT(string testName, ulong size) {
-            testName = GetTestFileName(testName);
+            testName = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testName);
             return JCDFAT.Create(testName, size);
         }
@@ -877,16 +878,12 @@ namespace vfs.core.tests
         }
 
         public static JCDFAT OpenJCDFAT(string testName) {
-            return JCDFAT.Open(GetTestFileName(testName));
+            return JCDFAT.Open(TestHelpers.GetTestFileName(testName));
         }
 
         public static void CloseJCDFAT(JCDFAT vfs, string testName) {
             vfs.Close();
-            TestHelpers.DeleteFiles(GetTestFileName(testName));
-        }
-
-        public static string GetTestFileName(string testName) {
-            return testName;
+            TestHelpers.DeleteFiles(TestHelpers.GetTestFileName(testName));
         }
     }
 }

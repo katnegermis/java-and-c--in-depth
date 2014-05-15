@@ -20,7 +20,7 @@ namespace vfs.core.synchronizer.tests {
         public void TestSynchronizerCreate() {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFileName = GetTestFileName(testName);
+            var testFileName = TestHelpers.GetTestFileName(testName);
 
             // Test
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
@@ -32,7 +32,7 @@ namespace vfs.core.synchronizer.tests {
         public void TestSynchronizerDelete() {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFileName = GetTestFileName(testName);
+            var testFileName = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
             Assert.IsTrue(File.Exists(testFileName));
@@ -47,7 +47,7 @@ namespace vfs.core.synchronizer.tests {
         public void TestSynchronizerOpen() {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFileName = GetTestFileName(testName);
+            var testFileName = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
             sync.Close();
@@ -88,23 +88,19 @@ namespace vfs.core.synchronizer.tests {
             CleanUp(sync, testName);
         }
 
-        private string GetTestFileName(string testName) {
-            return testName;
-        }
-
         private JCDVFSSynchronizer CreateSynchronizer(string testName) {
             return CreateSynchronizer(testName, MB5);
         }
 
         private JCDVFSSynchronizer CreateSynchronizer(string testName, uint size) {
-            TestHelpers.DeleteFiles(new string[] { GetTestFileName(testName) });
-            testName = GetTestFileName(testName);
+            testName = TestHelpers.GetTestFileName(testName);
+            TestHelpers.DeleteFiles(new string[] { testName });
             return JCDVFSSynchronizer.Create(vfsType, testName, size);
         }
 
         private void CleanUp(JCDVFSSynchronizer sync, string testName) {
             sync.Close();
-            TestHelpers.DeleteFiles(new string[] { GetTestFileName(testName) });
+            TestHelpers.DeleteFiles(new string[] { TestHelpers.GetTestFileName(testName) });
         }
     }
 }
