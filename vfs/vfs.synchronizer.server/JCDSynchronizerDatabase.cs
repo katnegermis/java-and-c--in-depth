@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.server
 {
@@ -276,9 +277,12 @@ namespace vfs.synchronizer.server
                     if (fileId == -1)
                         fileId = getFileId(vfsId, vfsPath);
 
-                    //TODO define eventType and execute the change
+                    //TODO execute the change
                     if (fileId > 0)
-                        return addChangeWithData(1, fileId, data);
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, new object[2] { vfsPath, data });
+                        return addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
+                    }
                 }
             }
             catch (Exception ex)
@@ -304,9 +308,12 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO define eventType and execute the change
+                    //TODO execute the change
                     if (fileId > 0)
-                        return addChangeWithoutData(2, fileId);
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, new object[1] { vfsPath });
+                        return addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
+                    }
                 }
             }
             catch (Exception ex)
@@ -333,9 +340,12 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, oldPath);
 
-                    //TODO define eventType and execute the change
+                    //TODO execute the change
                     if (fileId > 0)
-                        return addChangeWithData(3, fileId, Encoding.UTF8.GetBytes(newPath));
+                    {
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, new object[2] { oldPath, newPath });
+                        return addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
+                    }
                 }
             }
             catch (Exception ex)
@@ -363,15 +373,11 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO define eventType and execute the change
+                    //TODO execute the change
                     if (fileId > 0)
                     {
-                        var offsetBytes = BitConverter.GetBytes(offset); //8 Bytes
-                        var combinedBytes = new byte[offsetBytes.Length + data.Length];
-                        System.Buffer.BlockCopy(offsetBytes, 0, combinedBytes, 0, offsetBytes.Length);
-                        System.Buffer.BlockCopy(data, 0, combinedBytes,offsetBytes.Length, data.Length);
-
-                        return addChangeWithData(4, fileId, combinedBytes);
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, new object[3] { vfsPath, offset, data });
+                        return addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
                     }
                 }
             }
@@ -399,10 +405,11 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO define eventType and execute the change
+                    //TODO execute the change
                     if (fileId > 0)
                     {
-                        return addChangeWithData(5, fileId, BitConverter.GetBytes(newSize));
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, new object[2] { vfsPath, newSize });
+                        return addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
                     }
                 }
             }
@@ -447,7 +454,7 @@ namespace vfs.synchronizer.server
         /// <param name="fileId">The id of the file that has been changed.</param>
         /// <param name="data">The change data.</param>
         /// <returns>The newly created version id if successfully created, null otherwise.</returns>
-        private string addChangeWithData(int eventType, long fileId, byte[] data)
+        private string addChange(int eventType, long fileId, byte[] data)
         {
             using (var command = new SQLiteCommand(connection))
             {
@@ -474,22 +481,22 @@ namespace vfs.synchronizer.server
         /// <param name="eventType">The type of the change.</param>
         /// <param name="vfsPath">The id of the file that has been changed.</param>
         /// <returns>The newly created version id if successfully created, null otherwise.</returns>
-        private string addChangeWithoutData(int eventType, long fileId)
-        {
-            using (var command = new SQLiteCommand(connection))
-            {
-                command.CommandText = "INSERT INTO Changes (event_type, file_id) VALUES(@event_type, @fileId);";
-                command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
-                command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
+        /* private string addChangeWithoutData(int eventType, long fileId)
+         {
+             using (var command = new SQLiteCommand(connection))
+             {
+                 command.CommandText = "INSERT INTO Changes (event_type, file_id) VALUES(@event_type, @fileId);";
+                 command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
+                 command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
 
-                command.ExecuteNonQuery();
+                 command.ExecuteNonQuery();
 
-                command.CommandText = "SELECT last_insert_rowid();";
-                long versionId = (long)command.ExecuteScalar();
+                 command.CommandText = "SELECT last_insert_rowid();";
+                 long versionId = (long)command.ExecuteScalar();
 
-                return versionId.ToString();
-            }
-        }
+                 return versionId.ToString();
+             }
+         }*/
 
         /// <summary>
         /// Tries to retrieve the file ID of the file with the given vfsPath in the VFS with the given ID.
