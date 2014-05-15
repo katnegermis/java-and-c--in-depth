@@ -24,28 +24,30 @@ namespace vfs.synchronizer.server
             string newPath;
             long offset;
             long newSize;
+            long size;
             byte[] data;
+            bool isFolder;
 
             switch (eventType)
             {
                 case (int)JCDSynchronizationEventType.Added:
-                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Added, changeData, out vfsPath, out data);
-                    makeAdd(vfs, vfsPath, data);
+                    JCDSynchronizerSerialization.Deserialize<string, long, bool>(JCDSynchronizationEventType.Added, changeData, out vfsPath, out size, out isFolder);
+                    makeAdd(vfs, vfsPath, size ,isFolder);
                     break;
                 case (int)JCDSynchronizationEventType.Deleted:
-                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Deleted, changeData, out vfsPath);
+                    JCDSynchronizerSerialization.Deserialize<string>(JCDSynchronizationEventType.Deleted, changeData, out vfsPath);
                     makeDelete(vfs, vfsPath);
                     break;
                 case (int)JCDSynchronizationEventType.Moved:
-                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Moved, changeData, out vfsPath, out newPath);
+                    JCDSynchronizerSerialization.Deserialize<string, string>(JCDSynchronizationEventType.Moved, changeData, out vfsPath, out newPath);
                     makeMove(vfs, vfsPath, newPath);
                     break;
                 case (int)JCDSynchronizationEventType.Modified:
-                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Modified, changeData, out vfsPath, out offset, out data);
+                    JCDSynchronizerSerialization.Deserialize<string, long, byte[]>(JCDSynchronizationEventType.Modified, changeData, out vfsPath, out offset, out data);
                     makeModify(vfs, vfsPath, offset, data);
                     break;
                 case (int)JCDSynchronizationEventType.Resized:
-                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Resized, changeData, out vfsPath, out newSize);
+                    JCDSynchronizerSerialization.Deserialize<string, long>(JCDSynchronizationEventType.Resized, changeData, out vfsPath, out newSize);
                     makeResize(vfs, vfsPath, newSize);
                     break;
                 default:
@@ -54,21 +56,18 @@ namespace vfs.synchronizer.server
             }
         }
 
-        private static void makeAdd(string hfsPath, string vfsPath, byte[] data)
+        private static void makeAdd(string hfsPath, string vfsPath, long size, bool isFolder)
         {
             using (var vfs = JCDFAT.Open(hfsPath))
             {
-                FileAttributes attr = File.GetAttributes(hfsPath);
-
-                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                if (isFolder)
+                {
                     vfs.CreateDirectory(vfsPath, false);
+                }
                 else
                 {
-                    vfs.CreateFile(vfsPath, (ulong)data.Length, false);
-                    using (var stream = vfs.GetFileStream(vfsPath))
-                    {
-                        stream.Seek(0, System.IO.SeekOrigin.Begin);
-                        stream.Write(data, 0, 0);
+                    using (var stream = vfs.CreateFile(vfsPath, (ulong)size, false)) {
+                        stream.SetLength(size);
                     }
                 }
             }

@@ -267,7 +267,7 @@ namespace vfs.synchronizer.server
         /// <param name="vfsPath">The path of the file in the VFS.</param>
         /// <param name="data">The file data.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string AddFile(long vfsId, string vfsPath, byte[] data)
+        internal string AddFile(long vfsId, string vfsPath, long size, byte[] data)
         {
             try
             {
@@ -275,11 +275,13 @@ namespace vfs.synchronizer.server
                 {
                     long fileId = addFileRow(vfsId, vfsPath);
                     if (fileId == -1)
+                    {
                         fileId = getFileId(vfsId, vfsPath);
+                    }
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, vfsPath, data );
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, vfsPath, size, data);
                         var versionId = addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
