@@ -31,9 +31,9 @@ namespace vfs.synchronizer.client
         public event ModifyFileEventHandler FileModified;
         public event ResizeFileEventHandler FileResized;
 
-        internal void OnFileAdded(string path, bool isFolder) {
+        internal void OnFileAdded(string path, long size, bool isFolder) {
             if (FileAdded != null) {
-                FileAdded(path, isFolder);
+                FileAdded(path, size, isFolder);
             }
         }
 
@@ -303,10 +303,12 @@ namespace vfs.synchronizer.client
         // - no such path (createParents == false).
         // - too little space available on VFS.
         // - invalid path string (file name too long/invalid characters).
-        public void CreateFile(string vfsPath, ulong size, bool createParents) {
+        public JCDFileStream CreateFile(string vfsPath, ulong size, bool createParents) {
+            JCDFileStream stream;
             lock (this.vfs) {
-                vfs.CreateFile(vfsPath, size, createParents);
+                stream = vfs.CreateFile(vfsPath, size, createParents);
             }
+            return stream;
         }
 
         /// <summary>

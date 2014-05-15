@@ -99,44 +99,25 @@ namespace vfs.core
         /// </summary>
         public event ResizeFileEventHandler FileResized;
 
-        /// <summary>
-        /// Event to be called every time a new file is added to the file system.
-        /// </summary>
-        /// <param name="path">Path of the newly added file.</param>
-        internal void OnFileAdded(string path, bool isFolder) {
+        internal void OnFileAdded(string path, long size, bool isFolder) {
             if (FileAdded != null) {
-                FileAdded(path, isFolder);
+                FileAdded(path, size, isFolder);
             }
         }
-
-        /// <summary>
-        /// Event to be called every time a file is deleted from the file system.
-        /// </summary>
-        /// <param name="path">Path of the deleted file.</param>
+        
         internal void OnFileDeleted(string path) {
             if (FileDeleted != null) {
                 FileDeleted(path);
             }
         }
-
-        /// <summary>
-        /// Event to be called every time a file is moved or renamed on the file system.
-        /// </summary>
-        /// <param name="oldPath">File's previous (old) path.</param>
-        /// <param name="newPath">File's new (current) path.</param>
+        
         internal void OnFileMoved(string oldPath, string newPath) {
             if (FileMoved != null) {
                 FileMoved(oldPath, newPath);
             }
         }
 
-        /// <summary>
-        /// Event to be called every time a file is modified.
-        /// This does NOT include file resizing!
-        /// </summary>
-        /// <param name="path">File's path.</param>
-        /// <param name="offset">Offset in to file where the data was written.</param>
-        /// <param name="data">Data that was written.</param>
+        
         internal void OnFileModified(string path, long offset, byte[] data) {
             // Don't track internal files.
             if (path == searchFileDataPath || path == searchFileTreePath) {
@@ -148,11 +129,6 @@ namespace vfs.core
             }
         }
 
-        /// <summary>
-        /// Event to be called every time a file (NOT folder) is resized.
-        /// </summary>
-        /// <param name="path">Path to the file.</param>
-        /// <param name="newSize">New size of the file.</param>
         internal void OnFileResized(string path, long newSize) {
             if (FileResized != null) {
                 FileResized(path, newSize);
@@ -682,7 +658,7 @@ namespace vfs.core
             fileIndex = FileIndex.Open(treeFileStream, dataFileStream);
             
             // Add event handlers
-            FileAdded += (path, isFolder) => {
+            FileAdded += (path, size, isFolder) => {
                 fileIndex.Put(path);
             };
 
@@ -908,7 +884,7 @@ namespace vfs.core
             }
             
             var result = ((JCDFolder) container).AddDirEntry(entry);
-            OnFileAdded(result.Path, isFolder);
+            OnFileAdded(result.Path, (long)size, isFolder);
             return result;
         }
 
@@ -955,11 +931,11 @@ namespace vfs.core
             }
         }
 
-        public void CreateFile(string vfsPath, ulong size, bool createParents) {
+        public JCDFileStream CreateFile(string vfsPath, ulong size, bool createParents) {
             if (createParents) {
                 CreateParents(vfsPath);
             }
-            CreateFile(size, vfsPath, false);
+            return GetFileStream(CreateFile(size, vfsPath, false));
         }
 
         public void ImportFile(string hfsPath, string vfsPath) {

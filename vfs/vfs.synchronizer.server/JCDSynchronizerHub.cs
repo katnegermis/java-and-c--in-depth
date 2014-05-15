@@ -115,11 +115,11 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
-        public JCDSynchronizerReply FileAdded(long vfsId, string path, byte[] data)
+        public JCDSynchronizerReply FileAdded(long vfsId, string path, long size, byte[] data)
         {
             Console.WriteLine("Client called FileAdded");
 
-            var id = db.AddFile(vfsId, path, data);
+            var id = db.AddFile(vfsId, path, size, data);
             //TODO inform other clients
 
             if (id != null)

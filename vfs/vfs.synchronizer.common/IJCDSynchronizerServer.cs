@@ -61,7 +61,7 @@ namespace vfs.synchronizer.common {
         /// <param name="path">Path of the file.</param>
         /// <param name="data">Data of the file.</param>
         /// <returns>SynchronizerReply with Data set to the most current change id.</returns>
-        JCDSynchronizerReply FileAdded(long vfsId, string path, byte[] data);
+        JCDSynchronizerReply FileAdded(long vfsId, string path, long size, byte[] data);
 
         /// <summary>
         /// Inform the other party that a file was deleted.
