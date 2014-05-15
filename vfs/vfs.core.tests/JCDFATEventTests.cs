@@ -17,8 +17,7 @@ namespace vfs.core.tests {
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
-            vfs.CreateFile(fileName, (uint)fileSize, false);
-            var fs = vfs.GetFileStream(fileName);
+            var fs = vfs.CreateFile(fileName, (uint)fileSize, false);
 
 
             // Test
@@ -42,8 +41,7 @@ namespace vfs.core.tests {
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
-            vfs.CreateFile(fileName, (ulong)fileSize, false);
-            var fs = vfs.GetFileStream(fileName);
+            var fs = vfs.CreateFile(fileName, (ulong)fileSize, false);
             var newFileSize = fileSize / 2;
 
             // Test
@@ -65,8 +63,7 @@ namespace vfs.core.tests {
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
-            vfs.CreateFile(fileName, (ulong)fileSize, false);
-            var fs = vfs.GetFileStream(fileName);
+            var fs = vfs.CreateFile(fileName, (ulong)fileSize, false);
             var newFileSize = fileSize / 2;
 
             // Test

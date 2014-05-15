@@ -146,8 +146,7 @@ namespace vfs.core.tests {
             var vfs = JCDFAT.Create(testName, (ulong)MB5);
             var testFileName = "test";
             var fileSize = MB1;
-            vfs.CreateFile(testFileName, (ulong)fileSize, false);
-            var stream = vfs.GetFileStream(testFileName);
+            var stream = vfs.CreateFile(testFileName, (ulong)fileSize, false);
             var jcdBlockSize = 1 << 12;
 
             // Test
@@ -186,8 +185,7 @@ namespace vfs.core.tests {
             TestHelpers.DeleteFiles(new string[] { vfsFileName });
             var vfs = JCDFAT.Create(vfsFileName, size);
             var testFileName = "test";
-            vfs.CreateFile(testFileName, 0, false);
-            return vfs.GetFileStream(testFileName);
+            return vfs.CreateFile(testFileName, 0, false);
         }
 
         private void CleanUp(JCDFileStream stream, string testName) {
