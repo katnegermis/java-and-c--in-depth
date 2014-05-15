@@ -808,7 +808,7 @@ namespace vfs.core.tests
 
         #region VFS id Tests
         [TestMethod]
-        public void TestInitialId() {
+        public void TestVFSInitialId() {
             // Set up
             var testName = "initial_id";
             var vfs = InternalHelpers.CreateJCDFAT(testName);
@@ -818,11 +818,11 @@ namespace vfs.core.tests
         }
 
         [TestMethod]
-        public void TestSetId() {
+        public void TestVFSSetId() {
             // Set up
             var testName = "set_id";
             var vfs = InternalHelpers.CreateJCDFAT(testName);
-            int id = 1337;
+            long id = 1337;
 
             // Test
             vfs.SetId(id);
@@ -830,11 +830,11 @@ namespace vfs.core.tests
         }
 
         [TestMethod]
-        public void TestSetIdCloseGetId() {
+        public void TestVFSSetIdCloseGetId() {
             // Set up
             var testName = "set_id_close_get_id";
             var vfs = InternalHelpers.CreateJCDFAT(testName);
-            int id = 1337;
+            long id = 1337;
             vfs.SetId(id);
             vfs.Close();
             vfs = InternalHelpers.OpenJCDFAT(testName);
@@ -844,11 +844,11 @@ namespace vfs.core.tests
         }
 
         [TestMethod]
-        public void TestSetIdCloseGetIdNegativeNumber() {
+        public void TestVFSSetIdCloseGetIdNegativeNumber() {
             // Set up
             var testName = "set_id_close_get_id_negative_number";
             var vfs = InternalHelpers.CreateJCDFAT(testName);
-            int id = -1337;
+            long id = -1337;
             vfs.SetId(id);
             vfs.Close();
             vfs = InternalHelpers.OpenJCDFAT(testName);

@@ -32,6 +32,7 @@ namespace vfs.core.synchronizer.tests {
             // Set up
             var testName = "synchronizer_delete";
             var testFileName = GetTestFileName(testName);
+            TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
             Assert.IsTrue(File.Exists(testFileName));
             sync.Close();
@@ -46,6 +47,7 @@ namespace vfs.core.synchronizer.tests {
             // Set up
             var testName = "synchronizer_open";
             var testFileName = GetTestFileName(testName);
+            TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
             sync.Close();
 

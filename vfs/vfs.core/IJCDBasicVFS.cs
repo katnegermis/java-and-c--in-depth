@@ -149,7 +149,7 @@ namespace vfs.core
 
         JCDDirEntry GetFileDetails(string vfsPath);
 
-        int GetId();
-        void SetId(int id);
+        long GetId();
+        void SetId(long id);
     }
 }

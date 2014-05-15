@@ -31,44 +31,24 @@ namespace vfs.synchronizer.client
         public event ModifyFileEventHandler FileModified;
         public event ResizeFileEventHandler FileResized;
 
-        /// <summary>
-        /// Event to be called every time a new file is added to the file system.
-        /// </summary>
-        /// <param name="path">Path of the newly added file.</param>
         internal void OnFileAdded(string path, bool isFolder) {
             if (FileAdded != null) {
                 FileAdded(path, isFolder);
             }
         }
 
-        /// <summary>
-        /// Event to be called every time a file is deleted from the file system.
-        /// </summary>
-        /// <param name="path">Path of the deleted file.</param>
         internal void OnFileDeleted(string path) {
             if (FileDeleted != null) {
                 FileDeleted(path);
             }
         }
 
-        /// <summary>
-        /// Event to be called every time a file is moved or renamed on the file system.
-        /// </summary>
-        /// <param name="oldPath">File's previous (old) path.</param>
-        /// <param name="newPath">File's new (current) path.</param>
         internal void OnFileMoved(string oldPath, string newPath) {
             if (FileMoved != null) {
                 FileMoved(oldPath, newPath);
             }
         }
 
-        /// <summary>
-        /// Event to be called every time a file is modified.
-        /// This does NOT include file resizing!
-        /// </summary>
-        /// <param name="path">File's path.</param>
-        /// <param name="offset">Offset in to file where the data was written.</param>
-        /// <param name="data">Data that was written.</param>
         internal void OnFileModified(string path, long startByte, byte[] data) {
             if (FileModified != null) {
                 FileModified(path, startByte, data);
@@ -175,7 +155,7 @@ namespace vfs.synchronizer.client
         /// </summary>
         /// <returns></returns>
         public void RemoveVFS() {
-            int vfsId = GetId();
+            long vfsId = GetId();
             SetId(NotSynchronizedId);
             var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "DeleteVFS", vfsId);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
@@ -371,51 +351,24 @@ namespace vfs.synchronizer.client
             }
         }
 
-        ///<summary>
-        /// Rename file or directory on a mounted VFS.
-        /// </summary>
-        // Exceptions:
-        // - invalid path string (file name too long/invalid characters).
-        // - invalid file name (too long/invalid characters).
-        // - no such file on VFS.
         public void RenameFile(string vfsPath, string newName) {
             lock (this.vfs) {
                 vfs.RenameFile(vfsPath, newName);
             }
         }
 
-        /// <summary>
-        /// Move file or directory on a mounted VFS.
-        /// </summary>
-        // Exceptions:
-        // - invalid path string (file name too long/invalid characters).
-        // - invalid file name (too long/invalid characters).
-        // - no such file on VFS.
         public void MoveFile(string vfsPath, string newVfsPath) {
             lock (this.vfs) {
                 vfs.MoveFile(vfsPath, newVfsPath);
             }
         }
 
-        /// <summary>
-        /// Copy file or directory on a mounted VFS.
-        /// </summary>
-        // Exceptions:
-        // - invalid path string (file name too long/invalid characters).
-        // - invalid file name (too long/invalid characters).
-        // - no such file on VFS.
         public void CopyFile(string vfsPath, string newVfsPath) {
             lock (this.vfs) {
                 vfs.CopyFile(vfsPath, newVfsPath);
             }
         }
 
-        /// <summary>
-        /// List contents of a directory.
-        /// </summary>
-        /// <returns>List of directories and files contained in vfsPath.</returns>
-        // Exceptions:
-        // - path points to a file (not directory).
         public JCDDirEntry[] ListDirectory(string vfsPath) {
             lock (this.vfs) {
                 return vfs.ListDirectory(vfsPath);
@@ -458,11 +411,11 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public void SetId(int id) {
+        public void SetId(long id) {
             vfs.SetId(id);
         }
 
-        public int GetId() {
+        public long GetId() {
             return vfs.GetId();
         }
 
