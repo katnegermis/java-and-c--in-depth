@@ -120,8 +120,8 @@ namespace vfs.synchronizer.server
         {
             Console.WriteLine("Client called FileAdded");
 
-            //TODO define event type
-            var id = db.AddChange(1, vfsId, path, data);
+            var id = db.AddFile(vfsId, path, data);
+            //TODO inform other clients
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -133,8 +133,8 @@ namespace vfs.synchronizer.server
         {
             Console.WriteLine("Client called FileDeleted");
 
-            //TODO define event type
-            var id = db.AddChange(2, vfsId, path, null);
+            var id = db.DeleteFile(vfsId, path);
+            //TODO inform other clients
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -146,39 +146,34 @@ namespace vfs.synchronizer.server
         {
             Console.WriteLine("Client called FileMoved");
 
-            //TODO define event type
-            //TODO find way to handle file move. Possible solutions: 1. Delete old and create new. 2. Just change path. 3. Use a deleted flag -> has to be created new
-           // var id = db.AddChange(3, vfsId, oldPath, null);
+            var id = db.MoveFile(vfsId, oldPath, newPath);
+            //TODO inform other clients
 
-            /*if (id != null)
+            if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
             else
-                return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);*/
-            var currentId = 1;
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
+                return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
         public JCDSynchronizerReply FileModified(long vfsId, string path, long offset, byte[] data)
         {
             Console.WriteLine("Client called FileModified");
 
-            //TODO define event type
-            //var id = db.AddChange(4, vfsId, path, new Tuple<long, byte[]>(offset, data)).ToString();
+            var id = db.ModifyFile(vfsId, path, offset, data);
+            //TODO inform other clients
 
-            /*if (id != null)
+            if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
             else
-                return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);*/
-            var currentId = 1;
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED, currentId);
+                return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
         public JCDSynchronizerReply FileResized(long vfsId, string path, long newSize)
         {
             Console.WriteLine("Client called FileResized");
 
-            //TODO define event type
-            var id = db.AddChange(5, vfsId, path, BitConverter.GetBytes(newSize));
+            var id = db.ResizeFile(vfsId, path, newSize);
+            //TODO inform other clients
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
