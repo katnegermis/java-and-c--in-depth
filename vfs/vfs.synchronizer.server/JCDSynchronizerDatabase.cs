@@ -279,7 +279,7 @@ namespace vfs.synchronizer.server
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, new object[2] { vfsPath, data });
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, vfsPath, data );
                         var versionId = addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
@@ -317,7 +317,7 @@ namespace vfs.synchronizer.server
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, new object[1] { vfsPath });
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, vfsPath);
                         var versionId = addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
@@ -356,7 +356,7 @@ namespace vfs.synchronizer.server
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, new object[2] { oldPath, newPath });
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, oldPath, newPath);
                         var versionId = addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
@@ -396,7 +396,7 @@ namespace vfs.synchronizer.server
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, new object[3] { vfsPath, offset, data });
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, vfsPath, offset, data);
                         var versionId = addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
@@ -435,7 +435,7 @@ namespace vfs.synchronizer.server
 
                     if (fileId > 0)
                     {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, new object[2] { vfsPath, newSize });
+                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, vfsPath, newSize);
                         var versionId = addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
 
                         var vfs = getCurrentVFSPath(vfsId);
