@@ -29,14 +29,16 @@ namespace vfs.synchronizer.tests {
         public void TestSynchronizerSerializeAdd() {
             // Set up
             var serializePath = "/var/my/path";
+            var serializeSize = 500000L;
             var serializedIsFolder = true;
             var type = JCDSynchronizationEventType.Added;
-            var data = JCDSynchronizerSerialization.Serialize(type, serializePath, serializedIsFolder);
+            var data = JCDSynchronizerSerialization.Serialize(type, serializePath, serializeSize, serializedIsFolder);
 
             // Test
             string deserializedPath;
+            long deserializedSize;
             bool deserializedIsFolder;
-            JCDSynchronizerSerialization.Deserialize(type, data, out deserializedPath, out deserializedIsFolder);
+            JCDSynchronizerSerialization.Deserialize(type, data, out deserializedPath, out deserializedSize, out deserializedIsFolder);
             Assert.AreEqual(serializePath, deserializedPath);
             Assert.AreEqual(serializedIsFolder, deserializedIsFolder);
         }
