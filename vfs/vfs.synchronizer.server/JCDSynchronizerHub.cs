@@ -107,7 +107,6 @@ namespace vfs.synchronizer.server
         {
             Console.WriteLine("Client called RetrieveVFS");
 
-            //TODO find a way to pack and serialize the changes
             var changes = db.RetrieveChanges(vfsId, lastVersionId);
 
             if (changes != null)

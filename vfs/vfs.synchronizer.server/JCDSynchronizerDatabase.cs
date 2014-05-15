@@ -56,7 +56,7 @@ namespace vfs.synchronizer.server
                     command.ExecuteNonQuery();
 
                     // Changes
-                    command.CommandText = "CREATE TABLE IF NOT EXISTS Changes ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, event_type INTEGER NOT NULL, dataPath TEXT, file_id INTEGER NOT NULL, FOREIGN KEY(file_id) REFERENCES Files(id) );";
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Changes ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, event_type INTEGER NOT NULL, dataPath TEXT UNIQUE NOT NULL, file_id INTEGER NOT NULL, FOREIGN KEY(file_id) REFERENCES Files(id) );";
                     command.ExecuteNonQuery();
                 }
             }
@@ -277,11 +277,18 @@ namespace vfs.synchronizer.server
                     if (fileId == -1)
                         fileId = getFileId(vfsId, vfsPath);
 
-                    //TODO execute the change
                     if (fileId > 0)
                     {
                         var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, new object[2] { vfsPath, data });
-                        return addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
+                        var versionId = addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Added, changeData);
+
+                        return versionId;
                     }
                 }
             }
@@ -308,11 +315,18 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO execute the change
                     if (fileId > 0)
                     {
                         var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, new object[1] { vfsPath });
-                        return addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
+                        var versionId = addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
+
+                        return versionId;
                     }
                 }
             }
@@ -340,11 +354,18 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, oldPath);
 
-                    //TODO execute the change
                     if (fileId > 0)
                     {
                         var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, new object[2] { oldPath, newPath });
-                        return addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
+                        var versionId = addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Moved, changeData);
+
+                        return versionId;
                     }
                 }
             }
@@ -373,11 +394,18 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO execute the change
                     if (fileId > 0)
                     {
                         var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, new object[3] { vfsPath, offset, data });
-                        return addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
+                        var versionId = addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Modified, changeData);
+
+                        return versionId;
                     }
                 }
             }
@@ -405,11 +433,18 @@ namespace vfs.synchronizer.server
                     if (fileId < 0)
                         fileId = addFileRow(vfsId, vfsPath);
 
-                    //TODO execute the change
                     if (fileId > 0)
                     {
                         var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, new object[2] { vfsPath, newSize });
-                        return addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
+                        var versionId = addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
+
+                        var vfs = getCurrentVFSPath(vfsId);
+                        if (vfs == null)
+                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+
+                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Resized, changeData);
+
+                        return versionId;
                     }
                 }
             }
@@ -517,14 +552,34 @@ namespace vfs.synchronizer.server
             }
         }
 
+        /// <summary>
+        /// Tries to retrieve the path of the current VFS file of the VFS with the given ID.
+        /// </summary>
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <returns>The path of the current VFS file.</returns>
+        private string getCurrentVFSPath(long vfsId)
+        {
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT currentPath FROM VFS WHERE id = @id;";
+                command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                var result = command.ExecuteScalar();
+                return result != null ? result.ToString() : null;
+            }
+        }
+
 
         /// <summary>
-        /// 
+        /// Retrieve the changes for the given vfs that happened after the given version.
+        /// The result is a Tuple with the new highest version ID and a list with the changes.
+        /// Each change is a Tuple with the int of the JCDSynchronizationEventType and a byte[] 
+        /// that comes from the JCDSynchronizerSerialization.
         /// </summary>
-        /// <param name="vfsId"></param>
-        /// <param name="lastVersionId"></param>
-        /// <returns></returns>
-        internal string RetrieveChanges(long vfsId, long lastVersionId)
+        /// <param name="vfsId">The ID of the VFS.</param>
+        /// <param name="lastVersionId">The Version ID from which on the changes are to be retrieved.</param>
+        /// <returns>Tuple with the new version ID and a list of event IDs and event data.</returns>
+        internal Tuple<long, List<Tuple<int, byte[]>>> RetrieveChanges(long vfsId, long lastVersionId)
         {
             try
             {
@@ -539,21 +594,20 @@ namespace vfs.synchronizer.server
 
                     using (var reader = command.ExecuteReader())
                     {
+                        var list = new List<Tuple<int, byte[]>>();
+                        long id = -1;
                         while (reader.Read())
                         {
-                            long id = Convert.ToInt64(reader["id"]);
-                            int event_type = Convert.ToInt32(reader["event_type"]);
-                            string vfsPath = Convert.ToString(reader["vfsPath"]);
-                            var path = reader["dataPath"];
-                            if (path != null)
-                            {
-                                string dataPath = Convert.ToString(path);
-                                var data = readFromFile(dataPath);
-                            }
-                            //TODO: put into some object to then give back directly or serialize
+                            id = Convert.ToInt64(reader["id"]);
+                            int eventType = Convert.ToInt32(reader["event_type"]);
+                            string dataPath = Convert.ToString(reader["dataPath"]);
+                            var data = readFromFile(dataPath);
+
+                            list.Add(new Tuple<int, byte[]>(eventType, data));
                         }
+                        if (id > 0)
+                            return new Tuple<long, List<Tuple<int, byte[]>>>(id, list);
                     }
-                    return null;
                 }
             }
             catch (Exception ex)
