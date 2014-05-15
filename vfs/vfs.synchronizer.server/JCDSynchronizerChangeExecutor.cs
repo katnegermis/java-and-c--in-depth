@@ -29,23 +29,23 @@ namespace vfs.synchronizer.server
             switch (eventType)
             {
                 case (int)JCDSynchronizationEventType.Added:
-                    JCDSynchronizerSerialization.Deserialize<string, byte[]>(JCDSynchronizationEventType.Added, changeData, out vfsPath, out data);
+                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Added, changeData, out vfsPath, out data);
                     makeAdd(vfs, vfsPath, data);
                     break;
                 case (int)JCDSynchronizationEventType.Deleted:
-                    JCDSynchronizerSerialization.Deserialize<string>(JCDSynchronizationEventType.Deleted, changeData, out vfsPath);
+                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Deleted, changeData, out vfsPath);
                     makeDelete(vfs, vfsPath);
                     break;
                 case (int)JCDSynchronizationEventType.Moved:
-                    JCDSynchronizerSerialization.Deserialize<string, string>(JCDSynchronizationEventType.Moved, changeData, out vfsPath, out newPath);
+                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Moved, changeData, out vfsPath, out newPath);
                     makeMove(vfs, vfsPath, newPath);
                     break;
                 case (int)JCDSynchronizationEventType.Modified:
-                    JCDSynchronizerSerialization.Deserialize<string, long, byte[]>(JCDSynchronizationEventType.Modified, changeData, out vfsPath, out offset, out data);
+                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Modified, changeData, out vfsPath, out offset, out data);
                     makeModify(vfs, vfsPath, offset, data);
                     break;
                 case (int)JCDSynchronizationEventType.Resized:
-                    JCDSynchronizerSerialization.Deserialize<string, long>(JCDSynchronizationEventType.Resized, changeData, out vfsPath, out newSize);
+                    JCDSynchronizerSerialization.Deserialize(JCDSynchronizationEventType.Resized, changeData, out vfsPath, out newSize);
                     makeResize(vfs, vfsPath, newSize);
                     break;
                 default:
@@ -56,8 +56,7 @@ namespace vfs.synchronizer.server
 
         private static void makeAdd(string hfsPath, string vfsPath, byte[] data)
         {
-            JCDFAT vfs = JCDFAT.Open(hfsPath);
-            if (vfs != null)
+            using (var vfs = JCDFAT.Open(hfsPath))
             {
                 FileAttributes attr = File.GetAttributes(hfsPath);
 
@@ -77,8 +76,7 @@ namespace vfs.synchronizer.server
 
         private static void makeDelete(string hfsPath, string vfsPath)
         {
-            JCDFAT vfs = JCDFAT.Open(hfsPath);
-            if (vfs != null)
+            using (var vfs = JCDFAT.Open(hfsPath))
             {
                 FileAttributes attr = File.GetAttributes(hfsPath);
 
@@ -91,8 +89,7 @@ namespace vfs.synchronizer.server
 
         private static void makeMove(string hfsPath, string oldPath, string newPath)
         {
-            JCDFAT vfs = JCDFAT.Open(hfsPath);
-            if (vfs != null)
+            using (var vfs = JCDFAT.Open(hfsPath))
             {
                 vfs.MoveFile(oldPath, newPath);
             }
@@ -100,8 +97,7 @@ namespace vfs.synchronizer.server
 
         private static void makeModify(string hfsPath, string vfsPath, long offset, byte[] data)
         {
-            JCDFAT vfs = JCDFAT.Open(hfsPath);
-            if (vfs != null)
+            using (var vfs = JCDFAT.Open(hfsPath))
             {
                 using (var stream = vfs.GetFileStream(vfsPath))
                 {
@@ -113,11 +109,9 @@ namespace vfs.synchronizer.server
 
         private static void makeResize(string hfsPath, string vfsPath, long newSize)
         {
-            JCDFAT vfs = JCDFAT.Open(hfsPath);
-            if (vfs != null)
+            using (var vfs = JCDFAT.Open(hfsPath))
             {
-                using (var stream = vfs.GetFileStream(vfsPath))
-                {
+                using (var stream = vfs.GetFileStream(vfsPath)) {
                     stream.SetLength(newSize);
                 }
             }
