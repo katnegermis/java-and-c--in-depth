@@ -119,11 +119,11 @@ namespace vfs.core {
             return file.GetContainer();
         }
 
-        public void Dispose() {
+        public new void Dispose() {
             Dispose(true);
         }
 
-        protected void Dispose(bool disposing) {
+        protected new void Dispose(bool disposing) {
             if (disposing) {
                 Flush();
             }
