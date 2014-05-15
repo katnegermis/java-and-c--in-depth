@@ -1015,13 +1015,14 @@ namespace vfs.core
             WalkFATChain(firstBlock, new FileWriterVisitor(data, offset));
         }
 
-        public void ReadFile(byte[] buffer, ulong offset, ulong count, uint firstBlock) {
+        public int ReadFile(byte[] buffer, ulong offset, ulong count, uint firstBlock) {
             int bufferPos = 0;
-            WalkFATChain(firstBlock, new FileReaderVisitor(count, offset, (data, lastBlock) => {
+            var v = (FileReaderVisitor)WalkFATChain(firstBlock, new FileReaderVisitor(count, offset, (data, lastBlock) => {
                 Buffer.BlockCopy(data, 0, buffer, bufferPos, data.Length);
                 bufferPos += data.Length;
                 return true;
             }));
+            return v.BytesRead;
         }
 
         private void ExportFolderRecursive(JCDFolder folder, string hfsPath)
@@ -1047,10 +1048,16 @@ namespace vfs.core
 
             // Make sure parent directory exists on hfs.
             var dirName = Path.GetDirectoryName(hfsPath);
+
+            // In case hfsPath is relative, dirName would return an empty string.
+            if (dirName.Length == 0) {
+                dirName = Directory.GetCurrentDirectory();   
+            }
+
             // In case hfsPath is C:\\, dirName would return null. But
             // in the same case, GetPathRoot wouldn't.
             // We use this to make sure that dirName is a valid directory.
-            if (dirName == null && Path.GetPathRoot(hfsPath) != null) {
+            if (String.IsNullOrEmpty(dirName) && Path.GetPathRoot(hfsPath) != null) {
                 dirName = hfsPath;
             }
             if (!Directory.Exists(dirName)) {
@@ -1131,6 +1138,7 @@ namespace vfs.core
                 if (lastBlock)
                 {
                     outputFile.Write(buffer, 0, bufPos);
+                    outputFile.Seek(0, SeekOrigin.Begin);
                 }
 
                 return true;
@@ -1241,9 +1249,10 @@ namespace vfs.core
                 }
             }
             else {
-                MemoryStream ms = new MemoryStream((int)Math.Min(oldFile.Size, (ulong) Int32.MaxValue));
-                ExportFile(ms, oldFile, false);
-                ImportFile(ms, newVfsPath, null);
+                //MemoryStream ms = new MemoryStream((int)Math.Min(oldFile.Size, (ulong) Int32.MaxValue));
+                //ExportFile(ms, oldFile, false);
+                var stream = GetFileStream(oldFile);
+                ImportFile(stream, newVfsPath, null);
             }
         }
 
@@ -1315,7 +1324,11 @@ namespace vfs.core
         }
 
         public JCDFileStream GetFileStream(string vfsPath) {
-            var file = GetFile(vfsPath);
+            return GetFileStream(GetFile(vfsPath));
+            
+        }
+
+        private JCDFileStream GetFileStream(JCDFile file) {
             return new JCDFileStream(file, OnFileModified);
         }
 

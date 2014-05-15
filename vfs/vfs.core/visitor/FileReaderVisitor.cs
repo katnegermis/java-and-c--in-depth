@@ -12,6 +12,7 @@ namespace vfs.core.visitor
         /// <returns>True if next block is wanted, false otherwise</returns>
         public delegate bool GetFileContents(byte[] data, bool lastBlock);
 
+        public int BytesRead;
         private GetFileContents func;
         private ulong bytesLeft;
         private ulong firstBlockIndex;
@@ -28,6 +29,7 @@ namespace vfs.core.visitor
         }
 
         private void Initialize(ulong size, ulong fileOffset, GetFileContents f) {
+            this.BytesRead = -1;
             this.blocksTraversed = 0;
             this.func = f;
             bytesLeft = size;
@@ -45,6 +47,7 @@ namespace vfs.core.visitor
 
             ulong vfsOffset = vfs.BlockGetByteOffset(block, blockOffset);
             var bytesToRead = (uint)Math.Min(bytesLeft, (ulong)JCDFAT.blockSize - blockOffset);
+            BytesRead += (int)bytesToRead;
 
             // Only needed for the first block. All other blocks are read from the beginning.
             blockOffset = 0;

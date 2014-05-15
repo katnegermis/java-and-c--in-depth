@@ -42,7 +42,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFileName = InternalHelpers.GetTestFileName(testName);
+            var testFileName = TestHelpers.GetTestFileName(testName);
 
             // Test
             var testVFS = JCDFAT.Create(testFileName, InternalHelpers.MB50);
@@ -59,7 +59,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var nonExistentFolder = "non_existent_folder";
 
             // Test
@@ -73,7 +73,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
 
             // Test
             JCDFAT.Create(testFile, UInt64.MaxValue);
@@ -86,7 +86,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFile);
 
             // Test
@@ -100,7 +100,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.Create(testFile);
             stream.Flush();
             stream.Close();
@@ -129,7 +129,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
             stream.Flush();
@@ -148,7 +148,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
 
             // Test
             var testVFS = JCDFAT.Open(testFile);
@@ -165,10 +165,11 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
+            var testFileName = TestHelpers.GetTestFileName(testName);
             InternalHelpers.CreateJCDFAT(testName).Close();
 
             // Test
-            JCDFAT.Delete(testName);
+            JCDFAT.Delete(testFileName);
             Assert.IsFalse(File.Exists(testName));
         }
 
@@ -179,7 +180,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
             stream.Flush();
@@ -196,7 +197,7 @@ namespace vfs.core.tests
         {
             // Set up
             var testName = MethodBase.GetCurrentMethod().Name;
-            var testFile = InternalHelpers.GetTestFileName(testName);
+            var testFile = TestHelpers.GetTestFileName(testName);
             
             // Test
             JCDFAT.Delete(testFile);
@@ -211,9 +212,8 @@ namespace vfs.core.tests
     [TestClass()]
     public class MountedJCFVFSTests
     {
-        JCDFAT testVFS = null;
+        JCDFAT vfs = null;
 
-        [TestInitialize()]
         public void MountedInitializer()
         {
           /*  if (File.Exists(TestVariables.FilePath()))
@@ -231,15 +231,15 @@ namespace vfs.core.tests
             if (File.Exists(TestVariables.TargetPath()))
                 File.Delete(TestVariables.TargetPath());*/
 
-            testVFS = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
-            testVFS.Close();
-            testVFS = JCDFAT.Open(TestVariables.FilePath());
+            vfs = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
+            vfs.Close();
+            vfs = JCDFAT.Open(TestVariables.FilePath());
         }
 
         [TestCleanup()]
         public void MountedCleanup()
         {
-            if (testVFS != null)
+            if (vfs != null)
             {
                 try
                 {
@@ -247,7 +247,7 @@ namespace vfs.core.tests
                 }
                 finally
                 {
-                    testVFS = null;
+                    vfs = null;
                 }
             }
         }
@@ -265,70 +265,17 @@ namespace vfs.core.tests
             }
         }
 
-        /// <summary>
-        /// Helper method to compare 2 files (byte by byte)
-        /// </summary>
-        /// <param name="file1">First file path</param>
-        /// <param name="file2">Second file path</param>
-        /// <returns>true if equal, false otherwise</returns>
-        private bool FileCompare(string file1, string file2)
-        {
-            int file1byte;
-            int file2byte;
-            FileStream fs1;
-            FileStream fs2;
-
-            // Determine if the same file was referenced two times.
-            if (file1 == file2)
-            {
-                // Return true to indicate that the files are the same.
-                return true;
-            }
-
-            // Open the two files.
-            fs1 = new FileStream(file1, FileMode.Open);
-            fs2 = new FileStream(file2, FileMode.Open);
-
-            // Check the file sizes. If they are not the same, the files 
-            // are not the same.
-            if (fs1.Length != fs2.Length)
-            {
-                // Close the file
-                fs1.Close();
-                fs2.Close();
-
-                // Return false to indicate files are different
-                return false;
-            }
-
-            // Read and compare a byte from each file until either a
-            // non-matching set of bytes is found or until the end of
-            // file1 is reached.
-            do
-            {
-                // Read one byte from each file.
-                file1byte = fs1.ReadByte();
-                file2byte = fs2.ReadByte();
-            }
-            while ((file1byte == file2byte) && (file1byte != -1));
-
-            // Close the files.
-            fs1.Close();
-            fs2.Close();
-
-            // Return the success of the comparison. "file1byte" is 
-            // equal to "file2byte" at this point only if the files are 
-            // the same.
-            return ((file1byte - file2byte) == 0);
-        }
-
         #region Close Tests
 
         [TestMethod()]
         public void CloseNormalTest()
         {
-            testVFS.Close();
-            Assert.Inconclusive("No real direct way to verify the result.");
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            
+            // Test
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         #endregion
@@ -338,7 +285,7 @@ namespace vfs.core.tests
         [TestMethod()]
         public void SizeTest()
         {
-            Assert.AreEqual(TestVariables.SIZE_STANDARD, testVFS.Size());
+            Assert.AreEqual(TestVariables.SIZE_STANDARD, vfs.Size());
         }
 
         #endregion
@@ -355,7 +302,7 @@ namespace vfs.core.tests
         [TestMethod()]
         public void OccupiedSpaceNormalTest()
         {
-            var before = testVFS.OccupiedSpace();
+            var before = vfs.OccupiedSpace();
             //testVFS.
             Assert.Inconclusive("No way to verify the result.");
         }
@@ -389,7 +336,7 @@ namespace vfs.core.tests
         [TestMethod()]
         public void SizeFreeOccupiedCombinedTest()
         {
-            Assert.AreEqual(testVFS.Size(), testVFS.OccupiedSpace() + testVFS.FreeSpace());
+            Assert.AreEqual(vfs.Size(), vfs.OccupiedSpace() + vfs.FreeSpace());
         }
 
         #endregion
@@ -399,25 +346,49 @@ namespace vfs.core.tests
         [TestMethod()]
         public void CreateDirectoryNormalParentFalseTest()
         {
-            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"dir", false);
-            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory());
-            Assert.AreEqual(1, list.Length);
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var dirName = "dir";
+            var dirPath = Helpers.PathCombine("/", dirName);
+            vfs.CreateDirectory(dirPath, false);
+
+            // Test
+            vfs.SetCurrentDirectory(dirPath);
+
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod()]
         public void CreateDirectoryNormalParentTrueTest()
         {
-            string dir = testVFS.GetCurrentDirectory();
-            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"dir\another", true);
-            var list = testVFS.ListDirectory(testVFS.GetCurrentDirectory() + @"dir");
-            Assert.AreEqual(1, list.Length);
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var parentDir = "/parent";
+            var dirName = "dir";
+            var dirPath = Helpers.PathCombine(parentDir, dirName);
+            vfs.CreateDirectory(dirPath, true);
+
+            // Test
+            vfs.SetCurrentDirectory(dirPath);
+
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod()]
+        [ExpectedException(typeof(ParentNotFoundException), "Expected parent dir not to exist")]
         public void CreateDirectoryParentMissingTest()
         {
-            testVFS.CreateDirectory(testVFS.GetCurrentDirectory() + @"\dir\another", false);
-            Assert.Inconclusive("No way to verify the result. Some exception might have to be thrown.");
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var parentDir = "/parent";
+            var dirName = "dir";
+            var dirPath = Helpers.PathCombine(parentDir, dirName);
+
+            // Test
+            vfs.CreateDirectory(dirPath, false);
         }
 
         #endregion
@@ -427,12 +398,12 @@ namespace vfs.core.tests
         [TestMethod()]
         public void ImportFileNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = @"vfsSrc.txt";
             createFile(TestVariables.TEST_DIRECTORY + @"source.txt", TestVariables.SIZE_SMALL);
 
-            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", currentDir + name);
-            var list = testVFS.ListDirectory(currentDir);
+            vfs.ImportFile(TestVariables.TEST_DIRECTORY + @"source.txt", currentDir + name);
+            var list = vfs.ListDirectory(currentDir);
             bool found = false;
             foreach (var entry in list)
                 if (entry.Name == name)
@@ -452,7 +423,7 @@ namespace vfs.core.tests
             InternalHelpers.CreateJCDFAT(testName);
             string sourceFile = TestVariables.TEST_DIRECTORY + @"source.txt";
             createFile(sourceFile, (long)TestVariables.SIZE_STANDARD + 8);
-            testVFS.ImportFile(sourceFile, @"vfsSrc.txt");
+            vfs.ImportFile(sourceFile, @"vfsSrc.txt");
         }
 
         #endregion
@@ -463,9 +434,9 @@ namespace vfs.core.tests
         public void ExportFileNormalTest()
         {
             createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
-            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
-            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
-            Assert.IsTrue(FileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
+            vfs.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
+            vfs.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
+            Assert.IsTrue(TestHelpers.HostFileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
         }
 
         [TestMethod()]
@@ -476,11 +447,11 @@ namespace vfs.core.tests
 
             Directory.CreateDirectory(source);
             createFile(Path.Combine(source, "file.txt"), TestVariables.SIZE_SMALL);
-            testVFS.ImportFile(source, @"/dir");
+            vfs.ImportFile(source, @"/dir");
 
-            testVFS.ExportFile(@"/dir", target);
+            vfs.ExportFile(@"/dir", target);
 
-            Assert.IsTrue(FileCompare(Path.Combine(source, "file.txt"), Path.Combine(target, "file.txt")));
+            Assert.IsTrue(TestHelpers.HostFileCompare(Path.Combine(source, "file.txt"), Path.Combine(target, "file.txt")));
         }
 
 
@@ -489,17 +460,41 @@ namespace vfs.core.tests
         "The fact that the file to export does not exist was discovered.")]
         public void ExportFileNotExistingTest()
         {
-            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
+            vfs.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
             Assert.Inconclusive("No way to verify the result.");
         }
 
         [TestMethod()]
         public void ExportFileEmptyTest()
         {
-            createFile(TestVariables.SourcePath(), 0);
-            testVFS.ImportFile(TestVariables.SourcePath(), @"vfsSrc.txt");
-            testVFS.ExportFile(@"vfsSrc.txt", TestVariables.TargetPath());
-            Assert.IsTrue(FileCompare(TestVariables.SourcePath(), TestVariables.TargetPath()));
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            // Create empty file to import.
+            var hfsFileName = TestHelpers.GetTestFileName(testName, "stream");
+            TestHelpers.DeleteFiles(hfsFileName);
+            using (var stream = new FileStream(hfsFileName, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                stream.SetLength(0);
+                stream.Flush();
+            }
+            var vfsImportName = "vfsTarget";
+            var hfsExportName = "hfsTarget";
+            TestHelpers.DeleteFiles(hfsExportName);
+            
+            // Test
+            vfs.ImportFile(hfsFileName, vfsImportName);
+            vfs.ExportFile(vfsImportName, hfsExportName);
+            using (var vfsImportStream = vfs.GetFileStream(vfsImportName)) {
+                using (var hfsExportStream = new FileStream(hfsExportName, FileMode.Open)) {
+                    var streamEquality = TestHelpers.StreamCompare(vfsImportStream, hfsExportStream);
+                    Assert.IsTrue(streamEquality);
+                }
+            }
+
+            // Clean up
+            TestHelpers.DeleteFiles(new string[] { hfsFileName, hfsExportName });
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         #endregion
@@ -509,36 +504,43 @@ namespace vfs.core.tests
         [TestMethod()]
         public void DeleteFileNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
-            string name = @"vfsSrc.txt";
-            createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var filePath = "/vfsSrc.txt";
+            var fileSize = InternalHelpers.MB1;
+            vfs.CreateFile(filePath, fileSize, false);
+            
+            // Test
+            vfs.DeleteFile(filePath, false);
+            var dirList = vfs.ListDirectory("/");
+            Assert.AreEqual(0, dirList.Length);
 
-            testVFS.ImportFile(TestVariables.SourcePath(), Path.Combine(currentDir, name));
-            testVFS.DeleteFile(Path.Combine(currentDir, name), false);
-            var list = testVFS.ListDirectory(currentDir);
-            bool notDeleted = false;
-            foreach (var entry in list)
-                if (entry.Name == name)
-                {
-                    notDeleted = true;
-                    break;
-                }
-            Assert.IsFalse(notDeleted);
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod()]
         public void DeleteFileRecursiveTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
-            createFile(TestVariables.SourcePath(), TestVariables.SIZE_SMALL);
-            testVFS.CreateDirectory(Path.Combine(currentDir, @"dir"), false);
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var dirPath = "/dir";
+            vfs.CreateDirectory(dirPath, false);
+            // Insert files in to dir.
+            var fileSize = InternalHelpers.MB1;
+            var numFiles = 10;
+            for (int i = 0; i < numFiles; i += 1) {
+                var filePath = Helpers.PathCombine(dirPath, i.ToString());
+                vfs.CreateFile(filePath, fileSize, false);
+            }
 
-            testVFS.ImportFile(TestVariables.SourcePath(), Path.Combine(currentDir, @"dir\vfsSrc.txt"));
-            testVFS.DeleteFile(Path.Combine(currentDir, @"dir\vfsSrc.txt"), true);
-            var list = testVFS.ListDirectory(currentDir);
+            // Test
+            vfs.DeleteFile(dirPath, true);
+            var dirList = vfs.ListDirectory("/");
+            Assert.AreEqual(0, dirList.Length);
 
-            Assert.AreEqual(0, list.Length);
-            // Assert.Inconclusive("No way to verify the result");
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod()]
@@ -546,8 +548,12 @@ namespace vfs.core.tests
         "The fact that the file to delete does not exist was discovered.")]
         public void DeleteFileNotExistingTest()
         {
-            testVFS.DeleteFile("file", true);
-            Assert.Inconclusive("No way to verify the result");
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+
+            // Test
+            vfs.DeleteFile("non_existent_file", false);
         }
 
         #endregion
@@ -557,11 +563,11 @@ namespace vfs.core.tests
         [TestMethod()]
         public void RenameFileNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
-            testVFS.CreateDirectory(Path.Combine(currentDir, @"dir"), false);
+            string currentDir = vfs.GetCurrentDirectory();
+            vfs.CreateDirectory(Path.Combine(currentDir, @"dir"), false);
 
-            testVFS.RenameFile(Path.Combine(currentDir, @"dir"), @"new");
-            var list = testVFS.ListDirectory(currentDir);
+            vfs.RenameFile(Path.Combine(currentDir, @"dir"), @"new");
+            var list = vfs.ListDirectory(currentDir);
 
             bool foundNew = false;
             bool foundOld = false;
@@ -581,7 +587,7 @@ namespace vfs.core.tests
         "The fact that the file to rename does not exist was discovered.")]
         public void RenameFileNotExistingTest()
         {
-            testVFS.RenameFile("file", "newName");
+            vfs.RenameFile("file", "newName");
             Assert.Inconclusive("No way to verify the result");
         }
 
@@ -590,11 +596,11 @@ namespace vfs.core.tests
         "The fact that the file name to change to does already exist was discovered.")]
         public void RenameFileToExistingNameTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
-            testVFS.CreateDirectory(Path.Combine(currentDir, @"old"), false);
-            testVFS.CreateDirectory(Path.Combine(currentDir, @"new"), false);
+            string currentDir = vfs.GetCurrentDirectory();
+            vfs.CreateDirectory(Path.Combine(currentDir, @"old"), false);
+            vfs.CreateDirectory(Path.Combine(currentDir, @"new"), false);
 
-            testVFS.RenameFile(Path.Combine(currentDir, @"old"), @"new");
+            vfs.RenameFile(Path.Combine(currentDir, @"old"), @"new");
             Assert.Inconclusive("Should throw some exception");
         }
 
@@ -605,15 +611,15 @@ namespace vfs.core.tests
         [TestMethod()]
         public void MoveFileNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = @"vfsSrc.txt";
             string targetDir = "target";
             createFile(TestVariables.TEST_DIRECTORY + @"file.txt", TestVariables.SIZE_SMALL);
 
-            testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
-            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
-            testVFS.MoveFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
-            var targetList = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
+            vfs.CreateDirectory(Path.Combine(currentDir, targetDir), false);
+            vfs.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
+            vfs.MoveFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
+            var targetList = vfs.ListDirectory(Path.Combine(currentDir, targetDir));
             bool found = false;
             foreach (var entry in targetList)
                 if (entry.Name == name)
@@ -621,7 +627,7 @@ namespace vfs.core.tests
                     found = true;
                     break;
                 }
-            var sourceList = testVFS.ListDirectory(Path.Combine(currentDir, name));
+            var sourceList = vfs.ListDirectory(Path.Combine(currentDir, name));
             bool stillThere = false;
             foreach (var entry in sourceList)
                 if (entry.Name == name)
@@ -633,13 +639,14 @@ namespace vfs.core.tests
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(Exception),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to move does not exist was discovered.")]
         public void MoveFileNotExistingTest()
         {
-            testVFS.CreateDirectory("dir", false);
-            testVFS.MoveFile("file", "dir");
-            Assert.Inconclusive("Should throw some exception");
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            vfs.CreateDirectory("dir", false);
+            vfs.MoveFile("file", "dir");
         }
 
         #endregion
@@ -649,41 +656,47 @@ namespace vfs.core.tests
         [TestMethod()]
         public void CopyFileNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
-            string name = @"vfsSrc.txt";
-            string targetDir = "target";
-            createFile(TestVariables.TEST_DIRECTORY + @"file.txt", TestVariables.SIZE_SMALL);
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
 
-            testVFS.CreateDirectory(Path.Combine(currentDir, targetDir), false);
-            testVFS.ImportFile(TestVariables.TEST_DIRECTORY + @"file.txt", Path.Combine(currentDir, name));
-            testVFS.CopyFile(Path.Combine(currentDir, name), Path.Combine(currentDir, targetDir, name));
-            var targetList = testVFS.ListDirectory(Path.Combine(currentDir, targetDir));
-            bool found = false;
-            foreach (var entry in targetList)
-                if (entry.Name == name)
-                {
-                    found = true;
-                    break;
-                }
-            var sourceList = testVFS.ListDirectory(Path.Combine(currentDir, name));
-            bool stillThere = false;
-            foreach (var entry in sourceList)
-                if (entry.Name == name)
-                {
-                    stillThere = true;
-                    break;
-                }
-            Assert.IsTrue(found && stillThere);
+            string srcFile = "source.txt";
+            int srcFileSize = (int)InternalHelpers.MB1;
+            vfs.CreateFile(srcFile, (uint)srcFileSize, false);
+            var srcFileData = TestHelpers.GenerateRandomData(srcFileSize);
+            using (var stream = vfs.GetFileStream(srcFile)) {
+                stream.Write(srcFileData, 0, srcFileSize);
+            }
+
+            // Test
+            string targetFile = "target.txt";
+            vfs.CopyFile(srcFile, targetFile);
+            var targetDetails = vfs.GetFileDetails(targetFile);
+            // Ensure that sizes are equal.
+            Assert.AreEqual((ulong)srcFileSize, targetDetails.Size);
+
+            // Ensure that contents are the same.
+            using (var stream = vfs.GetFileStream(targetFile)) {
+                var targetFileData = new byte[srcFileSize];
+                stream.Read(targetFileData, 0, srcFileSize);
+                TestHelpers.AreEqual(srcFileData, targetFileData);
+            }
+            InternalHelpers.CloseJCDFAT(vfs, testName);
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(Exception),
+        [ExpectedException(typeof(vfs.exceptions.FileNotFoundException),
         "The fact that the file to copy does not exist was discovered.")]
         public void CopyFileNotExistingTest()
         {
-            testVFS.CreateDirectory("dir", false);
-            testVFS.CopyFile("file", "dir");
-            Assert.Inconclusive("Should throw some exception");
+            // Set up
+            var testName = MethodBase.GetCurrentMethod().Name;
+            var vfs = InternalHelpers.CreateJCDFAT(testName);
+            var dirName = "dir";
+            vfs.CreateDirectory(dirName, false);
+
+            // Test
+            vfs.CopyFile("non_existing_file", dirName);
         }
 
         #endregion
@@ -693,11 +706,11 @@ namespace vfs.core.tests
         [TestMethod()]
         public void ListDirectoryNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = "dir";
 
-            testVFS.CreateDirectory(Path.Combine(currentDir, name), false);
-            var list = testVFS.ListDirectory(currentDir);
+            vfs.CreateDirectory(Path.Combine(currentDir, name), false);
+            var list = vfs.ListDirectory(currentDir);
             bool found = false;
             foreach (var entry in list)
                 if (entry.Name == name)
@@ -713,10 +726,10 @@ namespace vfs.core.tests
         "The fact that the directory to list does not exist was discovered.")]
         public void ListDirectoryNotExistingTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = "dir";
 
-            var list = testVFS.ListDirectory(Path.Combine(currentDir, name));
+            var list = vfs.ListDirectory(Path.Combine(currentDir, name));
             Assert.Inconclusive("Should throw some exception");
         }
 
@@ -727,26 +740,26 @@ namespace vfs.core.tests
         [TestMethod()]
         public void SetCurrentDirectoryNormalTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = "dir";
 
-            testVFS.CreateDirectory(Path.Combine(currentDir, name), false);
-            testVFS.SetCurrentDirectory(Path.Combine(currentDir, name));
+            vfs.CreateDirectory(Path.Combine(currentDir, name), false);
+            vfs.SetCurrentDirectory(Path.Combine(currentDir, name));
 
-            Assert.AreEqual(Path.Combine(currentDir, name), testVFS.GetCurrentDirectory());
+            Assert.AreEqual(Path.Combine(currentDir, name), vfs.GetCurrentDirectory());
         }
 
         [TestMethod()]
         public void SetCurrentDirectoryUpwardsTest()
         {
-            string currentDir = testVFS.GetCurrentDirectory();
+            string currentDir = vfs.GetCurrentDirectory();
             string name = @"dir\inner";
 
-            testVFS.CreateDirectory(Path.Combine(currentDir, name), true);
-            testVFS.SetCurrentDirectory(Path.Combine(currentDir, name));
-            testVFS.SetCurrentDirectory("..");
+            vfs.CreateDirectory(Path.Combine(currentDir, name), true);
+            vfs.SetCurrentDirectory(Path.Combine(currentDir, name));
+            vfs.SetCurrentDirectory("..");
 
-            Assert.AreEqual(Path.Combine(currentDir, "dir"), testVFS.GetCurrentDirectory());
+            Assert.AreEqual(Path.Combine(currentDir, "dir"), vfs.GetCurrentDirectory());
         }
 
         [TestMethod()]
@@ -754,8 +767,8 @@ namespace vfs.core.tests
         "The fact that the directory to set cannot exist was discovered.")]
         public void SetCurrentDirectoryUpwardsAtRootTest()
         {
-            testVFS.SetCurrentDirectory(@"\");
-            testVFS.SetCurrentDirectory("..");
+            vfs.SetCurrentDirectory(@"\");
+            vfs.SetCurrentDirectory("..");
             Assert.Inconclusive("Should throw some exception");
         }
 
@@ -768,10 +781,10 @@ namespace vfs.core.tests
         {
             string name = @"\dir";
 
-            testVFS.CreateDirectory(name, false);
-            testVFS.SetCurrentDirectory(name);
+            vfs.CreateDirectory(name, false);
+            vfs.SetCurrentDirectory(name);
 
-            Assert.AreEqual(name, testVFS.GetCurrentDirectory());
+            Assert.AreEqual(name, vfs.GetCurrentDirectory());
         }
 
         #endregion
@@ -867,7 +880,7 @@ namespace vfs.core.tests
         public const uint MB50 = 10 * MB5;
 
         public static JCDFAT CreateJCDFAT(string testName, ulong size) {
-            testName = GetTestFileName(testName);
+            testName = TestHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testName);
             return JCDFAT.Create(testName, size);
         }
@@ -877,16 +890,12 @@ namespace vfs.core.tests
         }
 
         public static JCDFAT OpenJCDFAT(string testName) {
-            return JCDFAT.Open(GetTestFileName(testName));
+            return JCDFAT.Open(TestHelpers.GetTestFileName(testName));
         }
 
         public static void CloseJCDFAT(JCDFAT vfs, string testName) {
             vfs.Close();
-            TestHelpers.DeleteFiles(GetTestFileName(testName));
-        }
-
-        public static string GetTestFileName(string testName) {
-            return testName;
+            TestHelpers.DeleteFiles(TestHelpers.GetTestFileName(testName));
         }
     }
 }
