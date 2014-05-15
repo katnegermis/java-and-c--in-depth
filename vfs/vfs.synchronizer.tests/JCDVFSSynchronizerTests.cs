@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.common;
@@ -18,7 +19,7 @@ namespace vfs.core.synchronizer.tests {
         [TestMethod]
         public void TestSynchronizerCreate() {
             // Set up
-            var testName = "synchronizer_create";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFileName = GetTestFileName(testName);
 
             // Test
@@ -30,7 +31,7 @@ namespace vfs.core.synchronizer.tests {
         [TestMethod]
         public void TestSynchronizerDelete() {
             // Set up
-            var testName = "synchronizer_delete";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFileName = GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
@@ -45,7 +46,7 @@ namespace vfs.core.synchronizer.tests {
         [TestMethod]
         public void TestSynchronizerOpen() {
             // Set up
-            var testName = "synchronizer_open";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFileName = GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFileName);
             var sync = JCDVFSSynchronizer.Create(vfsType, testFileName, MB5);
@@ -60,7 +61,7 @@ namespace vfs.core.synchronizer.tests {
         [TestMethod]
         public void TestSynchronizerCreateFile() {
             // Set up
-            var testName = "synchronizer_create_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var sync = CreateSynchronizer(testName);
             long fileSize = 5;
             var filePath = "/file";
@@ -77,7 +78,7 @@ namespace vfs.core.synchronizer.tests {
         [TestMethod]
         public void TestSynchronizerCreatefolder() {
             // Set up
-            var testName = "synchronizer_create_folder";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var sync = CreateSynchronizer(testName);
             var filePath = "/folder";
 

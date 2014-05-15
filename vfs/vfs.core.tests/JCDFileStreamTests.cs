@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestWriteRead10MB() {
             // Set up
-            var testName = "test_write_read_10mb";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             int bytes = MB5 * 2;
             var dataIn = TestHelpers.GenerateRandomData(bytes, 1);
@@ -40,7 +41,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestSeekData() {
             // Set up
-            var testName = "test_seek_data";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var dataIn = TestHelpers.GenerateRandomData(bytes, 1);
@@ -60,7 +61,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestOffsetReadData() {
             // Set up
-            var testName = "test_offset_read_data";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var outBytes = MB5 - MB1;
@@ -81,7 +82,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestSeekWriteData() {
             // Set up
-            var testName = "test_seek_write_data";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var bytes = MB5;
             var dataIn = TestHelpers.GenerateRandomData(bytes, 15);
@@ -102,7 +103,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestReadSeekReadSeekRead() {
             // Set up
-            var testName = "test_read_seek_read_seek_read";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, MB50);
             var datas = new byte[5][];
             // Initialize 5 arrays with random data in them.
@@ -125,7 +126,7 @@ namespace vfs.core.tests {
         [ExpectedException(typeof(BufferTooSmallException), "Buffer was too small!")]
         public void TestBufferSize() {
             // Set up
-            var testName = "buffer_size";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var stream = CreateJCDAndGetFileStream(testName, (ulong)MB5);
             // We have to set the file length to be greater than 0, which is the default
             // by `CreateJCDAndGetFileStream`.
@@ -141,7 +142,7 @@ namespace vfs.core.tests {
         [ExpectedException(typeof(FileTooSmallException), "Expected file to be too small.")]
         public void TestShrinkFile() {
             // Set up
-            var testName = "shrink_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             TestHelpers.DeleteFiles(new string[] { testName });
             var vfs = JCDFAT.Create(testName, (ulong)MB5);
             var testFileName = "test";
@@ -171,7 +172,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestExpandFile() {
             // Set up
-            var testName = "expand_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             // Creates new file with size 0.
             var stream = CreateJCDAndGetFileStream(testName, (ulong)MB5);
 

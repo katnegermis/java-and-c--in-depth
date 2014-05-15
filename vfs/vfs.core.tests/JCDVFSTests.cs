@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using vfs.exceptions;
 using vfs.common;
+using System.Reflection;
 namespace vfs.core.tests
 {
     public class TestVariables {
@@ -40,7 +41,7 @@ namespace vfs.core.tests
         public void CreateNormalTest()
         {
             // Set up
-            var testName = "create_normal_test";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFileName = InternalHelpers.GetTestFileName(testName);
 
             // Test
@@ -57,7 +58,7 @@ namespace vfs.core.tests
         public void CreateWithInvalidPathTest()
         {
             // Set up
-            var testName = "create_with_invalid_Path";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             var nonExistentFolder = "non_existent_folder";
 
@@ -71,7 +72,7 @@ namespace vfs.core.tests
         public void CreateWithSizeTooBigTest()
         {
             // Set up
-            var testName = "create_with_size_too_big";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
 
             // Test
@@ -84,7 +85,7 @@ namespace vfs.core.tests
         public void CreateWithSizeTooSmallTest()
         {
             // Set up
-            var testName = "create_with_size_too_small";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             TestHelpers.DeleteFiles(testFile);
 
@@ -98,7 +99,7 @@ namespace vfs.core.tests
         public void CreateWithFileExistingTest()
         {
             // Set up
-            var testName = "create_with_file_existing";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             var stream = File.Create(testFile);
             stream.Flush();
@@ -127,7 +128,7 @@ namespace vfs.core.tests
         public void OpenInvalidFileTest()
         {
             // Set up
-            var testName = "open_invalid_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
@@ -146,7 +147,7 @@ namespace vfs.core.tests
         public void OpenWithInvalidPathTest()
         {
             // Set up
-            var testName = "open_with_invalid_path";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
 
             // Test
@@ -163,7 +164,7 @@ namespace vfs.core.tests
         public void DeleteNormalTest()
         {
             // Set up
-            var testName = "delete_normal";
+            var testName = MethodBase.GetCurrentMethod().Name;
             InternalHelpers.CreateJCDFAT(testName).Close();
 
             // Test
@@ -177,7 +178,7 @@ namespace vfs.core.tests
         public void DeleteNoVFSFileTest()
         {
             // Set up
-            var testName = "delete_no_vfs_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             var stream = File.CreateText(testFile);
             stream.Write("This is not a valid VFS file!");
@@ -194,7 +195,7 @@ namespace vfs.core.tests
         public void DeleteNotExistingFileTest()
         {
             // Set up
-            var testName = "delete_not_existing_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var testFile = InternalHelpers.GetTestFileName(testName);
             
             // Test
@@ -447,10 +448,11 @@ namespace vfs.core.tests
         "The fact that the file is too big for the VFS was discovered.")]
         public void ImportFileTooBigTest()
         {
+            var testName = MethodBase.GetCurrentMethod().Name;
+            InternalHelpers.CreateJCDFAT(testName);
             string sourceFile = TestVariables.TEST_DIRECTORY + @"source.txt";
             createFile(sourceFile, (long)TestVariables.SIZE_STANDARD + 8);
             testVFS.ImportFile(sourceFile, @"vfsSrc.txt");
-            Assert.Inconclusive("No way to verify the result, but no exception was thrown.");
         }
 
         #endregion
@@ -810,7 +812,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestVFSInitialId() {
             // Set up
-            var testName = "initial_id";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = InternalHelpers.CreateJCDFAT(testName);
             
             // Test
@@ -820,7 +822,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestVFSSetId() {
             // Set up
-            var testName = "set_id";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = InternalHelpers.CreateJCDFAT(testName);
             long id = 1337;
 
@@ -832,7 +834,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestVFSSetIdCloseGetId() {
             // Set up
-            var testName = "set_id_close_get_id";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = InternalHelpers.CreateJCDFAT(testName);
             long id = 1337;
             vfs.SetId(id);
@@ -846,7 +848,7 @@ namespace vfs.core.tests
         [TestMethod]
         public void TestVFSSetIdCloseGetIdNegativeNumber() {
             // Set up
-            var testName = "set_id_close_get_id_negative_number";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = InternalHelpers.CreateJCDFAT(testName);
             long id = -1337;
             vfs.SetId(id);

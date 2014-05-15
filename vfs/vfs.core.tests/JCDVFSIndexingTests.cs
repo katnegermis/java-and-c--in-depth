@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.common;
@@ -17,7 +18,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestFindSingleFile() {
             // Set up
-            var testName = "find_single_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
@@ -34,7 +35,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestDeleteSingleFile() {
             // Set up
-            var testName = "delete_single_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
@@ -52,7 +53,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestDeleteMultipleFiles() {
             // Set up
-            var testName = "delete_multiple_files";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             int numFiles = 10;
@@ -73,7 +74,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestDeleteSingleDirectory() {
             // Set up
-            var testName = "delete_single_directory";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var dirPath = "/dir/directory";
@@ -91,7 +92,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestDeleteDirectoryTree() {
             // Set up
-            var testName = "delete_directory_tree";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial directory
             var dirPath = "/dir/";
@@ -121,7 +122,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestFindMultipleFiles() {
             // Set up
-            var testName = "find_multiple_files";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             int numFiles = 10;
@@ -144,7 +145,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestFindMovedFile() {
             // Set up
-            var testName = "find_moved_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var dir = "/dir/";
@@ -172,7 +173,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestFindMovedToNewDirectory() {
             // Set up
-            var testName = "find_moved_to_new_directory";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
@@ -201,7 +202,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestMoveDirectoryTree() {
             // Set up
-            var testName = "move_directory_tree";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var rootDir = "/root/dir/";
             vfs.CreateDirectory(rootDir, true);
@@ -245,7 +246,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestRenamedFile() {
             // Set up
-            var testName = "find_renamed_file";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             // Create initial file.
             var filePath = "/dir/file";
@@ -272,7 +273,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestRenameDirectoryTree() {
             // Set up
-            var testName = "rename_directory_tree";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var rootDir = "/root/dir/";
             vfs.CreateDirectory(rootDir, true);
@@ -316,7 +317,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestSearchNonRecursive() {
             // Set up
-            var testName = "search_non_recursive";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             int numFiles = 10;

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using vfs.common;
+using System.Reflection;
 
 namespace vfs.core.tests {
     [TestClass]
@@ -12,7 +13,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestModifiedEvent() {
             // Set up
-            var testName = "test_modified_event";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
@@ -37,7 +38,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestResizedSmallerEvent() {
             // Set up
-            var testName = "test_resized_smaller_event";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
@@ -60,7 +61,7 @@ namespace vfs.core.tests {
         [TestMethod]
         public void TestResizedBiggerEvent() {
             // Set up
-            var testName = "test_resized_bigger_event";
+            var testName = MethodBase.GetCurrentMethod().Name;
             var vfs = CreateVFS(testName);
             var fileName = "file";
             var fileSize = MB1;
