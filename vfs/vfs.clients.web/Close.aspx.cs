@@ -8,7 +8,7 @@ using System.Web.UI.WebControls;
 namespace vfs.clients.web {
     public partial class Close : System.Web.UI.Page {
         protected void Page_Load(object sender, EventArgs e) {
-            Global.TerminateSession();
+            Global.TerminateSession(Session.SessionID);
             Master.checkSession();
         }
     }

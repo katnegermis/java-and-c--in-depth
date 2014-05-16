@@ -50,11 +50,20 @@ namespace vfs.clients.web {
             Master.checkSession();
 
             Page.Form.DefaultButton = "";
+            SessionIDField.Value = Session.SessionID;
 
             if(!Page.IsPostBack) {
                 hideSearch();
                 showPage();
             }
+
+            /*System.Timers.Timer aTimer = new System.Timers.Timer();
+            aTimer.Elapsed += (Object sa, System.Timers.ElapsedEventArgs ea) => {
+                Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<Updates>()
+                    .Clients.Client(Updates.sessionToConnection[Session.SessionID]).update();
+            };
+            aTimer.Interval = 6000;
+            aTimer.Enabled = true;*/
         }
 
         protected void up(object sender, EventArgs e) {

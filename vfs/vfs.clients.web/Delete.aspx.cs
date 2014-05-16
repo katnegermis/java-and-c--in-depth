@@ -13,7 +13,7 @@ namespace vfs.clients.web {
 
         public void deleteVFS(object sender, EventArgs e) {
             Global.vfsSession.DeleteVFS();
-            Global.TerminateSession();
+            Global.TerminateSession(Session.SessionID);
             Master.checkSession();
         }
 

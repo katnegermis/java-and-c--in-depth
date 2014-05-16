@@ -65,4 +65,21 @@
         <EmptyDataTemplate>(Nothing found)</EmptyDataTemplate>
     </asp:GridView>
 
+
+    <asp:HiddenField ID="SessionIDField" runat="server" ClientIDMode="Static" />
+    <script src="Scripts/jquery.signalR-2.0.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function () {
+            $.connection.hub.qs = "session=" + document.getElementById("SessionIDField").value
+            $.connection.updates.client.update = function () {
+                //console.log("There is an update available!")
+
+                //Refresh without POST
+                window.location = window.location
+            };
+            $.connection.hub.start()
+        });
+    </script>
+
 </asp:Content>

@@ -25,7 +25,9 @@ namespace vfs.clients.web {
             }
         }
 
-        public static void TerminateSession() {
+        public static void TerminateSession(string SessionID) {
+            Updates.sessionToConnection.Remove(SessionID);
+
             if(HttpContext.Current != null && vfsSession != null) {
                 try {
                     vfsSession.Close();
@@ -44,7 +46,7 @@ namespace vfs.clients.web {
         }
 
         public void Session_OnEnd() {
-            TerminateSession();
+            TerminateSession(Session.SessionID);
         }
     }
 }
