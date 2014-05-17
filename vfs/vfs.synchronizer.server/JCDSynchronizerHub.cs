@@ -6,24 +6,14 @@ using Microsoft.AspNet.SignalR.Hubs;
 using vfs.synchronizer.common;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace vfs.synchronizer.server
 {
-
     [HubName(JCDSynchronizerSettings.HubName)]
     public class JCDSynchronizerHub : Hub, IJCDSynchronizerServer
     {
-        // Dictionary for storing user ids.
-        // Usable to identify a user across connection sessions.
-        private static readonly ConcurrentDictionary<string, User> users = new ConcurrentDictionary<string, User>();
-
         private const long notLoggedInId = -1;
-
-        private class User {
-            public string Name;
-            public HashSet<string> ConnectionIds;
-            public long Id = notLoggedInId;
-        }
 
         JCDSynchronizerDatabase db = new JCDSynchronizerDatabase();
 
@@ -35,20 +25,17 @@ namespace vfs.synchronizer.server
         /// http://stackoverflow.com/questions/20520874/signalr-how-to-survive-accidental-page-refresh/20521466#20521466
         /// </summary>
         public override Task OnConnected() {
-            // This line doesn't work because Context.User isn't set, because
-            // signalr Authentication is not used.
-            // See http://www.asp.net/signalr/overview/signalr-20/hubs-api/mapping-users-to-connections#inmemory
+            // Users are not required to authenticate when they connect in order to register.
+            if (Context.User == null) {
+                Console.WriteLine("User connected in order to register.");
+                return base.OnConnected();
+            }
+
             string username = Context.User.Identity.Name;
             string connectionId = Context.ConnectionId;
+            Console.WriteLine("User {0} connected", username);
 
-            var user = users.GetOrAdd(username, _ => new User {
-                Name = username,
-                ConnectionIds = new HashSet<string>(),
-            });
-
-            lock (user.ConnectionIds) {
-                user.ConnectionIds.Add(connectionId);
-            }
+            Groups.Add(connectionId, username);
 
             return base.OnConnected();
         }
@@ -60,7 +47,6 @@ namespace vfs.synchronizer.server
             var userId = db.Register(username, password);
 
             //TODO add somewhere if logged in automatically
-            // LogIn(Context, userId);
 
             if (userId > 0)
                 return new JCDSynchronizerReply("Registered successfully", JCDSynchronizerStatusCode.OK);
@@ -68,54 +54,34 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("Registration failed", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply LogIn(string username, string password)
         {
-            Console.WriteLine("Client called LogIn({0}, {1})", username, password);
-
-            if (UserIsLoggedIn(Context)) {
-                return new JCDSynchronizerReply("You are already logged in!", JCDSynchronizerStatusCode.FAILED);
-            }
-
-            var userId = 500L;
-            //var userId = db.Login(username, password);
-
-            if (userId > 0) {
-                return LogIn(Context, userId);
-            }
-            else {
-                return new JCDSynchronizerReply("Login failed", JCDSynchronizerStatusCode.FAILED);
-            }
+            Console.WriteLine("{0} called LogIn({1}, {2})", Context.User.Identity.Name, username, password);
+            // Logging in is handled a layer above.
+            return new JCDSynchronizerReply("Logged in successfully", JCDSynchronizerStatusCode.OK);;
         }
 
         /************************************************************************
          * The following functions assume that the user is logged in, and that  *
          * the server knows which VFSes belong to a particular user.            *
          ************************************************************************/
-
+        [Authorize]
         public JCDSynchronizerReply LogOut()
         {
             Console.WriteLine("Client called LogOut()");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
-
-            var user = GetUserFromContext(Context);
-            lock (user) {
-                user.Id = notLoggedInId;
-            }
+            // Do something so that the user is logged out.
 
             return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply ListVFSes()
         {
             Console.WriteLine("Client called ListVFSes");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
-            var userId = GetUserIdFromContext(Context);
+            var userId = GetUserId(Context);
             var list = db.ListVFSes(userId);
 
             if (list != null)
@@ -124,14 +90,12 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("Fail", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply AddVFS(string vfsName, byte[] data)
         {
             Console.WriteLine("Client called AddVFS({0}, [data])", vfsName);
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
-            var userId = GetUserIdFromContext(Context);
+            var userId = GetUserId(Context);
 
             var vfsId = db.AddVFS(vfsName, userId, data);
 
@@ -141,13 +105,10 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("Fail", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply DeleteVFS(long vfsId)
         {
             Console.WriteLine("Client called DeleteVFS");
-
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
 
             if (db.DeleteVFS(vfsId))
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK);
@@ -155,13 +116,10 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply RetrieveVFS(long vfsId)
         {
             Console.WriteLine("Client called RetrieveVFS");
-
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
 
             var tuple = db.RetrieveVFS(vfsId);
 
@@ -171,13 +129,10 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply RetrieveChanges(long vfsId, long lastVersionId)
         {
             Console.WriteLine("Client called RetrieveVFS");
-
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
 
             var changes = db.RetrieveChanges(vfsId, lastVersionId);
 
@@ -187,18 +142,15 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply FileAdded(long vfsId, string path, long size, bool isFolder)
         {
             Console.WriteLine("Client called FileAdded");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
             var id = db.AddFile(vfsId, path, size, isFolder);
             
             // Inform other clients.
-            var user = GetUserFromContext(Context);
-            SendToAllConnectedUsers(user, JCDSynchronizationEventType.Added, path, size, isFolder);
+            SendGroupMessage(Context.User.Identity.Name, JCDSynchronizationEventType.Added, path, size, isFolder);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -206,18 +158,16 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply FileDeleted(long vfsId, string path)
         {
             Console.WriteLine("Client called FileDeleted");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
             var id = db.DeleteFile(vfsId, path);
 
             // Inform other clients.
-            var user = GetUserFromContext(Context);
-            SendToAllConnectedUsers(user, JCDSynchronizationEventType.Deleted, path);
+            var username = GetUsername(Context);
+            SendGroupMessage(username, JCDSynchronizationEventType.Deleted, path);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -225,17 +175,15 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply FileMoved(long vfsId, string oldPath, string newPath)
         {
             Console.WriteLine("Client called FileMoved");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
             var id = db.MoveFile(vfsId, oldPath, newPath);
             // Inform other clients.
-            var user = GetUserFromContext(Context);
-            SendToAllConnectedUsers(user, JCDSynchronizationEventType.Moved, oldPath, newPath);
+            var username = GetUsername(Context);
+            SendGroupMessage(username, JCDSynchronizationEventType.Moved, oldPath, newPath);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -243,18 +191,16 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply FileModified(long vfsId, string path, long offset, byte[] data)
         {
             Console.WriteLine("Client called FileModified");
 
-            if (!UserIsLoggedIn(Context)) {
-                return NotLoggedInMessage();
-            }
             var id = db.ModifyFile(vfsId, path, offset, data);
 
             // Inform other clients.
-            var user = GetUserFromContext(Context);
-            SendToAllConnectedUsers(user, JCDSynchronizationEventType.Modified, path, offset, data);
+            var username = GetUsername(Context);
+            SendGroupMessage(username, JCDSynchronizationEventType.Modified, path, offset, data);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -262,78 +208,51 @@ namespace vfs.synchronizer.server
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
 
+        [Authorize]
         public JCDSynchronizerReply FileResized(long vfsId, string path, long newSize)
         {
             Console.WriteLine("Client called FileResized");
 
-            if (!UserIsLoggedIn(Context)) {
-                return new JCDSynchronizerReply("You are not logged in!", JCDSynchronizerStatusCode.FAILED);
-            }
             var id = db.ResizeFile(vfsId, path, newSize);
 
             // Inform other clients.
-            var user = GetUserFromContext(Context);
-            SendToAllConnectedUsers(user, JCDSynchronizationEventType.Resized, path, newSize);
+            var username = GetUsername(Context);
+            SendGroupMessage(username, JCDSynchronizationEventType.Resized, path, newSize);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
-        }
-
-        private User GetUserFromContext(HubCallerContext context) {
-            string username = context.User.Identity.Name;
-            User user;
-            if (users.TryGetValue(username, out user)) {
-                return user;
-            }
-            return null;
-        }
-
-        private JCDSynchronizerReply LogIn(HubCallerContext context, long userId) {
-            var user = GetUserFromContext(context);
-            lock (user) {
-                user.Id = userId;
-            }
-            return new JCDSynchronizerReply("Logged in successfully", JCDSynchronizerStatusCode.OK);
         }
 
         private JCDSynchronizerReply NotLoggedInMessage() {
             return new JCDSynchronizerReply("You are not logged in!", JCDSynchronizerStatusCode.FAILED);
         }
 
-        private bool UserIsLoggedIn(HubCallerContext context) {
-            return GetUserFromContext(context).Id != notLoggedInId;
+        private string GetUsername(HubCallerContext context) {
+            return context.User.Identity.Name;
         }
 
-        private long GetUserIdFromContext(HubCallerContext context) {
-            return GetUserFromContext(context).Id;
+        private long GetUserId(HubCallerContext context) {
+            return 5000L;
         }
 
-        private void SendToAllConnectedUsers(User user, JCDSynchronizationEventType type, params object[] args) {
-            lock (user) {
-                foreach (string userId in user.ConnectionIds) {
-                    SendMessage(userId, type, args);
-                }
-            }
-        }
-
-        private void SendMessage(string userId, JCDSynchronizationEventType type, params object[] args) {
+        private void SendGroupMessage(string group, JCDSynchronizationEventType type, params object[] args) {
             switch (type) {
                 case JCDSynchronizationEventType.Added:
-                    ClientFileAdded(userId, args);
+                    ClientFileAdded(group, args);
                     break;
                 case JCDSynchronizationEventType.Deleted:
-                    ClientFileDeleted(userId, args);
+                    ClientFileDeleted(group, args);
                     break;
                 case JCDSynchronizationEventType.Moved:
-                    ClientFileMoved(userId, args);
+                    ClientFileMoved(group, args);
                     break;
                 case JCDSynchronizationEventType.Modified:
-                    ClientFileModified(userId, args);
+                    ClientFileModified(group, args);
                     break;
                 case JCDSynchronizationEventType.Resized:
-                    ClientFileResized(userId, args);
+                    ClientFileResized(group, args);
                     break;
                 default:
                     Console.WriteLine(String.Format("Execution of a change of type {0} failed", type));
@@ -341,35 +260,35 @@ namespace vfs.synchronizer.server
             }
         }
 
-        private void ClientFileAdded(string userId, object[] args) {
+        private void ClientFileAdded(string group, object[] args) {
             var path = (string)args[0];
             var size = (long)args[1];
             var isFolder = (bool)args[2];
-            Clients.User(userId).FileAdded(path, size, isFolder);
+            Clients.Group(group).FileAdded(path, size, isFolder);
         }
 
         private void ClientFileModified(string userId, object[] args) {
             string path = (string)args[0];
             long offset = (long)args[1];
             byte[] data = (byte[])args[2];
-            Clients.User(userId).FileModified(path, offset, data);
+            Clients.Group(userId).FileModified(path, offset, data);
         }
 
         private void ClientFileResized(string userId, object[] args) {
             string path = (string)args[0];
             long newSize = (long)args[1];
-            Clients.User(userId).FileResized(path, newSize);
+            Clients.Group(userId).FileResized(path, newSize);
         }
 
         private void ClientFileMoved(string userId, object[] args) {
             string oldPath = (string)args[0];
             string newPath = (string)args[1];
-            Clients.User(userId).FileMoved(oldPath, newPath);
+            Clients.Group(userId).FileMoved(oldPath, newPath);
         }
 
         private void ClientFileDeleted(string userId, object[] args) {
             string path = (string)args[0];
-            Clients.User(userId).FileDeleted(path);
+            Clients.Group(userId).FileDeleted(path);
         }
     }
 }

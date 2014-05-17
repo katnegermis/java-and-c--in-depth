@@ -10,6 +10,8 @@ using vfs.synchronizer.common;
 using System.Reflection;
 using vfs.exceptions;
 using System.IO;
+using System.Net;
+using System.Web.Security;
 
 namespace vfs.synchronizer.client
 {
@@ -103,8 +105,9 @@ namespace vfs.synchronizer.client
 
         public void LogIn(string username, string password) {
             if (this.hubConn == null) {
-                ConnectToHub();
+                ConnectToHub(username, password);
             }
+
             var res = HubInvoke<JCDSynchronizerReply>("LogIn", username, password);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
@@ -112,7 +115,7 @@ namespace vfs.synchronizer.client
         }
 
         public static void Register(string username, string password) {
-            var conns = ConnectToHubStatic();
+            var conns = ConnectToHubStatic(null);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "Register", username, password);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
@@ -120,7 +123,7 @@ namespace vfs.synchronizer.client
         }
 
         public static List<Tuple<int, int>>  ListVFSes(string username, string password) {
-            var conns = ConnectToHubStatic();
+            var conns = ConnectToHubStatic(username, password);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
@@ -168,12 +171,13 @@ namespace vfs.synchronizer.client
         }
 
         public bool LoggedIn() {
-            // Implement properly.
             return this.hubConn != null;
         }
 
         public void LogOut() {
             var result = HubInvoke<JCDSynchronizerReply>("LogOut");
+            this.hubConn.Stop();
+            this.hubConn = null;
             if (result.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new Exception("Error logging out: " + result.Message);
             }
@@ -430,18 +434,67 @@ namespace vfs.synchronizer.client
             return (IJCDBasicVFS)method.Invoke(null, args);
         }
 
-        private void ConnectToHub() {
-            var conns = ConnectToHubStatic();
+        private void ConnectToHub(string username, string password) {
+            var conns = ConnectToHubStatic(username, password);
             this.hubConn = conns.Item1;
             this.hubProxy = conns.Item2;
             SetHubEvents(this.hubProxy);
         }
 
-        private static Tuple<HubConnection, IHubProxy> ConnectToHubStatic() {
+        private static Tuple<HubConnection, IHubProxy> ConnectToHubStatic(string username, string password) {
+            var authCookie = AuthenticateUser(username, password);
+            return ConnectToHubStatic(authCookie);
+        }
+
+        private static Tuple<HubConnection, IHubProxy> ConnectToHubStatic(Cookie authCookie) {
             var hubConn = new HubConnection(JCDSynchronizerSettings.PublicAddress);
+            if (authCookie != null) {
+                hubConn.CookieContainer = new CookieContainer();
+                hubConn.CookieContainer.Add(authCookie);
+            }
             var hubProxy = hubConn.CreateHubProxy(JCDSynchronizerSettings.HubName);
-            hubConn.Start().Wait();
+            try {
+                hubConn.Start().Wait();
+            }
+            catch (AggregateException e) {
+                throw new VFSSynchronizationServerException("Error in communication with server: " + e.Message, e);
+            }
             return Tuple.Create(hubConn, hubProxy);
+        }
+
+        private static Cookie AuthenticateUser(string user, string password) {
+            Cookie authCookie;
+            var request = WebRequest.Create(JCDSynchronizerSettings.PublicLoginAddress) as HttpWebRequest;
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.CookieContainer = new CookieContainer();
+
+            var authCredentials = "UserName=" + user + "&Password=" + password;
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(authCredentials);
+            request.ContentLength = bytes.Length;
+            try {
+                using (var requestStream = request.GetRequestStream()) {
+                    requestStream.Write(bytes, 0, bytes.Length);
+                }
+            }
+            catch {
+                throw new VFSSynchronizationServerException("Couldn't connect to server!");
+            }
+
+            HttpWebResponse response = null;
+            try {
+                response = (HttpWebResponse)request.GetResponse();
+            }
+            catch (WebException e) {
+                throw new VFSSynchronizationServerException(e.Message);
+            }
+
+            authCookie = response.Cookies[JCDSynchronizerSettings.LoginCookieName];
+            if (authCookie == null) {
+                throw new VFSSynchronizationServerException("Incorrect username and/or password");
+            }
+
+            return authCookie;
         }
 
         private void SetHubEvents(IHubProxy hub) {
@@ -492,7 +545,12 @@ namespace vfs.synchronizer.client
         }
 
         private static T HubInvoke<T>(IHubProxy hubProxy, string methodName, params object[] args) {
-            return hubProxy.Invoke<T>(methodName, args).Result;
+            try {
+                return hubProxy.Invoke<T>(methodName, args).Result;
+            }
+            catch (AggregateException e) {
+                throw new VFSSynchronizationServerException(e.ToString());
+            }
         }
     }
 }

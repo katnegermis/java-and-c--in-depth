@@ -22,8 +22,8 @@ namespace vfs.clients.desktop
 
         private void loginButton_Click(object sender, EventArgs e)
         {
-            string userName = NameLabel.Text;
-            string password = pwLabel.Text;
+            string userName = nameTextBox.Text;
+            string password = textBox1.Text;
 
             if (makeLogin(userName, password))
             {
@@ -34,10 +34,11 @@ namespace vfs.clients.desktop
 
         private void registerButton_Click(object sender, EventArgs e)
         {
-            string userName = NameLabel.Text;
-            string password = pwLabel.Text;
+            string userName = nameTextBox.Text;
+            string password = textBox1.Text;
 
             //TODO make register
+            session.Register(userName, password);
 
             this.DialogResult = DialogResult.OK;
             this.Close();

@@ -32,6 +32,7 @@ namespace vfs.synchronizer.server
             connection.Open();
 
             createTablesIfNotExisting();
+            CreateDefaultUser("user", "password");
         }
 
         /// <summary>
@@ -63,6 +64,12 @@ namespace vfs.synchronizer.server
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+            }
+        }
+
+        private void CreateDefaultUser(string username, string password) {
+            if (!(Login(username, password) > 0)) {
+                Register(username, password);
             }
         }
 
