@@ -398,7 +398,7 @@ namespace vfs.core
         /// <returns></returns>
         internal uint GetFreeBlock()
         {
-            if (!(freeBlocks >= 1))
+            if (freeBlocks <= 0)
             {
                 throw new NotEnoughSpaceException();
             }
@@ -710,7 +710,7 @@ namespace vfs.core
             // Make sure that there are enough free blocks.
             long blocksRequired = Math.Max((uint)Helpers.ruid(size, JCDFAT.blockSize), 1);
 
-            if (!(freeBlocks >= blocksRequired))
+            if (blocksRequired >= freeBlocks)
             {
                 throw new NotEnoughSpaceException();
             }
@@ -860,6 +860,9 @@ namespace vfs.core
 
         private JCDFile CreateFile(ulong size, string path, bool isFolder)
         {
+            if (size > FreeSpace()) {
+                throw new NotEnoughSpaceException();
+            }
             var entry = new JCDDirEntry
             {
                 Name = Helpers.PathGetFileName(path),
