@@ -57,13 +57,28 @@ namespace vfs.clients.desktop
         }
 
         /// <summary>
-        /// Returns the userName of the logged in user.
+        /// 
+        /// </summary>
+        public long VFSVersionId
+        {
+            get
+            {
+                return vfsSynchronizer.GetId();
+            }
+            set
+            {
+                vfsSynchronizer.SetId(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the userName of the logged in user.
         /// If none is logged in it return null.
         /// </summary>
         public string UserName { get; set; }
 
         /// <summary>
-        /// The current directory we are in.
+        /// Gets or sets the current directory we are in.
         /// </summary>
         public string CurrentDir
         {
@@ -78,7 +93,7 @@ namespace vfs.clients.desktop
         }
 
         /// <summary>
-        /// The free space of the mounted VFS.
+        /// Returns the free space of the mounted VFS.
         /// </summary>
         public ulong FreeSpace
         {
@@ -89,7 +104,7 @@ namespace vfs.clients.desktop
         }
 
         /// <summary>
-        /// The occupied space of the mounted VFS.
+        /// Returns the occupied space of the mounted VFS.
         /// </summary>
         public ulong OccupiedSpace
         {
@@ -426,20 +441,14 @@ namespace vfs.clients.desktop
 
         #region Synchro Methods
 
-
-        public bool Register(string userName, string password)
-        {
-            JCDVFSSynchronizer.Register(userName, password);
-            this.UserName = userName;
-            return true;
-        }
-
         public bool LogIn(string userName, string password)
         {
-            try {
+            try
+            {
                 vfsSynchronizer.LogIn(userName, password);
             }
-            catch (vfs.exceptions.VFSSynchronizationServerException e) {
+            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            {
                 //TODO check the statuscode or so
                 throw e;
             }
@@ -451,6 +460,36 @@ namespace vfs.clients.desktop
         {
             vfsSynchronizer.LogOut();
             this.UserName = null;
+        }
+
+        public bool AddVFS()
+        {
+            try
+            {
+                vfsSynchronizer.AddVFS();
+            }
+            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            {
+                throw e;
+            }
+            catch (vfs.exceptions.AlreadySynchronizedVFSException e)
+            {
+                throw e;
+            }
+            return true;
+        }
+
+        public bool RemoveVFS()
+        {
+            try
+            {
+                vfsSynchronizer.RemoveVFS();
+            }
+            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            {
+                throw e;
+            }
+            return true;
         }
 
         #endregion

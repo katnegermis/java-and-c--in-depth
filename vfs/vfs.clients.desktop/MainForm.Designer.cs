@@ -38,11 +38,15 @@
             this.deleteButton = new System.Windows.Forms.Button();
             this.closeButton = new System.Windows.Forms.Button();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
-            this.synchroButton = new System.Windows.Forms.Button();
-            this.updateButton = new System.Windows.Forms.Button();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.searchTextBox = new System.Windows.Forms.TextBox();
+            this.loginButton = new System.Windows.Forms.Button();
+            this.serverListButton = new System.Windows.Forms.Button();
+            this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
+            this.syncButton = new System.Windows.Forms.Button();
+            this.vfsLabel = new System.Windows.Forms.Label();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.backButton = new System.Windows.Forms.Button();
+            this.pathTextBox = new System.Windows.Forms.TextBox();
             this.searchOptionButton = new System.Windows.Forms.Button();
             this.searchMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.searchLocationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -52,11 +56,7 @@
             this.caseSensitivityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sensitiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.insensitiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
-            this.vfsLabel = new System.Windows.Forms.Label();
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.backButton = new System.Windows.Forms.Button();
-            this.pathTextBox = new System.Windows.Forms.TextBox();
+            this.searchTextBox = new System.Windows.Forms.TextBox();
             this.directoryListView = new System.Windows.Forms.ListView();
             this.nameColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.typeColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -79,24 +79,23 @@
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
-            this.flowLayoutPanel7.SuspendLayout();
-            this.searchMenuStrip.SuspendLayout();
-            this.flowLayoutPanel6.SuspendLayout();
+            this.flowLayoutPanel3.SuspendLayout();
+            this.flowLayoutPanel5.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
+            this.searchMenuStrip.SuspendLayout();
             this.lvMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // formFlowLayoutPanel
             // 
             this.formFlowLayoutPanel.Controls.Add(this.tableLayoutPanel1);
-            this.formFlowLayoutPanel.Controls.Add(this.tableLayoutPanel2);
+            this.formFlowLayoutPanel.Controls.Add(this.flowLayoutPanel3);
             this.formFlowLayoutPanel.Controls.Add(this.flowLayoutPanel1);
             this.formFlowLayoutPanel.Controls.Add(this.directoryListView);
             this.formFlowLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.formFlowLayoutPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.formFlowLayoutPanel.Location = new System.Drawing.Point(0, 0);
-            this.formFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(0, 1, 1, 1);
+            this.formFlowLayoutPanel.Margin = new System.Windows.Forms.Padding(2, 1, 1, 1);
             this.formFlowLayoutPanel.Name = "formFlowLayoutPanel";
             this.formFlowLayoutPanel.Size = new System.Drawing.Size(695, 408);
             this.formFlowLayoutPanel.TabIndex = 0;
@@ -104,12 +103,12 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Single;
             this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 56.623F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 43.377F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 54.21511F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 45.78489F));
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel4, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel2, 1, 0);
+            this.tableLayoutPanel1.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.FixedSize;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(2, 3);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -125,10 +124,10 @@
             this.flowLayoutPanel4.Controls.Add(this.deleteButton);
             this.flowLayoutPanel4.Controls.Add(this.closeButton);
             this.flowLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(4, 4);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(3, 3, 3, 0);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(382, 25);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(367, 27);
             this.flowLayoutPanel4.TabIndex = 15;
             this.flowLayoutPanel4.WrapContents = false;
             // 
@@ -183,77 +182,121 @@
             // 
             // flowLayoutPanel2
             // 
-            this.flowLayoutPanel2.Controls.Add(this.synchroButton);
-            this.flowLayoutPanel2.Controls.Add(this.updateButton);
+            this.flowLayoutPanel2.Controls.Add(this.syncButton);
+            this.flowLayoutPanel2.Controls.Add(this.loginButton);
+            this.flowLayoutPanel2.Controls.Add(this.serverListButton);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(393, 4);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(376, 3);
             this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(3, 3, 3, 0);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
             this.flowLayoutPanel2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(292, 25);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(310, 27);
             this.flowLayoutPanel2.TabIndex = 18;
             this.flowLayoutPanel2.WrapContents = false;
             // 
-            // synchroButton
+            // loginButton
             // 
-            this.synchroButton.Location = new System.Drawing.Point(179, 0);
-            this.synchroButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.synchroButton.Name = "synchroButton";
-            this.synchroButton.Size = new System.Drawing.Size(110, 23);
-            this.synchroButton.TabIndex = 10;
-            this.synchroButton.Text = "Synchro Manager";
-            this.synchroButton.UseVisualStyleBackColor = true;
-            this.synchroButton.Click += new System.EventHandler(this.synchroButton_Click);
+            this.loginButton.Enabled = false;
+            this.loginButton.Location = new System.Drawing.Point(128, 0);
+            this.loginButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
+            this.loginButton.Name = "loginButton";
+            this.loginButton.Size = new System.Drawing.Size(86, 23);
+            this.loginButton.TabIndex = 13;
+            this.loginButton.Text = "Login";
+            this.loginButton.UseVisualStyleBackColor = true;
+            this.loginButton.Click += new System.EventHandler(this.loginButton_Click);
             // 
-            // updateButton
+            // serverListButton
             // 
-            this.updateButton.Location = new System.Drawing.Point(98, 0);
-            this.updateButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.updateButton.Name = "updateButton";
-            this.updateButton.Size = new System.Drawing.Size(75, 23);
-            this.updateButton.TabIndex = 9;
-            this.updateButton.Text = "Update";
-            this.updateButton.UseVisualStyleBackColor = true;
-            this.updateButton.Visible = false;
-            this.updateButton.Click += new System.EventHandler(this.updateButton_Click);
+            this.serverListButton.Location = new System.Drawing.Point(36, 0);
+            this.serverListButton.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
+            this.serverListButton.Name = "serverListButton";
+            this.serverListButton.Size = new System.Drawing.Size(86, 23);
+            this.serverListButton.TabIndex = 10;
+            this.serverListButton.Text = "Server VFS";
+            this.serverListButton.UseVisualStyleBackColor = true;
+            this.serverListButton.Click += new System.EventHandler(this.serverListButton_Click);
             // 
-            // tableLayoutPanel2
+            // flowLayoutPanel3
             // 
-            this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 59.07112F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40.92888F));
-            this.tableLayoutPanel2.Controls.Add(this.flowLayoutPanel7, 1, 0);
-            this.tableLayoutPanel2.Controls.Add(this.flowLayoutPanel6, 0, 0);
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(2, 36);
-            this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(2, 3, 3, 0);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 1;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(689, 31);
-            this.tableLayoutPanel2.TabIndex = 22;
+            this.flowLayoutPanel3.Controls.Add(this.flowLayoutPanel5);
+            this.flowLayoutPanel3.Controls.Add(this.vfsLabel);
+            this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.flowLayoutPanel3.Location = new System.Drawing.Point(2, 33);
+            this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.flowLayoutPanel3.Name = "flowLayoutPanel3";
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(688, 30);
+            this.flowLayoutPanel3.TabIndex = 23;
+            this.flowLayoutPanel3.WrapContents = false;
             // 
-            // flowLayoutPanel7
+            // flowLayoutPanel5
             // 
-            this.flowLayoutPanel7.Controls.Add(this.searchTextBox);
-            this.flowLayoutPanel7.Controls.Add(this.searchOptionButton);
-            this.flowLayoutPanel7.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel7.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel7.Location = new System.Drawing.Point(410, 3);
-            this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-            this.flowLayoutPanel7.Size = new System.Drawing.Size(276, 25);
-            this.flowLayoutPanel7.TabIndex = 0;
-            this.flowLayoutPanel7.WrapContents = false;
+            this.flowLayoutPanel5.Controls.Add(this.searchTextBox);
+            this.flowLayoutPanel5.Controls.Add(this.searchOptionButton);
+            this.flowLayoutPanel5.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(412, 0);
+            this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
+            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(276, 30);
+            this.flowLayoutPanel5.TabIndex = 14;
             // 
-            // searchTextBox
+            // syncButton
             // 
-            this.searchTextBox.Enabled = false;
-            this.searchTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.searchTextBox.Location = new System.Drawing.Point(24, 4);
-            this.searchTextBox.Margin = new System.Windows.Forms.Padding(0, 4, 0, 3);
-            this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(252, 20);
-            this.searchTextBox.TabIndex = 7;
-            this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
+            this.syncButton.Enabled = false;
+            this.syncButton.Location = new System.Drawing.Point(221, 0);
+            this.syncButton.Margin = new System.Windows.Forms.Padding(3, 0, 4, 3);
+            this.syncButton.Name = "syncButton";
+            this.syncButton.Size = new System.Drawing.Size(86, 23);
+            this.syncButton.TabIndex = 13;
+            this.syncButton.Text = "Synchronize";
+            this.syncButton.UseVisualStyleBackColor = true;
+            this.syncButton.Click += new System.EventHandler(this.syncButton_Click);
+            // 
+            // vfsLabel
+            // 
+            this.vfsLabel.Enabled = false;
+            this.vfsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.vfsLabel.Location = new System.Drawing.Point(4, 6);
+            this.vfsLabel.Margin = new System.Windows.Forms.Padding(0, 6, 3, 3);
+            this.vfsLabel.Name = "vfsLabel";
+            this.vfsLabel.Size = new System.Drawing.Size(405, 18);
+            this.vfsLabel.TabIndex = 17;
+            this.vfsLabel.Text = "No VFS mounted..";
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.Controls.Add(this.backButton);
+            this.flowLayoutPanel1.Controls.Add(this.pathTextBox);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 63);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(688, 30);
+            this.flowLayoutPanel1.TabIndex = 10;
+            this.flowLayoutPanel1.WrapContents = false;
+            // 
+            // backButton
+            // 
+            this.backButton.AutoSize = true;
+            this.backButton.Enabled = false;
+            this.backButton.Location = new System.Drawing.Point(3, 1);
+            this.backButton.Margin = new System.Windows.Forms.Padding(3, 1, 3, 3);
+            this.backButton.Name = "backButton";
+            this.backButton.Size = new System.Drawing.Size(44, 23);
+            this.backButton.TabIndex = 5;
+            this.backButton.Text = "Back";
+            this.backButton.UseVisualStyleBackColor = true;
+            this.backButton.Click += new System.EventHandler(this.BackButton_Click);
+            this.backButton.KeyDown += new System.Windows.Forms.KeyEventHandler(this.backButton_KeyDown);
+            // 
+            // pathTextBox
+            // 
+            this.pathTextBox.AllowDrop = true;
+            this.pathTextBox.Enabled = false;
+            this.pathTextBox.Location = new System.Drawing.Point(53, 3);
+            this.pathTextBox.Name = "pathTextBox";
+            this.pathTextBox.Size = new System.Drawing.Size(634, 20);
+            this.pathTextBox.TabIndex = 6;
+            this.pathTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pathTextBox_KeyDown);
             // 
             // searchOptionButton
             // 
@@ -337,61 +380,16 @@
             this.insensitiveToolStripMenuItem.Text = "Insensitive";
             this.insensitiveToolStripMenuItem.Click += new System.EventHandler(this.insensitiveToolStripMenuItem_Click);
             // 
-            // flowLayoutPanel6
+            // searchTextBox
             // 
-            this.flowLayoutPanel6.Controls.Add(this.vfsLabel);
-            this.flowLayoutPanel6.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel6.Location = new System.Drawing.Point(3, 3);
-            this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-            this.flowLayoutPanel6.Size = new System.Drawing.Size(401, 25);
-            this.flowLayoutPanel6.TabIndex = 0;
-            this.flowLayoutPanel6.WrapContents = false;
-            // 
-            // vfsLabel
-            // 
-            this.vfsLabel.Enabled = false;
-            this.vfsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.vfsLabel.Location = new System.Drawing.Point(0, 6);
-            this.vfsLabel.Margin = new System.Windows.Forms.Padding(0, 6, 3, 3);
-            this.vfsLabel.Name = "vfsLabel";
-            this.vfsLabel.Size = new System.Drawing.Size(443, 18);
-            this.vfsLabel.TabIndex = 17;
-            this.vfsLabel.Text = "No VFS mounted..";
-            // 
-            // flowLayoutPanel1
-            // 
-            this.flowLayoutPanel1.Controls.Add(this.backButton);
-            this.flowLayoutPanel1.Controls.Add(this.pathTextBox);
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 67);
-            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(688, 30);
-            this.flowLayoutPanel1.TabIndex = 10;
-            this.flowLayoutPanel1.WrapContents = false;
-            // 
-            // backButton
-            // 
-            this.backButton.AutoSize = true;
-            this.backButton.Enabled = false;
-            this.backButton.Location = new System.Drawing.Point(3, 1);
-            this.backButton.Margin = new System.Windows.Forms.Padding(3, 1, 3, 3);
-            this.backButton.Name = "backButton";
-            this.backButton.Size = new System.Drawing.Size(44, 23);
-            this.backButton.TabIndex = 5;
-            this.backButton.Text = "Back";
-            this.backButton.UseVisualStyleBackColor = true;
-            this.backButton.Click += new System.EventHandler(this.BackButton_Click);
-            this.backButton.KeyDown += new System.Windows.Forms.KeyEventHandler(this.backButton_KeyDown);
-            // 
-            // pathTextBox
-            // 
-            this.pathTextBox.AllowDrop = true;
-            this.pathTextBox.Enabled = false;
-            this.pathTextBox.Location = new System.Drawing.Point(53, 3);
-            this.pathTextBox.Name = "pathTextBox";
-            this.pathTextBox.Size = new System.Drawing.Size(632, 20);
-            this.pathTextBox.TabIndex = 6;
-            this.pathTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pathTextBox_KeyDown);
+            this.searchTextBox.Enabled = false;
+            this.searchTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.searchTextBox.Location = new System.Drawing.Point(24, 4);
+            this.searchTextBox.Margin = new System.Windows.Forms.Padding(0, 4, 0, 3);
+            this.searchTextBox.Name = "searchTextBox";
+            this.searchTextBox.Size = new System.Drawing.Size(252, 20);
+            this.searchTextBox.TabIndex = 7;
+            this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
             // 
             // directoryListView
             // 
@@ -404,10 +402,10 @@
             this.directoryListView.Enabled = false;
             this.directoryListView.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.directoryListView.HideSelection = false;
-            this.directoryListView.Location = new System.Drawing.Point(6, 103);
+            this.directoryListView.Location = new System.Drawing.Point(6, 99);
             this.directoryListView.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
             this.directoryListView.Name = "directoryListView";
-            this.directoryListView.Size = new System.Drawing.Size(685, 299);
+            this.directoryListView.Size = new System.Drawing.Size(684, 304);
             this.directoryListView.SmallImageList = this.imageList1;
             this.directoryListView.TabIndex = 4;
             this.directoryListView.UseCompatibleStateImageBehavior = false;
@@ -560,13 +558,12 @@
             this.tableLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel4.ResumeLayout(false);
             this.flowLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.flowLayoutPanel7.ResumeLayout(false);
-            this.flowLayoutPanel7.PerformLayout();
-            this.searchMenuStrip.ResumeLayout(false);
-            this.flowLayoutPanel6.ResumeLayout(false);
+            this.flowLayoutPanel3.ResumeLayout(false);
+            this.flowLayoutPanel5.ResumeLayout(false);
+            this.flowLayoutPanel5.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
+            this.searchMenuStrip.ResumeLayout(false);
             this.lvMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -613,12 +610,12 @@
         private System.Windows.Forms.Label vfsLabel;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
-        private System.Windows.Forms.Button updateButton;
-        private System.Windows.Forms.Button synchroButton;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
+        private System.Windows.Forms.Button serverListButton;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.Button loginButton;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
+        private System.Windows.Forms.Button syncButton;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
 
     }
 }

@@ -404,7 +404,7 @@ namespace vfs.clients.desktop
         /// <summary>
         /// Method to be called for calling the necessary Form update methods.
         /// </summary>
-        private void updateForm()
+        public void updateForm()
         {
             updateVFSLabel();
             populateListView();
@@ -431,6 +431,7 @@ namespace vfs.clients.desktop
         private void ChangeFormToMounted()
         {
             closeButton.Enabled = true;
+            loginButton.Enabled = true;
             searchTextBox.Enabled = true;
             searchOptionButton.Enabled = true;
             vfsLabel.Enabled = true;
@@ -455,6 +456,9 @@ namespace vfs.clients.desktop
             openButton.Enabled = true;
 
             closeButton.Enabled = false;
+            loginButton.Enabled = false;
+            syncButton.Enabled = false;
+
             searchTextBox.Enabled = false;
             searchOptionButton.Enabled = false;
             directoryListView.Enabled = false;
@@ -1100,18 +1104,95 @@ namespace vfs.clients.desktop
 
         #endregion
 
-        private void synchroButton_Click(object sender, EventArgs e)
+        private void serverListButton_Click(object sender, EventArgs e)
         {
-            var form = new SynchroManagerForm();
-            form.session = session;
-            form.ShowDialog(this);
+            var login = new LoginForm();
+            login.forListVFS = true;
+            if (login.ShowDialog(this) == DialogResult.OK)
+            {
+                var list = login.listVFS;
+                if (list == null)
+                    MessageBox.Show(this, "No list retrieved!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                {
+                    var listForm = new VFSListForm();
+                    listForm.vfsList = list;
+                    listForm.ShowDialog(this);
+                }
+            }
         }
 
-        private void updateButton_Click(object sender, EventArgs e)
+        private void loginButton_Click(object sender, EventArgs e)
         {
-            //TODO make Update: Retrieve from server and possibly also send
+            if (session == null)
+            {
+                MessageBox.Show(this, "No session to login!", "Session error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                if (session.IsLoggedIn)
+                {
+                    session.LogOut();
+                    syncButton.Enabled = false;
+                    loginButton.Text = "Login";
+                }
+                else
+                {
+                    var login = new LoginForm();
+                    login.forListVFS = false;
+                    login.session = session;
+                    if (login.ShowDialog(this) == DialogResult.OK)
+                    {
+                        loginButton.Text = "Logout";
+                        syncButton.Enabled = true;
+                        if (session.VFSVersionId > 0)
+                        {
+                            syncButton.Text = "Un-sync";
+                        }
+                        else
+                        {
+                            syncButton.Text = "Synchronize";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
+        private void onOfflineButton_Click(object sender, EventArgs e)
+        {
+            //TODO Turn synchronization on/off
+        }
+
+        private void syncButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (session.VFSVersionId > 0)
+                {
+                    if (session.RemoveVFS())
+                    {
+                        syncButton.Text = "Synchronize";
+                    }
+                }
+                else
+                {
+                    if (session.AddVFS())
+                    {
+                        syncButton.Text = "Un-sync";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
     }
 }
