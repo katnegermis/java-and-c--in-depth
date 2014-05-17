@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using vfs.core;
-using vfs.synchronizer.server;
 using Microsoft.AspNet.SignalR.Client;
 using vfs.synchronizer.common;
 using System.Reflection;

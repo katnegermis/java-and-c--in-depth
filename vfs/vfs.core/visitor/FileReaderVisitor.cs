@@ -29,7 +29,7 @@ namespace vfs.core.visitor
         }
 
         private void Initialize(ulong size, ulong fileOffset, GetFileContents f) {
-            this.BytesRead = -1;
+            this.BytesRead = 0;
             this.blocksTraversed = 0;
             this.func = f;
             bytesLeft = size;
@@ -43,6 +43,10 @@ namespace vfs.core.visitor
             if (blocksTraversed < firstBlockIndex) {
                 blocksTraversed += 1;
                 return true;
+            }
+
+            if (bytesLeft <= 0) {
+                return false;
             }
 
             ulong vfsOffset = vfs.BlockGetByteOffset(block, blockOffset);

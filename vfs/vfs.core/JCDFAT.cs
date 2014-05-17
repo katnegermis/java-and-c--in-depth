@@ -46,8 +46,8 @@ namespace vfs.core
         internal const uint dirEntrySize = 1 << 8; // 256B == JCDDirEntry.StructSize();
         internal const uint fatEntriesPerBlock = blockSize / 4;
         internal const uint dirEntriesPerBlock = blockSize / dirEntrySize;
-        internal const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
-        internal const ulong globalMinFSSize = blockSize * fatEntriesPerBlock;
+        public const ulong globalMaxFSSize = (ulong)availableBlockNumbers * blockSize + (1L << 32) * 4 + metaDataBlocks * blockSize;
+        public const ulong globalMinFSSize = blockSize * fatEntriesPerBlock;
         //numBlocks * (blockSize + fatEntrySize) + metaDataSize. FAT size is rounded up to a whole number of blocks, assuming reservedBlockNumbers < blockSize/4.
         
 
@@ -147,7 +147,7 @@ namespace vfs.core
                 throw new FileAlreadyExistsException();
             }
 
-            if (size <= JCDFAT.globalMinFSSize) {
+            if (size < JCDFAT.globalMinFSSize) {
                 throw new InvalidSizeException(
                     String.Format("The file system must be at least {0} bytes.", JCDFAT.globalMinFSSize));
             }
@@ -475,8 +475,8 @@ namespace vfs.core
 
             // The current number of unused blocks in the FS.
             // The JCDVFS-file might not yet be big enough to actually hold this many blocks!
-            freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock;
             firstFreeBlock = 3; // The first free block is after the (initially empty) root dir and search file blocks.
+            freeBlocks = fatBlocks * fatEntriesPerBlock - firstFreeBlock; // add meta data block as well.
 
             hfsFileStream.SetLength((long)currentSize);
         }
@@ -508,7 +508,7 @@ namespace vfs.core
             maxNumBlocks = dataOffsetBlocks + maxNumDataBlocks;
             if (newFile)
             {
-                currentNumDataBlocks = 2; // We start with an empty root folder and a empty search file.
+                currentNumDataBlocks = 3; // We start with an empty root folder and two empty search files.
                 currentNumBlocks = dataOffsetBlocks + currentNumDataBlocks;
             }
             else
@@ -834,7 +834,7 @@ namespace vfs.core
                 return;
             }
 
-            string currentPath = ".";
+            string currentPath = "./";
             if (path.StartsWith("/")) {
                 currentPath = "/";
             }
@@ -959,6 +959,9 @@ namespace vfs.core
         }
 
         private void ImportFile(Stream file, string path, string fileName) {
+            if (file.Length > (long)FreeSpace()) {
+                throw new NotEnoughSpaceException();
+            }
             uint firstBlock = CreateFile((ulong) file.Length, path, false).Entry.FirstBlock;
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
@@ -1178,6 +1181,9 @@ namespace vfs.core
 
         public void MoveFile(string vfsPath, string newVfsPath) {
             var fromFile = GetFile(vfsPath);
+            if (fromFile == null) {
+                throw new vfs.exceptions.FileNotFoundException(vfsPath);
+            }
 
             // Insert file in to destination.
             var toFolderTmp = GetFile(Helpers.PathGetDirectoryName(newVfsPath));

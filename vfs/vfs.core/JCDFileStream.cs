@@ -51,10 +51,15 @@ namespace vfs.core {
             if (buffer == null || buffer.Length < count) {
                 throw new BufferTooSmallException();
             }
+
+            // Make sure not to read beyond file length.
+            if (position + offset + count > Length) {
+                count = (int)(Length - position - offset);
+            }
             var vfs = file.GetContainer();
             var bytesRead = vfs.ReadFile(buffer, (ulong)(position + offset), (ulong)count, file.Entry.FirstBlock);
             if (bytesRead != 0) {
-                position += offset + count;
+                position = Math.Min(position + offset + count, Length);
             }
             return bytesRead;
         }

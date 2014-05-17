@@ -22,6 +22,19 @@ namespace vfs.common {
             DeleteFiles(new string[] { file });
         }
 
+        public static void DeleteFolders(string folder, bool recursive) {
+            DeleteFolders(new string[] { folder }, recursive);
+        }
+
+        public static void DeleteFolders(string[] folders, bool recursive) {
+            foreach (var folder in folders) {
+                try {
+                    Directory.Delete(folder, recursive);
+                }
+                catch (System.IO.FileNotFoundException) { }
+            }
+        }
+
         public static byte[] GenerateRandomData(int size) {
             var rnd = new Random();
             return GenerateRandomData(size, rnd.Next());
