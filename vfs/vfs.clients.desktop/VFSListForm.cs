@@ -46,7 +46,7 @@ namespace vfs.clients.desktop
 
         private void serverVFSListView_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter && serverVFSListView.SelectedItems.Count > 0)
             {
                 var item = serverVFSListView.SelectedItems[0];
                 if (item != null)
