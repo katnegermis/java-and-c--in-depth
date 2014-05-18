@@ -182,9 +182,12 @@ namespace vfs.synchronizer.server
                 using (var command = new SQLiteCommand(connection))
                 {
                     long vfsId = Convert.ToInt64((vfsName + DateTime.Now.Ticks).GetHashCode());
-                    string hfsPath = vfsId + @"/";
-                    string initPath = hfsPath + vfsName + ".init";
-                    string currentPath = hfsPath + vfsName + ".curr";
+                    string hfsDir = vfsId + @"/";
+                    if (!(Directory.Exists(hfsDir))) {
+                        Directory.CreateDirectory(hfsDir);
+                    }
+                    string initPath = hfsDir + vfsName + ".init";
+                    string currentPath = hfsDir + vfsName + ".curr";
 
                     writeToFile(currentPath, data);
                     writeToFile(initPath, data);

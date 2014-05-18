@@ -13,9 +13,8 @@ namespace vfs.synchronizer.server
     [HubName(JCDSynchronizerSettings.HubName)]
     public class JCDSynchronizerHub : Hub, IJCDSynchronizerServer
     {
-        private const long notLoggedInId = -1;
-
         JCDSynchronizerDatabase db = new JCDSynchronizerDatabase();
+        private static readonly ConcurrentDictionary<string, long> userIds = new ConcurrentDictionary<string, long>();
 
         /// <summary>
         /// Called every time a user connects. We want to store user's session across
@@ -45,7 +44,7 @@ namespace vfs.synchronizer.server
             Console.WriteLine("Client called Register({0}, {1})", username, password);
 
             var userId = db.Register(username, password);
-
+            userIds.GetOrAdd(username, userId);
             //TODO add somewhere if logged in automatically
 
             if (userId > 0)
@@ -58,8 +57,9 @@ namespace vfs.synchronizer.server
         public JCDSynchronizerReply LogIn(string username, string password)
         {
             Console.WriteLine("{0} called LogIn({1}, {2})", Context.User.Identity.Name, username, password);
+            userIds.GetOrAdd(Context.User.Identity.Name, db.Login(username, password));
             // Logging in is handled a layer above.
-            return new JCDSynchronizerReply("Logged in successfully", JCDSynchronizerStatusCode.OK);;
+            return new JCDSynchronizerReply("Logged in successfully", JCDSynchronizerStatusCode.OK);
         }
 
         /************************************************************************
@@ -72,6 +72,8 @@ namespace vfs.synchronizer.server
             Console.WriteLine("Client called LogOut()");
 
             // Do something so that the user is logged out.
+            long dummy;
+            userIds.TryRemove(Context.User.Identity.Name, out dummy);
 
             return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
@@ -100,7 +102,7 @@ namespace vfs.synchronizer.server
             var vfsId = db.AddVFS(vfsName, userId, data);
 
             if (vfsId != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(vfsId));
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToInt64(vfsId));
             else
                 return new JCDSynchronizerReply("Fail", JCDSynchronizerStatusCode.FAILED);
         }
@@ -234,7 +236,9 @@ namespace vfs.synchronizer.server
         }
 
         private long GetUserId(HubCallerContext context) {
-            return 5000L;
+            long userId = -1;
+            userIds.TryGetValue(context.User.Identity.Name, out userId);
+            return userId;
         }
 
         private void SendGroupMessage(string group, JCDSynchronizationEventType type, params object[] args) {

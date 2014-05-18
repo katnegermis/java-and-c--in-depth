@@ -62,12 +62,12 @@ namespace vfs.synchronizer.client
             }
         }
         
-        internal void InformServerFileAdded(string path, byte[] data) {
+        internal void InformServerFileAdded(string path, long size, bool isFolder) {
             if (!(LoggedIn())) {
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", path, data);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", path, size, isFolder);
         }
 
         internal void InformServerFileDeleted(string path) {
@@ -134,7 +134,7 @@ namespace vfs.synchronizer.client
         /// Start synchronizing the underlying VFS with the server.
         /// </summary>
         /// <returns></returns>
-        public int AddVFS() {
+        public long AddVFS() {
             if (vfs.GetId() != NotSynchronizedId) {
                 throw new AlreadySynchronizedVFSException("This VFS is already being synchronized!");
             }
@@ -142,13 +142,14 @@ namespace vfs.synchronizer.client
             // Close VFS so that we can read its data.
             vfs.Close();
             var data = File.ReadAllBytes(hfsPath);
+            var name = Path.GetFileName(hfsPath);
             vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });            
 
-            var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", data);
+            var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", name, data);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
-            return (int)res.Data[0];
+            return (long)res.Data[0];
         }
 
 
@@ -197,11 +198,11 @@ namespace vfs.synchronizer.client
             vfs.FileResized += OnFileResized;
 
             // Subscribe to vfs events
-            //vfs.FileModified += InformServerFileModified;
-            //vfs.FileAdded += InformServerFileAdded;
-            //vfs.FileDeleted += InformServerFileDeleted;
-            //vfs.FileMoved += InformServerFileMoved;
-            //vfs.FileResized += InformServerFileResized;
+            vfs.FileModified += InformServerFileModified;
+            vfs.FileAdded += InformServerFileAdded;
+            vfs.FileDeleted += InformServerFileDeleted;
+            vfs.FileMoved += InformServerFileMoved;
+            vfs.FileResized += InformServerFileResized;
         }
 
         /// <summary>
