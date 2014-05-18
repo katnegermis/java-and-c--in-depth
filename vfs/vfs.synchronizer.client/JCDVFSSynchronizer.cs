@@ -17,7 +17,7 @@ namespace vfs.synchronizer.client
 {
     public class JCDVFSSynchronizer : IJCDBasicVFS, IJCDSynchronizedVFS
     {
-        private const int NotSynchronizedId = 0;
+        private const long NotSynchronizedId = -1;
 
         // Path to the underlying VFS.
         private string hfsPath;
@@ -130,7 +130,7 @@ namespace vfs.synchronizer.client
 
         public static List<Tuple<long, string>>  ListVFSes(string username, string password) {
             var conns = ConnectToHubStatic(username, password);
-            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes");
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }

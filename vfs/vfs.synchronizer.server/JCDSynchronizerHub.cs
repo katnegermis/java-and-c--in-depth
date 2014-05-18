@@ -78,12 +78,11 @@ namespace vfs.synchronizer.server
             return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
         }
 
-        [Authorize]
-        public JCDSynchronizerReply ListVFSes()
+        public JCDSynchronizerReply ListVFSes(string username, string password)
         {
             Console.WriteLine("Client called ListVFSes");
 
-            var userId = GetUserId(Context);
+            var userId = db.Login(username, password);
             var list = db.ListVFSes(userId);
 
             if (list != null)
