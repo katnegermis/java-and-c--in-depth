@@ -63,9 +63,10 @@ namespace vfs.clients.desktop
 
                 foreach (var vfsEntry in vfsList)
                 {
-                        item = new ListViewItem(vfsEntry.Item2, 0);
-                 
+                    item = new ListViewItem(vfsEntry.Item2, 0);
                     item.Tag = vfsEntry.Item1;
+
+                    serverVFSListView.Items.Add(item);
                 }
                 serverVFSListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             }
