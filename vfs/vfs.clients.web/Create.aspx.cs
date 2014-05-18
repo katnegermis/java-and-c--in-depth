@@ -37,7 +37,7 @@ namespace vfs.clients.web {
             }
 
             try {
-                Global.vfsSession = VFSSession.CreateVFS(vfsPath.Text, UInt64.Parse(maxSize.Text));
+                Global.vfsSession = VFSSession.CreateVFS(Session.SessionID, vfsPath.Text, UInt64.Parse(maxSize.Text));
                 if(Global.vfsSession != null) {
                     //success
                     Response.Redirect("~/");

@@ -51,6 +51,11 @@
     <asp:Button ID="uploadFile" runat="server" Text="" ClientIDMode="Static" OnClick="makeUpload" TabIndex="-1" class="hidden" />
     <br />
 
+    Free space: <asp:Label ID="freeSpace" runat="server"></asp:Label>
+    &nbsp;&nbsp;
+    Occupied space: <asp:Label ID="occupiedSpace" runat="server"></asp:Label>
+    <br />
+
     <asp:GridView ID="resultsView" AutoGenerateColumns="False" Font-Size="Larger" runat="server">
         <Columns>
             <asp:ImageField HeaderText="" DataImageUrlField="TypeURL">

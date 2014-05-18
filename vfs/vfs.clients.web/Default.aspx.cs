@@ -18,6 +18,7 @@ namespace vfs.clients.web {
             ls();
             search_ls();
             checkOperationsEnabled(null, null);
+            showSpace();
         }
 
         private void ls() {
@@ -46,6 +47,11 @@ namespace vfs.clients.web {
             paste.Enabled = Global.vfsSession.clipBoardNonEmpty();
         }
 
+        private void showSpace() {
+            freeSpace.Text = Global.vfsSession.FreeSpace.ToString() + " bytes";
+            occupiedSpace.Text = Global.vfsSession.OccupiedSpace.ToString() + " bytes";
+        }
+
         protected void Page_Load(object sender, EventArgs e) {
             Master.checkSession();
 
@@ -56,6 +62,8 @@ namespace vfs.clients.web {
                 hideSearch();
                 showPage();
             }
+
+            Global.vfsSession.updateScheduled = false;
 
             /*System.Timers.Timer aTimer = new System.Timers.Timer();
             aTimer.Elapsed += (Object sa, System.Timers.ElapsedEventArgs ea) => {

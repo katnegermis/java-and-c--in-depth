@@ -330,6 +330,18 @@ namespace vfs.synchronizer.client
         }
 
         /// <summary>
+        /// Import a file or directory from a stream to a mounted VFS.
+        /// </summary>
+        // Exceptions:
+        // - no such path on VFS.
+        // - invalid VFS path string (file name too long/invalid characters).
+        public void ImportFile(Stream file, string vfsPath) {
+            lock(this.vfs) {
+                vfs.ImportFile(file, vfsPath);
+            }
+        }
+
+        /// <summary>
         /// Export a file or directory from a mounted VFS to HFS.
         /// </summary>
         // Exceptions:
@@ -341,6 +353,19 @@ namespace vfs.synchronizer.client
         public void ExportFile(string vfsPath, string hfsPath) {
             lock (this.vfs) {
                 vfs.ExportFile(vfsPath, hfsPath);
+            }
+        }
+
+        /// <summary>
+        /// Export a file from a mounted VFS to a stream.
+        /// </summary>
+        // Exceptions:
+        // - no such path on VFS.
+        // - the VFS path points to a directory
+        // - invalid VFS path string (file name too long/invalid characters).
+        public void ExportFile(string vfsPath, Stream output) {
+            lock(this.vfs) {
+                vfs.ExportFile(vfsPath, output);
             }
         }
 

@@ -7,6 +7,9 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using vfs.synchronizer.client;
+using vfs.synchronizer.common;
+using Microsoft.AspNet.SignalR;
 
 namespace vfs.clients.web
 {
@@ -43,7 +46,7 @@ namespace vfs.clients.web
     /// <summary>
     /// Enum that represents the possible search locations.
     /// </summary>
-    public enum SearchLocation { Folder, SubFolder, Everywhere };
+    public enum SearchLocation { Folder, SubFolder/*, Everywhere*/ };
 
     /// <summary>
     /// Class that serves as controller class for operations on VFSs.
@@ -56,12 +59,51 @@ namespace vfs.clients.web
         /// The currently mounted VFS.
         /// If none is mounted, then null.
         /// </summary>
-        private JCDFAT mountedVFS;
+        private JCDVFSSynchronizer mountedVFS;
 
         /// <summary>
         /// The location of the currently open VFS.
         /// </summary>
         public string mountedVFSpath;
+
+        /// <summary>
+        /// Whether the client has an outstanding update request.
+        /// </summary>
+        public bool updateScheduled = false;
+
+        //The following three are copy-pasted from desktop VFSSession - check them
+
+        /// <summary>
+        /// Returns whether the VFSSynchronizer is logged in or not
+        /// </summary>
+        public bool IsLoggedIn {
+            get {
+                return (mountedVFS != null && mountedVFS.LoggedIn());
+            }
+        }
+
+        /// <summary>
+        /// The ID of the VFS
+        /// </summary>
+        public long VFSVersionId {
+            get {
+                return mountedVFS.GetId();
+            }
+            set {
+                mountedVFS.SetId(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the userName of the logged in user.
+        /// If none is logged in it return null.
+        /// </summary>
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// The server ID of the session.
+        /// </summary>
+        private string sessionID;
 
         /// <summary>
         /// The current directory we are in.
@@ -126,10 +168,28 @@ namespace vfs.clients.web
         /// </summary>
         public bool SearchCaseSensitive = true;
 
-        private VFSSession(JCDFAT vfs, string path)
+        private VFSSession(string SessionID, JCDVFSSynchronizer vfs, string VFSpath)
         {
             mountedVFS = vfs;
-            mountedVFSpath = path;
+            mountedVFSpath = VFSpath;
+            sessionID = SessionID;
+
+            vfs.FileAdded += (string path, long size, bool isFolder) => {
+                checkIfUpdateNeeded(path);
+            };
+            vfs.FileDeleted += (string path) => {
+                checkIfUpdateNeeded(path);
+            };
+            vfs.FileMoved += (string oldPath, string newPath) => {
+                checkIfUpdateNeeded(oldPath);
+                checkIfUpdateNeeded(newPath);
+            };
+            vfs.FileModified += (string path, long offset, byte[] data) => {
+                checkIfUpdateNeeded(path);
+            };
+            vfs.FileResized += (string path, long newSize) => {
+                checkIfUpdateNeeded(path);
+            };
         }
 
         #region VFS Methods
@@ -137,26 +197,19 @@ namespace vfs.clients.web
         /// <summary>
         /// Makes the call to create the VFS file at the given place and with the given size.
         /// </summary>
+        /// <param name="SessionID">The server ID of the session</param>
         /// <param name="fileToCreate">To create and put the VFS inside</param>
         /// <param name="size">Of the new VFS</param>
         /// /// <returns>A new VFSSession object if the VFS was created successfully or null otherwise</returns>
-        public static VFSSession CreateVFS(string fileToCreate, ulong size)
+        public static VFSSession CreateVFS(string SessionID, string fileToCreate, ulong size)
         {
-            var vfs = JCDFAT.Create(fileToCreate, size);
+            //var vfs = JCDFAT.Create(fileToCreate, size);
+            var vfs = JCDVFSSynchronizer.Create(typeof(JCDFAT), fileToCreate, size);
             if(vfs != null)
-                return new VFSSession(vfs, fileToCreate);
+                return new VFSSession(SessionID, vfs, fileToCreate);
             else
                 return null;
         }
-
-        /*/// <summary>
-        /// Makes the call to delete the given file if it has a VFS in it.
-        /// </summary>
-        /// <param name="fileToDelete"></param>
-        public static void DeleteVFS(string fileToDelete)
-        {
-            JCDFAT.Delete(fileToDelete);
-        }*/
 
         /// <summary>
         /// Delete the currently open VFS
@@ -167,20 +220,22 @@ namespace vfs.clients.web
 
             string VFSpath = mountedVFSpath;
             Close();
-            JCDFAT.Delete(VFSpath);
+            JCDVFSSynchronizer.Delete(typeof(JCDFAT), VFSpath);
         }
 
         /// <summary>
         /// Makes the call to open the given VFS file.
         /// Then returns a new VFSSession object.
         /// </summary>
+        /// <param name="SessionID">The server ID of the session</param>
         /// <param name="fileToOpen">The file to open</param>
         /// <returns>A new VFSSession object if the VFS was opened successfully or null otherwise</returns>
-        public static VFSSession OpenVFS(string fileToOpen)
+        public static VFSSession OpenVFS(string SessionID, string fileToOpen)
         {
-            var vfs = JCDFAT.Open(fileToOpen);
+            //var vfs = JCDFAT.Open(fileToOpen);
+            var vfs = JCDVFSSynchronizer.Open(typeof(JCDFAT), fileToOpen);
             if (vfs != null)
-                return new VFSSession(vfs, fileToOpen);
+                return new VFSSession(SessionID, vfs, fileToOpen);
             else
                 return null;
         }
@@ -213,20 +268,6 @@ namespace vfs.clients.web
 
             mountedVFS.CreateDirectory(Helpers.PathCombine(CurrentDir, dirName), false);
         }
-
-        /*/// <summary>
-        /// Creates a fiel with the given name and size in the current directory of the VFS.
-        /// </summary>
-        /// <param name="fileName">Name of the new file</param>
-        /// <param name="size">Size of the new file</param>
-        public void CreateFile(string fileName, ulong size)
-        {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
-
-            mountedVFS.CreateFile(Helpers.PathCombine(CurrentDir, fileName), size, false);
-        }*/
-
 
         /// <summary>
         /// Renames the file/dir with the given name in the current directory to the new name.
@@ -290,8 +331,8 @@ namespace vfs.clients.web
             int count = 0;
             foreach (string path in clipboardPaths)
             {
-                //try
-                //{
+                try
+                {
                     var name = Helpers.PathGetFileName(path);
 
                     if (cutNotCopy)
@@ -299,11 +340,11 @@ namespace vfs.clients.web
                     else
                         mountedVFS.CopyFile(path, Helpers.PathCombine(CurrentDir, name));
                     count++;
-                //}
-                //catch (Exception)
-                //{
+                }
+                catch (Exception)
+                {
                     //Log or just ignore
-                //}
+                }
             }
             return count;
         }
@@ -334,6 +375,9 @@ namespace vfs.clients.web
             return count;
         }
 
+        /// <summary>
+        /// Stores the uploaded files in the current directory.
+        /// </summary>
         public void Upload(IList<HttpPostedFile> files)
         {
             foreach(HttpPostedFile file in files)
@@ -343,6 +387,13 @@ namespace vfs.clients.web
             }
         }
 
+        /// <summary>
+        /// Sends a file from the current directory to the user,
+        /// invoking a Save dialog in the browser.
+        /// </summary>
+        /// <param name="name">The name of the file</param>
+        /// <param name="name">The size of the file</param>
+        /// <param name="name">The HTTP response object from the server</param>
         public void Download(string name, string size, HttpResponse response)
         {
             try {
@@ -363,40 +414,6 @@ namespace vfs.clients.web
             }
         }
 
-        /*/// <summary>
-        /// Makes the drag and drop operation with the given files/dirs from the current directory to the target.
-        /// If set so, the given files are removed afterwards.
-        /// </summary>
-        /// <param name="names">Files/dirs to drag/drop.</param>
-        /// <param name="removeAfterwards">If set to true, a Move operation is done, otherwise a Copy operation.</param>
-        /// <returns>The number of moved files/dirs.</returns>
-        public int DragDrop(string[] names, string dir, bool removeAfterwards)
-        {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
-
-            int count = 0;
-            foreach (string name in names)
-            {
-                try
-                {
-                    var path = Helpers.PathCombine(CurrentDir, name);
-                    var targetDir = Helpers.PathCombine(CurrentDir, dir + "/");
-                    if (removeAfterwards)
-                        mountedVFS.MoveFile(path, Helpers.PathCombine(targetDir, name));
-                    else
-                        mountedVFS.CopyFile(path, Helpers.PathCombine(targetDir, name));
-
-                    count++;
-                }
-                catch (Exception)
-                {
-                    //Log or just ignore
-                }
-            }
-            return count;
-        }*/
-
         /// <summary>
         /// Searches for the given string and returns the found files.
         /// </summary>
@@ -409,9 +426,9 @@ namespace vfs.clients.web
 
             switch (SearchLocation)
             {
-                case SearchLocation.Everywhere:
-                    currentSearchResults = getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
-                    break;
+                //case SearchLocation.Everywhere:
+                //    currentSearchResults = getDirEntryDetails(mountedVFS.Search(searchString, SearchCaseSensitive));
+                //    break;
                 case SearchLocation.SubFolder:
                     currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, true));
                     break;
@@ -487,6 +504,87 @@ namespace vfs.clients.web
             return entries;
         }
 
+
+        #endregion
+
+        #region Synchro Methods
+
+        //TODO: What if the client closes the page after getting the notificaiton, but before updating page?
+        //      Is the session reset anyway then?
+        /// <summary>
+        /// Checks if the client needs to refresh the page on a VFS event
+        /// </summary>
+        /// <param name="vfsPath">The path of the affected file</param>
+        private void checkIfUpdateNeeded(string vfsPath) {
+            if(!updateScheduled) {
+                //if vfsPath is directly in mountedVFSpath, pushUpdate()
+                string current = Helpers.TrimLastSlash(mountedVFSpath);
+                if(vfsPath.StartsWith(current)) {
+                    string subPath = vfsPath.Substring(current.Length).TrimStart(new char[] { '/' });
+                    if(subPath.IndexOf('/') < 0) {
+                        //The affected file is the current directory or lies directly inside of it
+                        pushUpdate();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tells the client that the current view should be updated.
+        /// </summary>
+        private void pushUpdate() {
+            string connectionID;
+            Updates.sessionToConnection.TryGetValue(sessionID, out connectionID);
+            if(connectionID != null) {
+                updateScheduled = true;
+                GlobalHost.ConnectionManager.GetHubContext<Updates>().Clients.Client(connectionID).update();
+            }
+            //else {
+                //SignalR could not establish connection, fail silently
+            //}
+        }
+
+        //The following three are copy-pasted from desktop VFSSession - check them
+
+        public bool LogIn(string userName, string password) {
+            try {
+                mountedVFS.LogIn(userName, password);
+            }
+            catch(vfs.exceptions.VFSSynchronizationServerException e) {
+                //TODO check the statuscode or so
+                throw e;
+            }
+            this.UserName = userName;
+            return true;
+        }
+
+        public void LogOut() {
+            mountedVFS.LogOut();
+            this.UserName = null;
+        }
+
+        public bool AddVFS() {
+            try {
+                mountedVFS.AddVFS();
+            }
+            catch(vfs.exceptions.VFSSynchronizationServerException e) {
+                throw e;
+            }
+            catch(vfs.exceptions.AlreadySynchronizedVFSException e) {
+                throw e;
+            }
+            return true;
+        }
+
+        public bool RemoveVFS() {
+            try {
+                mountedVFS.RemoveVFS();
+            }
+            catch(vfs.exceptions.VFSSynchronizationServerException e) {
+                throw e;
+            }
+            return true;
+        }
 
         #endregion
 

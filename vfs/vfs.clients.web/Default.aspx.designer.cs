@@ -121,6 +121,24 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.Button uploadFile;
         
         /// <summary>
+        /// freeSpace control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label freeSpace;
+        
+        /// <summary>
+        /// occupiedSpace control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label occupiedSpace;
+        
+        /// <summary>
         /// resultsView control.
         /// </summary>
         /// <remarks>

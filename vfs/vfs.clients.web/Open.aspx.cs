@@ -27,7 +27,7 @@ namespace vfs.clients.web {
             }
 
             try {
-                Global.vfsSession = VFSSession.OpenVFS(vfsPath.Text);
+                Global.vfsSession = VFSSession.OpenVFS(Session.SessionID, vfsPath.Text);
                 if(Global.vfsSession != null) {
                     //success
                     Response.Redirect("~/");

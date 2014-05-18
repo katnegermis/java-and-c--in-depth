@@ -1091,7 +1091,7 @@ namespace vfs.core
                 throw new vfs.exceptions.FileNotFoundException();
             }
 
-            // Export folder
+            // Do not export folder
             if(file.IsFolder) {
                 throw new IsAFolderException();
             }

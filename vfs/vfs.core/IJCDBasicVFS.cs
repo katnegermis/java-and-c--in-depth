@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace vfs.core
 {
     public delegate void MoveFileEventHandler(string oldPath, string newPath);
@@ -108,6 +110,14 @@ namespace vfs.core
         void ImportFile(string hfsPath, string vfsPath);
 
         /// <summary>
+        /// Import a file or directory from a stream to a mounted VFS.
+        /// </summary>
+        // Exceptions:
+        // - no such path on VFS.
+        // - invalid VFS path string (file name too long/invalid characters).
+        void ImportFile(Stream file, string vfsPath);
+
+        /// <summary>
         /// Export a file or directory from a mounted VFS to HFS.
         /// </summary>
         // Exceptions:
@@ -117,6 +127,15 @@ namespace vfs.core
         // - invalid HFS path string (file name too long/invalid characters).
         // - invalid VFS path string (file name too long/invalid characters).
         void ExportFile(string vfsPath, string hfsPath);
+
+        /// <summary>
+        /// Export a file from a mounted VFS to a stream.
+        /// </summary>
+        // Exceptions:
+        // - no such path on VFS.
+        // - the VFS path points to a directory
+        // - invalid VFS path string (file name too long/invalid characters).
+        void ExportFile(string vfsPath, Stream output);
 
         /// <summary>
         /// Delete a file or directory on a mounted VFS.
