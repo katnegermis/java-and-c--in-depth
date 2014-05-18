@@ -3,8 +3,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using vfs.common;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace vfs.core.tests {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class JCDFATEventTests {
         private const uint MB1 = 1000000;

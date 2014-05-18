@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace vfs.core.indexing.tests {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class IndexedFileTests {
         [TestMethod]

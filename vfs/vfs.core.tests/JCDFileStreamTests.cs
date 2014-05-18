@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,6 +14,7 @@ using vfs.exceptions;
 
 namespace vfs.core.tests {
 
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class JCDFileStreamTests {
         private ulong MB50 = 50000000;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -10,6 +11,7 @@ using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.tests {
 
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class JCDSynchronizerSerializationTests {
         [TestMethod]

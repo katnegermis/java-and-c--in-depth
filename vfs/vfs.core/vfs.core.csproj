@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="exceptions\IllegalFolderExpansion.cs" />
     <Compile Include="exceptions\EmptyExceptions.cs" />
     <Compile Include="IJCDBasicVFS.cs" />
     <Compile Include="IJCDSynchronizedVFS.cs" />

@@ -9,28 +9,10 @@ using System.IO;
 using vfs.exceptions;
 using vfs.common;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 namespace vfs.core.tests
 {
-    public class TestVariables {
-        public const string TEST_DIRECTORY = @"testDirectory\";
-        public const string TEST_FILE = @"test.vfs";
-        public const ulong SIZE_MAX = UInt64.MaxValue;
-        public const ulong SIZE_STANDARD = 50 * 1024 * 1024;
-        public const long SIZE_SMALL = 5 * 1024 * 1024;
-
-        public static string FilePath() {
-            return Path.GetFullPath(TestVariables.TEST_DIRECTORY + TestVariables.TEST_FILE);
-        }
-
-        public static string SourcePath() {
-            return Path.GetFullPath(TestVariables.TEST_DIRECTORY + @"source.txt");
-        }
-
-        public static string TargetPath() {
-            return Path.GetFullPath(TestVariables.TEST_DIRECTORY + @"target.txt");
-        }
-    }
-
+    [ExcludeFromCodeCoverage]
     [TestClass()]
     public class UnmountedJCDFATTests
     {
@@ -106,7 +88,7 @@ namespace vfs.core.tests
             stream.Close();
 
             // Test
-            var testVFS = JCDFAT.Create(testFile, TestVariables.SIZE_STANDARD);
+            var testVFS = JCDFAT.Create(testFile, InternalHelpers.MB50);
         }
 
         #endregion
@@ -214,62 +196,10 @@ namespace vfs.core.tests
 
     }
 
-
+    [ExcludeFromCodeCoverage]
     [TestClass()]
     public class MountedJCFVFSTests
     {
-        JCDFAT vfs = null;
-
-        public void MountedInitializer()
-        {
-          /*  if (File.Exists(TestVariables.FilePath()))
-                File.Delete(TestVariables.FilePath());*/
-
-            if (Directory.Exists(TestVariables.TEST_DIRECTORY))
-                Directory.Delete(TestVariables.TEST_DIRECTORY, true);
-
-            Directory.CreateDirectory(TestVariables.TEST_DIRECTORY);
-
-
-            /*if (File.Exists(TestVariables.SourcePath()))
-                File.Delete(TestVariables.SourcePath());
-
-            if (File.Exists(TestVariables.TargetPath()))
-                File.Delete(TestVariables.TargetPath());*/
-
-            vfs = JCDFAT.Create(TestVariables.FilePath(), TestVariables.SIZE_STANDARD);
-            vfs.Close();
-            vfs = JCDFAT.Open(TestVariables.FilePath());
-        }
-
-        [TestCleanup()]
-        public void MountedCleanup()
-        {
-            if (vfs != null)
-            {
-                try
-                {
-                    // testVFS.Close();
-                }
-                finally
-                {
-                    vfs = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Helper method that creates a file with the given size at the given location
-        /// </summary>
-        /// <param name="path">To create the file at</param>
-        /// <param name="size">Size of the file to create</param>
-        public void createFile(string path, long size)
-        {
-            using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                fs.SetLength(size);
-            }
-        }
 
         #region Close Tests
 
@@ -326,13 +256,6 @@ namespace vfs.core.tests
         #region OccupiedSpace Tests
 
         [TestMethod()]
-        public void OccupiedSpaceEmptyTest()
-        {
-            Assert.Inconclusive("No way to verify the result.");
-            //Assert.AreEqual(0, testVFS.OccupiedSpace());
-        }
-
-        [TestMethod()]
         public void OccupiedSpaceNormalTest()
         {
             // Set up
@@ -347,28 +270,6 @@ namespace vfs.core.tests
             ulong fileBlocks = Helpers.ruid(fileSize, blockSize);
             ulong fileRealSize = (fileBlocks + 4) * blockSize;
             Assert.AreEqual(sizeBefore + fileRealSize, vfs.OccupiedSpace());
-        }
-
-        [TestMethod()]
-        public void OccupiedSpaceFullTest()
-        {
-            Assert.Inconclusive("No way to verify the result.");
-        }
-
-        #endregion
-
-        #region FreeSpace Tests
-
-        [TestMethod()]
-        public void FreeSpaceAllTest()
-        {
-            Assert.Inconclusive("No way to verify the result.");
-        }
-
-        [TestMethod()]
-        public void FreeSpaceNoneTest()
-        {
-            Assert.Inconclusive("No way to verify the result.");
         }
 
         #endregion
@@ -947,6 +848,7 @@ namespace vfs.core.tests
 
     }
 
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class MountedTestsWithoutInitializer {
         #region Create Parents Tests
@@ -1030,6 +932,7 @@ namespace vfs.core.tests
         #endregion
     }
 
+    [ExcludeFromCodeCoverage]
     internal class InternalHelpers {
         public const uint MB1 = 1000000;
         public const uint MB5 = 5 * MB1;

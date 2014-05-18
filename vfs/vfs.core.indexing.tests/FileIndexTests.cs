@@ -7,8 +7,10 @@ using System.Text;
 using vfs.core.indexing;
 using vfs.common;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace vfs.core.indexing.tests {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class FileIndexTests {
         private delegate void CorrectFileFound(IndexedFile x, FileIndex fi);

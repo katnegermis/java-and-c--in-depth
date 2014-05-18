@@ -5,7 +5,6 @@ using vfs.core.indexing;
 using vfs.core.visitor;
 using vfs.exceptions;
 using vfs.common;
-using vfs.core.exceptions;
 
 namespace vfs.core {
     internal class JCDFolder : JCDFile {

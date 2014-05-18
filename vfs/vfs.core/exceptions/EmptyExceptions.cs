@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace vfs.exceptions {
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class FileAlreadyExistsException : Exception {
         public FileAlreadyExistsException() : base() { }
@@ -10,6 +12,7 @@ namespace vfs.exceptions {
         protected FileAlreadyExistsException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class FileNotFoundException : Exception {
         public FileNotFoundException() : base() { }
@@ -18,6 +21,7 @@ namespace vfs.exceptions {
         protected FileNotFoundException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class FileTooSmallException : Exception {
         public FileTooSmallException() : base() { }
@@ -26,6 +30,7 @@ namespace vfs.exceptions {
         protected FileTooSmallException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class BufferTooSmallException : Exception {
         public BufferTooSmallException() : base() { }
@@ -34,6 +39,7 @@ namespace vfs.exceptions {
         protected BufferTooSmallException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class ParentNotFoundException : FileNotFoundException {
         public ParentNotFoundException() : base() { }
@@ -42,6 +48,7 @@ namespace vfs.exceptions {
         protected ParentNotFoundException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class NotAFolderException : FileNotFoundException {
         public NotAFolderException() : base() { }
@@ -50,6 +57,7 @@ namespace vfs.exceptions {
         protected NotAFolderException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class IsAFolderException : FileNotFoundException {
         public IsAFolderException() : base() { }
@@ -58,6 +66,7 @@ namespace vfs.exceptions {
         protected IsAFolderException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class FileExistsException : Exception {
         public FileExistsException() : base() { }
@@ -66,6 +75,7 @@ namespace vfs.exceptions {
         protected FileExistsException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class MoveToSelfException : Exception {
         public MoveToSelfException() : base() { }
@@ -74,6 +84,7 @@ namespace vfs.exceptions {
         protected MoveToSelfException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class FileSystemNotOpenException : Exception {
         public FileSystemNotOpenException() : base() { }
@@ -82,6 +93,7 @@ namespace vfs.exceptions {
         protected FileSystemNotOpenException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class InvalidFileException : Exception {
         public InvalidFileException() : base() { }
@@ -90,6 +102,7 @@ namespace vfs.exceptions {
         protected InvalidFileException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class InvalidFileNameException : Exception {
         public InvalidFileNameException() : base() { }
@@ -98,6 +111,7 @@ namespace vfs.exceptions {
         protected InvalidFileNameException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class InvalidSizeException : Exception {
         public InvalidSizeException() : base() { }
@@ -106,6 +120,7 @@ namespace vfs.exceptions {
         protected InvalidSizeException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class NotEnoughSpaceException : Exception {
         public NotEnoughSpaceException() : base() { }
@@ -114,6 +129,7 @@ namespace vfs.exceptions {
         protected NotEnoughSpaceException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class RootDeletionException : Exception {
         public RootDeletionException() : base() { }
@@ -122,6 +138,7 @@ namespace vfs.exceptions {
         protected RootDeletionException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class NonRecursiveDeletionException : Exception {
         public NonRecursiveDeletionException() : base() { }
@@ -130,6 +147,7 @@ namespace vfs.exceptions {
         protected NonRecursiveDeletionException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class InvalidFATIndexException : Exception {
         public InvalidFATIndexException() : base() { }
@@ -138,6 +156,7 @@ namespace vfs.exceptions {
         protected InvalidFATIndexException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class ReachedEndOfFileException : Exception {
         public ReachedEndOfFileException() : base() { }
@@ -146,6 +165,7 @@ namespace vfs.exceptions {
         protected ReachedEndOfFileException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class AlreadySynchronizedVFSException : Exception {
         public AlreadySynchronizedVFSException() : base() { }
@@ -154,11 +174,21 @@ namespace vfs.exceptions {
         protected AlreadySynchronizedVFSException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 
+    [ExcludeFromCodeCoverage]
     [Serializable]
     public class VFSSynchronizationServerException : Exception {
         public VFSSynchronizationServerException() : base() { }
         public VFSSynchronizationServerException(string msg) : base(msg) { }
         public VFSSynchronizationServerException(string msg, Exception e) : base(msg, e) { }
         protected VFSSynchronizationServerException(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
+    }
+
+    [ExcludeFromCodeCoverage]
+    [Serializable]
+    public class IllegalFolderExpansion : Exception {
+        public IllegalFolderExpansion() : base() { }
+        public IllegalFolderExpansion(string msg) : base(msg) { }
+        public IllegalFolderExpansion(string msg, Exception e) : base(msg, e) { }
+        protected IllegalFolderExpansion(SerializationInfo si, StreamingContext sc) : base(si, sc) { }
     }
 }

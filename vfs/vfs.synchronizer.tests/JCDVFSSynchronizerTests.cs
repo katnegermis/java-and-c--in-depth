@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,7 @@ using vfs.common;
 using vfs.synchronizer.client;
 
 namespace vfs.core.synchronizer.tests {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class JCDVFSSynchronizerTests {
         private const uint MB1 = 1000000;
