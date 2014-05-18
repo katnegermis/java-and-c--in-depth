@@ -14,6 +14,9 @@ namespace vfs.clients.desktop
     public partial class LoginForm : Form
     {
 
+        public string userName { get; private set; }
+        public string password { get; private set; }
+
         public bool forListVFS { private get; set; }
 
         public List<Tuple<long, string>> listVFS { get; private set; }
@@ -37,8 +40,8 @@ namespace vfs.clients.desktop
 
         private void loginButton_Click(object sender, EventArgs e)
         {
-            string userName = nameTextBox.Text;
-            string password = textBox1.Text;
+            userName = nameTextBox.Text;
+            password = textBox1.Text;
 
             if (forListVFS)
             {
@@ -47,9 +50,9 @@ namespace vfs.clients.desktop
                     listVFS = JCDVFSSynchronizer.ListVFSes(userName, password);
                     this.DialogResult = DialogResult.OK;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    MessageBox.Show(this, "Retrieving the List of VFS filed!", "Retrieve List", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, "Retrieving the List of VFS files failed!", "Retrieve List", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     this.DialogResult = DialogResult.Cancel;
                 }
                 this.Close();

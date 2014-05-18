@@ -15,6 +15,9 @@ namespace vfs.clients.desktop
     public partial class VFSListForm : Form
     {
 
+        public string loggedInUsername { private get; set; }
+        public string loggedInPw { private get; set; }
+
         public List<Tuple<long, string>> vfsList { private get; set; }
 
         public VFSListForm()
@@ -91,12 +94,13 @@ namespace vfs.clients.desktop
                     if (File.Exists(file))
                         throw new Exception("File already exising!");
 
-                    //TODO var data = JCDVFSSynchronizer.RetrieveVFS(vfsId);
+                    var reply = JCDVFSSynchronizer.RetrieveVFS(loggedInUsername, loggedInPw, vfsId);
+                    //long versionId = (long)reply.Data[0];
+                    var data = (byte[])reply.Data[1];
 
-
-                    /*using (var fileStream = new FileStream(file, FileMode.CreateNew))
+                    using (var fileStream = new FileStream(file, FileMode.CreateNew))
                     using (var writer = new BinaryWriter(fileStream))
-                        writer.Write(data);*/
+                        writer.Write(data);
                 }
 
             }
