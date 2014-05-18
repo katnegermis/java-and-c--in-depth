@@ -50,10 +50,20 @@
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a runat="server" href="~/" accesskey="b" tabindex="-1"><span class="shortcut">B</span>rowse</a></li>
-                        <li><a runat="server" href="~/Create" accesskey="n" tabindex="-1">Create <span class="shortcut">n</span>ew VFS</a></li>
-                        <li><a runat="server" href="~/Open" accesskey="o" tabindex="-1"><span class="shortcut">O</span>pen VFS</a></li>
-                        <li><a runat="server" href="~/Delete" accesskey="l" tabindex="-1">De<span class="shortcut">l</span>ete VFS</a></li>
-                        <li><a runat="server" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
+
+                        <li><a runat="server" id="createLink" href="~/Create" accesskey="n" tabindex="-1">Create <span class="shortcut">n</span>ew VFS</a></li>
+                        <li><a runat="server" id="openLink" href="~/Open" accesskey="o" tabindex="-1"><span class="shortcut">O</span>pen VFS</a></li>
+
+                        <li><a runat="server" id="deleteLink" visible="false" href="~/Delete" accesskey="l" tabindex="-1">De<span class="shortcut">l</span>ete VFS</a></li>
+                        <li><a runat="server" id="closeLink" visible="false" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
+
+                        <li><a runat="server" id="signinLink" href="~/Signin" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n in to <span id="signinReason" runat="server">retrieve VFS</span></a></li>
+                        <li><a runat="server" id="signoutLink" visible="false" href="~/Signout" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n out</a></li>
+
+                        <li><a runat="server" id="retrieveLink" href="~/Retrieve" accesskey="g" tabindex="-1">Retrieve VFS</a></li>
+                        <li><a runat="server" id="addLink" visible="false" href="~/Add" accesskey="h" tabindex="-1">Add t<span class="shortcut">h</span>is VFS to your account</a></li>
+                        <li><a runat="server" id="removeLink" visible="false" href="~/Remove" accesskey="r" tabindex="-1"><span class="shortcut">R</span>emove this VFS from your account</a></li>
+
                     </ul>
                 </div>
             </div>

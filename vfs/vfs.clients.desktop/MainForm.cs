@@ -691,7 +691,7 @@ namespace vfs.clients.desktop
                     throw new Exception("No VFS mounted!");
 
                 stopUpdating();
-                //TODO session.LogOut();
+                session.LogOut();
                 session.Close();
             }
             catch (Exception ex)

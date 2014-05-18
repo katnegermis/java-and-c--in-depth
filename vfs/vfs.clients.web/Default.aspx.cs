@@ -59,6 +59,17 @@ namespace vfs.clients.web {
             SessionIDField.Value = Session.SessionID;
 
             if(!Page.IsPostBack) {
+                if(HttpContext.Current.Session["username"] != null
+                    && HttpContext.Current.Session["password"] != null) {
+                    try {
+                        Global.vfsSession.LogIn((string) HttpContext.Current.Session["username"],
+                            (string) HttpContext.Current.Session["password"]);
+                    }
+                    catch(Exception ex) {
+                        Master.errorText = "Could not connect to synchonization server";
+                    }
+                }
+
                 hideSearch();
                 showPage();
             }

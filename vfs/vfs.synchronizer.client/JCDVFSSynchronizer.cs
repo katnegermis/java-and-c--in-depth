@@ -149,6 +149,7 @@ namespace vfs.synchronizer.client
 
             // Close VFS so that we can read its data.
             vfs.Close();
+            //TODO: the whole VFS may not fit in memory
             var data = File.ReadAllBytes(hfsPath);
             var name = Path.GetFileName(hfsPath);
             vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
@@ -449,6 +450,10 @@ namespace vfs.synchronizer.client
 
         public long GetId() {
             return vfs.GetId();
+        }
+
+        public bool IsSynchronized() {
+            return vfs.GetId() != NotSynchronizedId;
         }
 
         internal static object IJCDBasicTypeCallStaticMethod(Type type, string methodName, object[] args) {
