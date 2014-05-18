@@ -191,18 +191,18 @@ namespace vfs.synchronizer.client
 
             // Subscribe to events with functions that propagate vfs events to subscribers
             // of this class.
-            vfs.FileModified += OnFileModified;
-            vfs.FileAdded += OnFileAdded;
-            vfs.FileDeleted += OnFileDeleted;
-            vfs.FileMoved += OnFileMoved;
-            vfs.FileResized += OnFileResized;
+            ((JCDFAT)vfs).FileModified += OnFileModified;
+            ((JCDFAT)vfs).FileAdded += OnFileAdded;
+            ((JCDFAT)vfs).FileDeleted += OnFileDeleted;
+            ((JCDFAT)vfs).FileMoved += OnFileMoved;
+            ((JCDFAT)vfs).FileResized += OnFileResized;
 
             // Subscribe to vfs events
-            vfs.FileModified += InformServerFileModified;
-            vfs.FileAdded += InformServerFileAdded;
-            vfs.FileDeleted += InformServerFileDeleted;
-            vfs.FileMoved += InformServerFileMoved;
-            vfs.FileResized += InformServerFileResized;
+            ((JCDFAT)vfs).FileModified += InformServerFileModified;
+            ((JCDFAT)vfs).FileAdded += InformServerFileAdded;
+            ((JCDFAT)vfs).FileDeleted += InformServerFileDeleted;
+            ((JCDFAT)vfs).FileMoved += InformServerFileMoved;
+            ((JCDFAT)vfs).FileResized += InformServerFileResized;
         }
 
         /// <summary>
