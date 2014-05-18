@@ -151,7 +151,7 @@ namespace vfs.synchronizer.server
             var id = db.AddFile(vfsId, path, size, isFolder);
             
             // Inform other clients.
-            SendGroupMessage(Context.User.Identity.Name, JCDSynchronizationEventType.Added, path, size, isFolder);
+            SendGroupMessage(Context, JCDSynchronizationEventType.Added, path, size, isFolder);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -167,8 +167,7 @@ namespace vfs.synchronizer.server
             var id = db.DeleteFile(vfsId, path);
 
             // Inform other clients.
-            var username = GetUsername(Context);
-            SendGroupMessage(username, JCDSynchronizationEventType.Deleted, path);
+            SendGroupMessage(Context, JCDSynchronizationEventType.Deleted, path);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -183,8 +182,7 @@ namespace vfs.synchronizer.server
 
             var id = db.MoveFile(vfsId, oldPath, newPath);
             // Inform other clients.
-            var username = GetUsername(Context);
-            SendGroupMessage(username, JCDSynchronizationEventType.Moved, oldPath, newPath);
+            SendGroupMessage(Context, JCDSynchronizationEventType.Moved, oldPath, newPath);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -200,8 +198,7 @@ namespace vfs.synchronizer.server
             var id = db.ModifyFile(vfsId, path, offset, data);
 
             // Inform other clients.
-            var username = GetUsername(Context);
-            SendGroupMessage(username, JCDSynchronizationEventType.Modified, path, offset, data);
+            SendGroupMessage(Context, JCDSynchronizationEventType.Modified, path, offset, data);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -217,8 +214,7 @@ namespace vfs.synchronizer.server
             var id = db.ResizeFile(vfsId, path, newSize);
 
             // Inform other clients.
-            var username = GetUsername(Context);
-            SendGroupMessage(username, JCDSynchronizationEventType.Resized, path, newSize);
+            SendGroupMessage(Context, JCDSynchronizationEventType.Resized, path, newSize);
 
             if (id != null)
                 return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
@@ -240,22 +236,24 @@ namespace vfs.synchronizer.server
             return userId;
         }
 
-        private void SendGroupMessage(string group, JCDSynchronizationEventType type, params object[] args) {
+        private void SendGroupMessage(HubCallerContext context, JCDSynchronizationEventType type, params object[] args) {
+            // Name of the group is the user name.
+            var group = GetUsername(Context);
             switch (type) {
                 case JCDSynchronizationEventType.Added:
-                    ClientFileAdded(group, args);
+                    ClientFileAdded(context, group, args);
                     break;
                 case JCDSynchronizationEventType.Deleted:
-                    ClientFileDeleted(group, args);
+                    ClientFileDeleted(context, group, args);
                     break;
                 case JCDSynchronizationEventType.Moved:
-                    ClientFileMoved(group, args);
+                    ClientFileMoved(context, group, args);
                     break;
                 case JCDSynchronizationEventType.Modified:
-                    ClientFileModified(group, args);
+                    ClientFileModified(context, group, args);
                     break;
                 case JCDSynchronizationEventType.Resized:
-                    ClientFileResized(group, args);
+                    ClientFileResized(context, group, args);
                     break;
                 default:
                     Console.WriteLine(String.Format("Execution of a change of type {0} failed", type));
@@ -263,35 +261,35 @@ namespace vfs.synchronizer.server
             }
         }
 
-        private void ClientFileAdded(string group, object[] args) {
+        private void ClientFileAdded(HubCallerContext context, string group, object[] args) {
             var path = (string)args[0];
             var size = (long)args[1];
             var isFolder = (bool)args[2];
-            Clients.Group(group, Context.ConnectionId).FileAdded(path, size, isFolder);
+            Clients.Group(group, context.ConnectionId).FileAdded(path, size, isFolder);
         }
 
-        private void ClientFileModified(string group, object[] args) {
+        private void ClientFileModified(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
             long offset = (long)args[1];
             byte[] data = (byte[])args[2];
-            Clients.Group(group, Context.ConnectionId).FileModified(path, offset, data);
+            Clients.Group(group, context.ConnectionId).FileModified(path, offset, data);
         }
 
-        private void ClientFileResized(string group, object[] args) {
+        private void ClientFileResized(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
             long newSize = (long)args[1];
-            Clients.Group(group, Context.ConnectionId).FileResized(path, newSize);
+            Clients.Group(group, context.ConnectionId).FileResized(path, newSize);
         }
 
-        private void ClientFileMoved(string group, object[] args) {
+        private void ClientFileMoved(HubCallerContext context, string group, object[] args) {
             string oldPath = (string)args[0];
             string newPath = (string)args[1];
-            Clients.Group(group, Context.ConnectionId).FileMoved(oldPath, newPath);
+            Clients.Group(group, context.ConnectionId).FileMoved(oldPath, newPath);
         }
 
-        private void ClientFileDeleted(string group, object[] args) {
+        private void ClientFileDeleted(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
-            Clients.Group(group, Context.ConnectionId).FileDeleted(path);
+            Clients.Group(group, context.ConnectionId).FileDeleted(path);
         }
     }
 }
