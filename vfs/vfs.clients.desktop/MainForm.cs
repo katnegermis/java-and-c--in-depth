@@ -691,6 +691,7 @@ namespace vfs.clients.desktop
                     throw new Exception("No VFS mounted!");
 
                 stopUpdating();
+                session.LogOut();
                 session.Close();
             }
             catch (Exception ex)
@@ -1126,6 +1127,8 @@ namespace vfs.clients.desktop
                 {
                     var listForm = new VFSListForm();
                     listForm.vfsList = list;
+                    listForm.loggedInUsername = login.userName;
+                    listForm.loggedInPw = login.password;
                     listForm.ShowDialog(this);
                 }
             }

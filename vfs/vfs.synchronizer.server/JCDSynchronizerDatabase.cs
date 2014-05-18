@@ -248,19 +248,26 @@ namespace vfs.synchronizer.server
             {
                 using (var command = new SQLiteCommand(connection))
                 {
-                    command.CommandText = "SELECT V.currentPath FROM VFS WHERE id = @id;";
+                    command.CommandText = "SELECT currentPath FROM VFS WHERE id = @id;";
                     command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
 
                     var path = command.ExecuteScalar().ToString();
 
-                    command.CommandText = "SELECT MAX(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                    command.CommandText = "SELECT COUNT(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
                     command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
 
-                    var versionId = (long)command.ExecuteScalar();
+                    long versionId = 0;
+                    if ((long)command.ExecuteScalar() > 0)
+                    {
 
+                        command.CommandText = "SELECT MAX(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                        command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                        versionId = (long)command.ExecuteScalar();
+                    }
                     var data = readFromFile(path);
 
-                    return new Tuple<long, byte[]>(123L, new byte[0]);
+                    return new Tuple<long, byte[]>(versionId, data);
                 }
             }
             catch (Exception ex)

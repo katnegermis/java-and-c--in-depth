@@ -22,7 +22,7 @@ namespace vfs.synchronizer.common {
         /// Retrieve a list of tuples of VFS ids and names.
         /// </summary>
         /// <returns>SynchronizerReply with Data set to a list of tuples of VFS ids and names.</returns>
-        JCDSynchronizerReply ListVFSes();
+        JCDSynchronizerReply ListVFSes(string username, string password);
 
         /// <summary>
         /// Add a VFS to the user account.

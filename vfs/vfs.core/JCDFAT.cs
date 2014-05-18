@@ -63,7 +63,7 @@ namespace vfs.core
         private uint dataOffsetBlocks;
         private uint freeBlocks;
         private uint firstFreeBlock;
-        private long vfsId;
+        private long vfsId = -1;
         private uint[] fat;
 
         private JCDFolder rootFolder;
