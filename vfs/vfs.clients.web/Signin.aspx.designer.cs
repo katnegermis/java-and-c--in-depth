@@ -22,13 +22,13 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.TextBox username;
         
         /// <summary>
-        /// Submit control.
+        /// signin control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button Submit;
+        protected global::System.Web.UI.WebControls.Button signin;
         
         /// <summary>
         /// password control.
@@ -38,5 +38,26 @@ namespace vfs.clients.web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox password;
+        
+        /// <summary>
+        /// create control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button create;
+        
+        /// <summary>
+        /// Master property.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated property.
+        /// </remarks>
+        public new vfs.clients.web.SiteMaster Master {
+            get {
+                return ((vfs.clients.web.SiteMaster)(base.Master));
+            }
+        }
     }
 }

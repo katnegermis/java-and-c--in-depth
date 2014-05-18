@@ -11,8 +11,46 @@ namespace vfs.clients.web {
 
         }
 
-        public void signin(object sender, EventArgs e) {
+        public void SignIn(object sender, EventArgs e) {
+            if(username.Text.Trim() == "" || password.Text == "") {
+                Master.errorText = "Please enter a username and a password";
+                return;
+            }
 
+            try {
+                Global.vfsSession.LogIn(username.Text, password.Text);
+                proceed();
+            }
+            catch(Exception ex) {
+                //TODO: it could be a connection error
+                Master.errorText = "Wrong username or password";
+            }
+        }
+
+        public void CreateAccount(object sender, EventArgs e) {
+            if(username.Text.Trim() == "" || password.Text == "") {
+                Master.errorText = "Please enter a username and a password";
+                return;
+            }
+
+            try {
+                Global.vfsSession.LogIn(username.Text, password.Text);
+                proceed();
+            }
+            catch(Exception ex) {
+                //TODO: it could be a connection error
+                Master.errorText = "Wrong username or password";
+            }
+        }
+
+
+        private void proceed() {
+            HttpContext.Current.Session["username"] = username.Text;
+            HttpContext.Current.Session["password"] = password.Text;
+
+            Master.checkSession();
+
+            Response.Redirect("~/");
         }
     }
 }

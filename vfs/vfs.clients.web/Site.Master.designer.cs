@@ -49,22 +49,58 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.HtmlControls.HtmlAnchor closeLink;
         
         /// <summary>
-        /// singinLink control.
+        /// retrieveSigninLink control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor singinLink;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor retrieveSigninLink;
         
         /// <summary>
-        /// signoutlink control.
+        /// syncSigninLink control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor signoutlink;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor syncSigninLink;
+        
+        /// <summary>
+        /// addSigninLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor addSigninLink;
+        
+        /// <summary>
+        /// signoutLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor signoutLink;
+        
+        /// <summary>
+        /// addLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor addLink;
+        
+        /// <summary>
+        /// removeLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor removeLink;
         
         /// <summary>
         /// MainContent control.

@@ -18,19 +18,24 @@ namespace vfs.clients.web {
         }
 
         public void setOpenLinks() {
-            openLink.Visible = createLink.Visible = false;
+            openLink.Visible = createLink.Visible = retrieveSigninLink.Visible = false;
             closeLink.Visible = deleteLink.Visible = true;
         }
 
         public void setClosedLinks() {
             closeLink.Visible = deleteLink.Visible = false;
-            openLink.Visible = createLink.Visible = true;
+            openLink.Visible = createLink.Visible = retrieveSigninLink.Visible = true;
         }
 
         public void checkSession() {
             if(Global.vfsSession == null) {
                 setClosedLinks();
-                Response.Redirect("~/Welcome");
+                if(HttpContext.Current.Session["username"] == null) {
+                    Response.Redirect("~/Welcome");
+                }
+                else {
+                    Response.Redirect("~/Retrieve");
+                }
             }
         }
     }
