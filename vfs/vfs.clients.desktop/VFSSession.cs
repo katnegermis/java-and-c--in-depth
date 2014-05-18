@@ -57,7 +57,7 @@ namespace vfs.clients.desktop
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the version Id of the mounted VFS.
         /// </summary>
         public long VFSVersionId
         {
@@ -135,9 +135,38 @@ namespace vfs.clients.desktop
         /// </summary>
         public bool SearchCaseSensitive = true;
 
+        /// <summary>
+        /// Whether the client has an outstanding update request.
+        /// </summary>
+        public bool UpdateScheduled { get; set; }
+
         private VFSSession(JCDVFSSynchronizer vfsSynchronizer)
         {
             this.vfsSynchronizer = vfsSynchronizer;
+
+            UpdateScheduled = false;
+
+            this.vfsSynchronizer.FileAdded += (string path, long size, bool isFolder) =>
+            {
+                checkIfUpdateNeeded(path);
+            };
+            this.vfsSynchronizer.FileDeleted += (string path) =>
+            {
+                checkIfUpdateNeeded(path);
+            };
+            this.vfsSynchronizer.FileMoved += (string oldPath, string newPath) =>
+            {
+                checkIfUpdateNeeded(oldPath);
+                checkIfUpdateNeeded(newPath);
+            };
+            this.vfsSynchronizer.FileModified += (string path, long offset, byte[] data) =>
+            {
+                checkIfUpdateNeeded(path);
+            };
+            this.vfsSynchronizer.FileResized += (string path, long newSize) =>
+            {
+                checkIfUpdateNeeded(path);
+            };
         }
 
         #region VFS Methods
@@ -185,8 +214,6 @@ namespace vfs.clients.desktop
         }
 
         #endregion
-
-
 
         #region Core Methods
 
@@ -466,7 +493,8 @@ namespace vfs.clients.desktop
         {
             try
             {
-                vfsSynchronizer.AddVFS();
+                var versionId = vfsSynchronizer.AddVFS();
+                vfsSynchronizer.SetId(versionId);
             }
             catch (vfs.exceptions.VFSSynchronizationServerException e)
             {
@@ -491,6 +519,37 @@ namespace vfs.clients.desktop
             }
             return true;
         }
+
+        /// <summary>
+        /// Checks if the client needs to refresh the page on a VFS event
+        /// </summary>
+        /// <param name="vfsPath">The path of the affected file</param>
+        private void checkIfUpdateNeeded(string vfsPath)
+        {
+            if (!UpdateScheduled)
+            {
+                //if vfsPath is directly in mountedVFSpath, pushUpdate()
+                string current = Helpers.TrimLastSlash(CurrentDir);
+                if (vfsPath.StartsWith(current))
+                {
+                    string subPath = vfsPath.Substring(current.Length).TrimStart(new char[] { '/' });
+                    if (subPath.IndexOf('/') < 0)
+                    {
+                        //The affected file is the current directory or lies directly inside of it
+                        pushUpdate();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tells the client that the current view should be updated.
+        /// </summary>
+        private void pushUpdate()
+        {
+            UpdateScheduled = true;
+        }
+
 
         #endregion
 
