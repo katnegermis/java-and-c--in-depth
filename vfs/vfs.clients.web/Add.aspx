@@ -1,0 +1,2 @@
+﻿<%@ Page Title="Add VFS to account" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Add.aspx.cs" Inherits="vfs.clients.web.Add" %>
+<%@ MasterType virtualpath="~/Site.Master" %>

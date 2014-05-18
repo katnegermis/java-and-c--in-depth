@@ -17,13 +17,20 @@ namespace vfs.clients.web {
                 return;
             }
 
-            try {
-                Global.vfsSession.LogIn(username.Text, password.Text);
-                proceed();
+            if(Global.vfsSession != null) {
+                try {
+                    Global.vfsSession.LogIn(username.Text, password.Text);
+                    proceed();
+                }
+                catch(Exception ex) {
+                    //TODO: it could be a connection error
+                    Master.errorText = "Wrong username or password";
+                }
             }
-            catch(Exception ex) {
-                //TODO: it could be a connection error
-                Master.errorText = "Wrong username or password";
+            else {
+                HttpContext.Current.Session["tmpUsername"] = username.Text;
+                HttpContext.Current.Session["tmpPassword"] = password.Text;
+                Response.Redirect("~/Retrieve");
             }
         }
 
@@ -34,12 +41,14 @@ namespace vfs.clients.web {
             }
 
             try {
-                Global.vfsSession.LogIn(username.Text, password.Text);
+                VFSSession.CreateAccount(username.Text, password.Text);
+                if(Global.vfsSession != null) {
+                    Global.vfsSession.LogIn(username.Text, password.Text);
+                }
                 proceed();
             }
             catch(Exception ex) {
-                //TODO: it could be a connection error
-                Master.errorText = "Wrong username or password";
+                Master.errorText = "Could not connect to synchonization server";
             }
         }
 

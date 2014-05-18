@@ -544,6 +544,17 @@ namespace vfs.clients.web
             //}
         }
 
+        /// <summary>
+        /// Creates an account with the synchronization server
+        /// </summary>
+        public static void CreateAccount(string userName, string password) {
+            JCDVFSSynchronizer.Register(userName, password);
+        }
+
+        public bool LoggedIn() {
+            return (UserName != null && UserName != "");
+        }
+
         //The following three are copy-pasted from desktop VFSSession - check them
 
         public bool LogIn(string userName, string password) {
@@ -561,6 +572,10 @@ namespace vfs.clients.web
         public void LogOut() {
             mountedVFS.LogOut();
             this.UserName = null;
+        }
+
+        public bool IsSynchronized() {
+            return mountedVFS.IsSynchronized();
         }
 
         public bool AddVFS() {

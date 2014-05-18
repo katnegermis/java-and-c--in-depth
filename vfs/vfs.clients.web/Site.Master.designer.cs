@@ -49,31 +49,22 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.HtmlControls.HtmlAnchor closeLink;
         
         /// <summary>
-        /// retrieveSigninLink control.
+        /// signinLink control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor retrieveSigninLink;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor signinLink;
         
         /// <summary>
-        /// syncSigninLink control.
+        /// signinReason control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor syncSigninLink;
-        
-        /// <summary>
-        /// addSigninLink control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor addSigninLink;
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl signinReason;
         
         /// <summary>
         /// signoutLink control.
@@ -83,6 +74,15 @@ namespace vfs.clients.web {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlAnchor signoutLink;
+        
+        /// <summary>
+        /// retrieveLink control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor retrieveLink;
         
         /// <summary>
         /// addLink control.
