@@ -11,6 +11,7 @@ using vfs.exceptions;
 using System.IO;
 using System.Net;
 using System.Web.Security;
+using Newtonsoft.Json.Linq;
 
 namespace vfs.synchronizer.client
 {
@@ -129,11 +130,12 @@ namespace vfs.synchronizer.client
 
         public static List<Tuple<long, string>>  ListVFSes(string username, string password) {
             var conns = ConnectToHubStatic(username, password);
-            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes");
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
-            return (List<Tuple<long, string>>)res.Data[0];
+            var lst = (JArray)res.Data[0];
+            return (List<Tuple<long, string>>)lst.ToObject(typeof(List<Tuple<long, string>>));
         }
 
         /// <summary>
