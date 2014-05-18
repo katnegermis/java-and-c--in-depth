@@ -6,25 +6,22 @@ using System.Threading.Tasks;
 
 namespace vfs.core {
     public struct JCDSynchronizerReply {
-        private string message;
-        public string Message { get { return message; } }
+        public string Message;
 
-        private JCDSynchronizerStatusCode statusCode;
-        public JCDSynchronizerStatusCode StatusCode { get { return statusCode; } }
+        public JCDSynchronizerStatusCode StatusCode;
 
-        private object[] data;
-        public object[] Data { get { return data; } }
+        public object[] Data;
 
         public JCDSynchronizerReply(string msg, JCDSynchronizerStatusCode status) {
-            this.message = msg;
-            this.statusCode = status;
-            this.data = null;
+            this.Message = msg;
+            this.StatusCode = status;
+            this.Data = null;
         }
 
         public JCDSynchronizerReply(string msg, JCDSynchronizerStatusCode status, params object[] data) {
-            this.message = msg;
-            this.statusCode = status;
-            this.data = data;
+            this.Message = msg;
+            this.StatusCode = status;
+            this.Data = data;
         }
     }
 
@@ -55,7 +52,7 @@ namespace vfs.core {
         /// <param name="vfsName">Name of the VFS.</param>
         /// <param name="data">The data of the VFS</param>
         /// <returns>Server assigned id of the VFS.</returns>
-        int AddVFS();
+        long AddVFS();
 
         /// <summary>
         /// Delete a VFS from the user account.
