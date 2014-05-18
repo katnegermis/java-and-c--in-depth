@@ -166,9 +166,13 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public JCDSynchronizerReply RetrieveVFS(int vfsId) {
-            //TODO make static
-            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "RetrieveVFS", vfsId);
+        public static JCDSynchronizerReply RetrieveVFS(string username, string password, int vfsId) {
+            var conns = ConnectToHubStatic(username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "RetrieveVFS", vfsId);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
+            return res;
         }
 
         public bool LoggedIn() {
@@ -191,18 +195,18 @@ namespace vfs.synchronizer.client
 
             // Subscribe to events with functions that propagate vfs events to subscribers
             // of this class.
-            vfs.FileModified += OnFileModified;
-            vfs.FileAdded += OnFileAdded;
-            vfs.FileDeleted += OnFileDeleted;
-            vfs.FileMoved += OnFileMoved;
-            vfs.FileResized += OnFileResized;
+            ((JCDFAT)vfs).FileModified += OnFileModified;
+            ((JCDFAT)vfs).FileAdded += OnFileAdded;
+            ((JCDFAT)vfs).FileDeleted += OnFileDeleted;
+            ((JCDFAT)vfs).FileMoved += OnFileMoved;
+            ((JCDFAT)vfs).FileResized += OnFileResized;
 
             // Subscribe to vfs events
-            vfs.FileModified += InformServerFileModified;
-            vfs.FileAdded += InformServerFileAdded;
-            vfs.FileDeleted += InformServerFileDeleted;
-            vfs.FileMoved += InformServerFileMoved;
-            vfs.FileResized += InformServerFileResized;
+            ((JCDFAT)vfs).FileModified += InformServerFileModified;
+            ((JCDFAT)vfs).FileAdded += InformServerFileAdded;
+            ((JCDFAT)vfs).FileDeleted += InformServerFileDeleted;
+            ((JCDFAT)vfs).FileMoved += InformServerFileMoved;
+            ((JCDFAT)vfs).FileResized += InformServerFileResized;
         }
 
         /// <summary>
