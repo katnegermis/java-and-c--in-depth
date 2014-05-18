@@ -29,6 +29,11 @@ namespace vfs.clients.desktop
         /// </summary>
         private bool draggedOutside = false;
 
+        /// <summary>
+        /// The timer for updates.
+        /// </summary>
+        private Timer updateTimer = new Timer();
+
         public MainForm()
         {
             InitializeComponent();
@@ -40,7 +45,10 @@ namespace vfs.clients.desktop
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (session != null)
+            {
+                stopUpdating();
                 makeVFSClose();
+            }
         }
 
         #region Button Clicks
@@ -682,6 +690,7 @@ namespace vfs.clients.desktop
                 if (session == null)
                     throw new Exception("No VFS mounted!");
 
+                stopUpdating();
                 session.Close();
             }
             catch (Exception ex)
@@ -1134,6 +1143,7 @@ namespace vfs.clients.desktop
             {
                 if (session.IsLoggedIn)
                 {
+                    stopUpdating();
                     session.LogOut();
                     syncButton.Enabled = false;
                     loginButton.Text = "Login";
@@ -1149,10 +1159,12 @@ namespace vfs.clients.desktop
                         syncButton.Enabled = true;
                         if (session.VFSVersionId > 0)
                         {
+                            startUpdating();
                             syncButton.Text = "Un-sync";
                         }
                         else
                         {
+                            stopUpdating();
                             syncButton.Text = "Synchronize";
                         }
                     }
@@ -1164,11 +1176,6 @@ namespace vfs.clients.desktop
             }
         }
 
-        private void onOfflineButton_Click(object sender, EventArgs e)
-        {
-            //TODO Turn synchronization on/off
-        }
-
         private void syncButton_Click(object sender, EventArgs e)
         {
             try
@@ -1177,6 +1184,7 @@ namespace vfs.clients.desktop
                 {
                     if (session.RemoveVFS())
                     {
+                        stopUpdating();
                         syncButton.Text = "Synchronize";
                     }
                 }
@@ -1184,6 +1192,7 @@ namespace vfs.clients.desktop
                 {
                     if (session.AddVFS())
                     {
+                        startUpdating();
                         syncButton.Text = "Un-sync";
                     }
                 }
@@ -1192,6 +1201,31 @@ namespace vfs.clients.desktop
             {
                 MessageBox.Show(ex.ToString(), ex.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void startUpdating()
+        {
+            updateTimer.Tick += new EventHandler(TimerEventProcessor);
+            updateTimer.Interval = 500;
+            updateTimer.Start();
+        }
+
+        private void stopUpdating()
+        {
+            updateTimer.Stop();
+        }
+
+        private void TimerEventProcessor(Object myObject, EventArgs myEventArgs)
+        {
+            updateTimer.Stop();
+
+            if (session.UpdateScheduled)
+            {
+                session.UpdateScheduled = false;
+                updateForm();
+            }
+
+            updateTimer.Start();
         }
 
     }
