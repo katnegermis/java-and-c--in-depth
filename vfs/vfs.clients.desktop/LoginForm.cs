@@ -50,9 +50,9 @@ namespace vfs.clients.desktop
                     listVFS = JCDVFSSynchronizer.ListVFSes(userName, password);
                     this.DialogResult = DialogResult.OK;
                 }
-                catch (Exception ex)
+                catch (vfs.exceptions.VFSSynchronizationServerException ex)
                 {
-                    MessageBox.Show(this, "Retrieving the List of VFS files failed!", "Retrieve List", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, "Retrieving the List of VFS files failed!\n" + ex.Message, "Retrieve List", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     this.DialogResult = DialogResult.Cancel;
                 }
                 this.Close();

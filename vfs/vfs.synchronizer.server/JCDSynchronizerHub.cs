@@ -268,31 +268,31 @@ namespace vfs.synchronizer.server
             var path = (string)args[0];
             var size = (long)args[1];
             var isFolder = (bool)args[2];
-            Clients.Group(group).FileAdded(path, size, isFolder);
+            Clients.Group(group, Context.ConnectionId).FileAdded(path, size, isFolder);
         }
 
-        private void ClientFileModified(string userId, object[] args) {
+        private void ClientFileModified(string group, object[] args) {
             string path = (string)args[0];
             long offset = (long)args[1];
             byte[] data = (byte[])args[2];
-            Clients.Group(userId).FileModified(path, offset, data);
+            Clients.Group(group, Context.ConnectionId).FileModified(path, offset, data);
         }
 
-        private void ClientFileResized(string userId, object[] args) {
+        private void ClientFileResized(string group, object[] args) {
             string path = (string)args[0];
             long newSize = (long)args[1];
-            Clients.Group(userId).FileResized(path, newSize);
+            Clients.Group(group, Context.ConnectionId).FileResized(path, newSize);
         }
 
-        private void ClientFileMoved(string userId, object[] args) {
+        private void ClientFileMoved(string group, object[] args) {
             string oldPath = (string)args[0];
             string newPath = (string)args[1];
-            Clients.Group(userId).FileMoved(oldPath, newPath);
+            Clients.Group(group, Context.ConnectionId).FileMoved(oldPath, newPath);
         }
 
-        private void ClientFileDeleted(string userId, object[] args) {
+        private void ClientFileDeleted(string group, object[] args) {
             string path = (string)args[0];
-            Clients.Group(userId).FileDeleted(path);
+            Clients.Group(group, Context.ConnectionId).FileDeleted(path);
         }
     }
 }
