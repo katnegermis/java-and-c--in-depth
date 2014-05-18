@@ -166,7 +166,7 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public static JCDSynchronizerReply RetrieveVFS(string username, string password, int vfsId) {
+        public static JCDSynchronizerReply RetrieveVFS(string username, string password, long vfsId) {
             var conns = ConnectToHubStatic(username, password);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "RetrieveVFS", vfsId);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
