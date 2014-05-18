@@ -11,6 +11,7 @@ using vfs.exceptions;
 using System.IO;
 using System.Net;
 using System.Web.Security;
+using Newtonsoft.Json.Linq;
 
 namespace vfs.synchronizer.client
 {
@@ -33,32 +34,38 @@ namespace vfs.synchronizer.client
         public event ResizeFileEventHandler FileResized;
 
         internal void OnFileAdded(string path, long size, bool isFolder) {
-            if (FileAdded != null) {
-                FileAdded(path, size, isFolder);
+            var handler = FileAdded;
+            if (handler != null) {
+                handler(path, size, isFolder);
             }
         }
 
         internal void OnFileDeleted(string path) {
-            if (FileDeleted != null) {
-                FileDeleted(path);
+            var handler = FileDeleted;
+            if (handler != null) {
+                handler(path);
             }
         }
 
         internal void OnFileMoved(string oldPath, string newPath) {
-            if (FileMoved != null) {
-                FileMoved(oldPath, newPath);
+            var handler = FileMoved;
+            if (handler != null) {
+                handler(oldPath, newPath);
             }
         }
 
-        internal void OnFileModified(string path, long startByte, byte[] data) {
-            if (FileModified != null) {
-                FileModified(path, startByte, data);
+
+        internal void OnFileModified(string path, long offset, byte[] data) {
+            var handler = FileModified;
+            if (handler != null) {
+                handler(path, offset, data);
             }
         }
 
         internal void OnFileResized(string path, long newSize) {
-            if (FileResized != null) {
-                FileResized(path, newSize);
+            var handler = FileResized;
+            if (handler != null) {
+                handler(path, newSize);
             }
         }
         
@@ -123,11 +130,12 @@ namespace vfs.synchronizer.client
 
         public static List<Tuple<long, string>>  ListVFSes(string username, string password) {
             var conns = ConnectToHubStatic(username, password);
-            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes");
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
-            return (List<Tuple<long, string>>)res.Data[0];
+            var lst = (JArray)res.Data[0];
+            return (List<Tuple<long, string>>)lst.ToObject(typeof(List<Tuple<long, string>>));
         }
 
         /// <summary>
@@ -167,7 +175,7 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public static JCDSynchronizerReply RetrieveVFS(string username, string password, int vfsId) {
+        public static JCDSynchronizerReply RetrieveVFS(string username, string password, long vfsId) {
             var conns = ConnectToHubStatic(username, password);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "RetrieveVFS", vfsId);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {

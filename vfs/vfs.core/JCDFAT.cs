@@ -100,38 +100,58 @@ namespace vfs.core
         public event ResizeFileEventHandler FileResized;
 
         internal void OnFileAdded(string path, long size, bool isFolder) {
-            if (FileAdded != null) {
-                FileAdded(path, size, isFolder);
+            // Don't track internal files.
+            if (FileIsInternal(path)) {
+                return;
+            }
+            var handler = FileAdded;
+            if (handler != null) {
+                handler(path, size, isFolder);
             }
         }
-        
+
         internal void OnFileDeleted(string path) {
-            if (FileDeleted != null) {
-                FileDeleted(path);
+            // Don't track internal files.
+            if (FileIsInternal(path)) {
+                return;
+            }
+            var handler = FileDeleted;
+            if (handler != null) {
+                handler(path);
             }
         }
         
         internal void OnFileMoved(string oldPath, string newPath) {
-            if (FileMoved != null) {
-                FileMoved(oldPath, newPath);
+            // Don't track internal files.
+            if (FileIsInternal(oldPath)) {
+                return;
+            }
+            var handler = FileMoved;
+            if (handler != null) {
+                handler(oldPath, newPath);
             }
         }
 
         
         internal void OnFileModified(string path, long offset, byte[] data) {
             // Don't track internal files.
-            if (path == searchFileDataPath || path == searchFileTreePath) {
+            if (FileIsInternal(path)) {
                 return;
             }
-
-            if (FileModified != null) {
-                FileModified(path, offset, data);
+            var handler = FileModified;
+            if (handler != null) {
+                handler(path, offset, data);
             }
         }
 
         internal void OnFileResized(string path, long newSize) {
-            if (FileResized != null) {
-                FileResized(path, newSize);
+            // Don't track internal files.
+            if (FileIsInternal(path)) {
+                return;
+            }
+            var handler = FileResized;
+            if (handler != null) {
+                handler(path, newSize);
             }
         }
 
@@ -1324,6 +1344,10 @@ namespace vfs.core
         public void SetId(long id) {
             this.vfsId = id;
             UpdateMetaData();
+        }
+
+        private bool FileIsInternal(string path) {
+            return path == searchFileDataPath || path == searchFileTreePath;
         }
     }
 }
