@@ -74,7 +74,7 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", path, size, isFolder);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", vfs.GetId(), path, size, isFolder);
         }
 
         internal void InformServerFileDeleted(string path) {
@@ -151,7 +151,8 @@ namespace vfs.synchronizer.client
             vfs.Close();
             var data = File.ReadAllBytes(hfsPath);
             var name = Path.GetFileName(hfsPath);
-            vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });            
+            vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+            SubscribeToEvents(vfs);
 
             var res = HubInvoke<JCDSynchronizerReply>(this.hubProxy, "AddVFS", name, data);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
@@ -201,20 +202,7 @@ namespace vfs.synchronizer.client
             this.vfsType = vfsType;
             this.hfsPath = path;
 
-            // Subscribe to events with functions that propagate vfs events to subscribers
-            // of this class.
-            ((JCDFAT)vfs).FileModified += OnFileModified;
-            ((JCDFAT)vfs).FileAdded += OnFileAdded;
-            ((JCDFAT)vfs).FileDeleted += OnFileDeleted;
-            ((JCDFAT)vfs).FileMoved += OnFileMoved;
-            ((JCDFAT)vfs).FileResized += OnFileResized;
-
-            // Subscribe to vfs events
-            ((JCDFAT)vfs).FileModified += InformServerFileModified;
-            ((JCDFAT)vfs).FileAdded += InformServerFileAdded;
-            ((JCDFAT)vfs).FileDeleted += InformServerFileDeleted;
-            ((JCDFAT)vfs).FileMoved += InformServerFileMoved;
-            ((JCDFAT)vfs).FileResized += InformServerFileResized;
+            SubscribeToEvents(vfs);
         }
 
         /// <summary>
@@ -576,6 +564,23 @@ namespace vfs.synchronizer.client
                 Console.WriteLine("Server called FileMoved");
                 vfs.MoveFile(oldPath, newPath);
             });
+        }
+
+        private void SubscribeToEvents(IJCDBasicVFS vfs) {
+            // Subscribe to events with functions that propagate vfs events to subscribers
+            // of this class.
+            ((JCDFAT)vfs).FileModified += OnFileModified;
+            ((JCDFAT)vfs).FileAdded += OnFileAdded;
+            ((JCDFAT)vfs).FileDeleted += OnFileDeleted;
+            ((JCDFAT)vfs).FileMoved += OnFileMoved;
+            ((JCDFAT)vfs).FileResized += OnFileResized;
+
+            // Subscribe to vfs events
+            ((JCDFAT)vfs).FileModified += InformServerFileModified;
+            ((JCDFAT)vfs).FileAdded += InformServerFileAdded;
+            ((JCDFAT)vfs).FileDeleted += InformServerFileDeleted;
+            ((JCDFAT)vfs).FileMoved += InformServerFileMoved;
+            ((JCDFAT)vfs).FileResized += InformServerFileResized;
         }
         
         private T HubInvoke<T>(string methodName, params object[] args) {
