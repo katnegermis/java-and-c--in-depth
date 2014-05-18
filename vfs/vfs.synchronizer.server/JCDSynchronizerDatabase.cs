@@ -182,12 +182,11 @@ namespace vfs.synchronizer.server
                 using (var command = new SQLiteCommand(connection))
                 {
                     long vfsId = Convert.ToInt64((vfsName + DateTime.Now.Ticks).GetHashCode());
-                    string hfsDir = vfsId + @"/";
-                    if (!(Directory.Exists(hfsDir))) {
-                        Directory.CreateDirectory(hfsDir);
-                    }
-                    string initPath = hfsDir + vfsName + ".init";
-                    string currentPath = hfsDir + vfsName + ".curr";
+                    string hfsDir = GetVFSStoragePath(vfsId);
+                    
+                    var storageNames = GetVFSStorageNames(vfsName);
+                    string initPath = storageNames.Item1;
+                    string currentPath = storageNames.Item2;
 
                     writeToFile(currentPath, data);
                     writeToFile(initPath, data);
@@ -512,7 +511,11 @@ namespace vfs.synchronizer.server
         {
             using (var command = new SQLiteCommand(connection))
             {
-                var dataPath = @"vfsId/" + fileId + DateTime.Now.Ticks;
+                var dir = "vfsId";
+                var dataPath = Path.Combine(dir, (fileId + DateTime.Now.Ticks).ToString());
+                if (!(Directory.Exists(dir))) {
+                    Directory.CreateDirectory(dir);
+                }
                 writeToFile(dataPath, data);
 
                 command.CommandText = "INSERT INTO Changes (event_type, dataPath, file_id) VALUES(@event_type, @dataPath, @fileId);";
@@ -676,6 +679,18 @@ namespace vfs.synchronizer.server
             using (var fileStream = new FileStream(path, FileMode.Open))
             using (var reader = new BinaryReader(fileStream))
                 return reader.ReadBytes(Convert.ToInt32(fileStream.Length));
+        }
+
+        private string GetVFSStoragePath(long vfsId) {
+            var path = vfsId.ToString();
+            if (!(Directory.Exists(path))) {
+                Directory.CreateDirectory(path);
+            }
+            return path;
+        }
+
+        private Tuple<string, string> GetVFSStorageNames(string vfsName) {
+            return Tuple.Create(vfsName + ".init", vfsName + ".curr");
         }
     }
 }
