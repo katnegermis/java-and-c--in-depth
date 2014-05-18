@@ -33,32 +33,38 @@ namespace vfs.synchronizer.client
         public event ResizeFileEventHandler FileResized;
 
         internal void OnFileAdded(string path, long size, bool isFolder) {
-            if (FileAdded != null) {
-                FileAdded(path, size, isFolder);
+            var handler = FileAdded;
+            if (handler != null) {
+                handler(path, size, isFolder);
             }
         }
 
         internal void OnFileDeleted(string path) {
-            if (FileDeleted != null) {
-                FileDeleted(path);
+            var handler = FileDeleted;
+            if (handler != null) {
+                handler(path);
             }
         }
 
         internal void OnFileMoved(string oldPath, string newPath) {
-            if (FileMoved != null) {
-                FileMoved(oldPath, newPath);
+            var handler = FileMoved;
+            if (handler != null) {
+                handler(oldPath, newPath);
             }
         }
 
-        internal void OnFileModified(string path, long startByte, byte[] data) {
-            if (FileModified != null) {
-                FileModified(path, startByte, data);
+
+        internal void OnFileModified(string path, long offset, byte[] data) {
+            var handler = FileModified;
+            if (handler != null) {
+                handler(path, offset, data);
             }
         }
 
         internal void OnFileResized(string path, long newSize) {
-            if (FileResized != null) {
-                FileResized(path, newSize);
+            var handler = FileResized;
+            if (handler != null) {
+                handler(path, newSize);
             }
         }
         
