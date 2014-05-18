@@ -166,9 +166,13 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public JCDSynchronizerReply RetrieveVFS(int vfsId) {
-            //TODO make static
-            return HubInvoke<JCDSynchronizerReply>(this.hubProxy, "RetrieveVFS", vfsId);
+        public static JCDSynchronizerReply RetrieveVFS(string username, string password, int vfsId) {
+            var conns = ConnectToHubStatic(username, password);
+            var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "RetrieveVFS", vfsId);
+            if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
+            return res;
         }
 
         public bool LoggedIn() {
