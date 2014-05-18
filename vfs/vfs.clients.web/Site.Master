@@ -58,9 +58,9 @@
                         <li><a runat="server" id="closeLink" visible="false" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
 
                         <li><a runat="server" id="signinLink" href="~/Signin" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n in to <span id="signinReason" runat="server">retrieve VFS</span></a></li>
-                        <li><a runat="server" id="signoutLink" visible="false" href="~/Signout" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n out</a></li>
 
-                        <li><a runat="server" id="retrieveLink" href="~/Retrieve" accesskey="g" tabindex="-1">Retrieve VFS</a></li>
+                        <li><a runat="server" id="signoutLink" visible="false" href="~/Signout" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n out</a></li>
+                        <li><a runat="server" id="retrieveLink" visible="false" href="~/Retrieve" accesskey="m" tabindex="-1">Retrieve a VFS fro<span class="shortcut">m</span> your account</a></li>
                         <li><a runat="server" id="addLink" visible="false" href="~/Add" accesskey="h" tabindex="-1">Add t<span class="shortcut">h</span>is VFS to your account</a></li>
                         <li><a runat="server" id="removeLink" visible="false" href="~/Remove" accesskey="r" tabindex="-1"><span class="shortcut">R</span>emove this VFS from your account</a></li>
 
