@@ -50,10 +50,12 @@
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a runat="server" href="~/" accesskey="b" tabindex="-1"><span class="shortcut">B</span>rowse</a></li>
-                        <li><a runat="server" href="~/Create" accesskey="n" tabindex="-1">Create <span class="shortcut">n</span>ew VFS</a></li>
-                        <li><a runat="server" href="~/Open" accesskey="o" tabindex="-1"><span class="shortcut">O</span>pen VFS</a></li>
-                        <li><a runat="server" href="~/Delete" accesskey="l" tabindex="-1">De<span class="shortcut">l</span>ete VFS</a></li>
-                        <li><a runat="server" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
+                        <li><a runat="server" id="createLink" href="~/Create" accesskey="n" tabindex="-1">Create <span class="shortcut">n</span>ew VFS</a></li>
+                        <li><a runat="server" id="openLink" href="~/Open" accesskey="o" tabindex="-1"><span class="shortcut">O</span>pen VFS</a></li>
+                        <li><a runat="server" id="deleteLink" visible="false" href="~/Delete" accesskey="l" tabindex="-1">De<span class="shortcut">l</span>ete VFS</a></li>
+                        <li><a runat="server" id="closeLink" visible="false" href="~/Close" accesskey="s" tabindex="-1">Clo<span class="shortcut">s</span>e VFS</a></li>
+                        <li><a runat="server" id="singinLink" href="~/Signin" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n in</a></li>
+                        <li><a runat="server" id="signoutlink" visible="false" href="~/Signout" accesskey="g" tabindex="-1">Si<span class="shortcut">g</span>n out</a></li>
                     </ul>
                 </div>
             </div>

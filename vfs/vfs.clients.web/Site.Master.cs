@@ -17,8 +17,19 @@ namespace vfs.clients.web {
             }
         }
 
+        public void setOpenLinks() {
+            openLink.Visible = createLink.Visible = false;
+            closeLink.Visible = deleteLink.Visible = true;
+        }
+
+        public void setClosedLinks() {
+            closeLink.Visible = deleteLink.Visible = false;
+            openLink.Visible = createLink.Visible = true;
+        }
+
         public void checkSession() {
             if(Global.vfsSession == null) {
+                setClosedLinks();
                 Response.Redirect("~/Welcome");
             }
         }

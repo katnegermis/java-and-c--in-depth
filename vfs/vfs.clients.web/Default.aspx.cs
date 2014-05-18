@@ -59,6 +59,8 @@ namespace vfs.clients.web {
             SessionIDField.Value = Session.SessionID;
 
             if(!Page.IsPostBack) {
+                Master.setOpenLinks();
+
                 hideSearch();
                 showPage();
             }
