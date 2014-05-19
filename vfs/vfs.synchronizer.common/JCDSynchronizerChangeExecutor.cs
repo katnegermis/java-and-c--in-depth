@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using vfs.core;
 using vfs.synchronizer.common;
 
-namespace vfs.synchronizer.server
+namespace vfs.synchronizer.common
 {
-    class JCDSynchronizerChangeExecutor
+    public class JCDSynchronizerChangeExecutor
     {
 
         public static void Execute(string vfs, List<Tuple<int, byte[]>> changeList)

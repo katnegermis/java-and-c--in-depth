@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="IJCDSynchronizerClient.cs" />
     <Compile Include="IJCDSynchronizerServer.cs" />
+    <Compile Include="JCDSynchronizerChangeExecutor.cs" />
     <Compile Include="JCDSynchronizerSerialization.cs" />
     <Compile Include="JCDSynchronizerSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
