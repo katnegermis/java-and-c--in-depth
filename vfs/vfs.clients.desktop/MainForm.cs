@@ -773,7 +773,7 @@ namespace vfs.clients.desktop
 
                 using (var form = new InputNameForm())
                 {
-                    form.SetTitleAndDescription("Create Directory", "Enter the name of the new directory.");
+                    form.SetTitleAndDescription("Create Directory", "Enter the name.");
 
                     var result = form.ShowDialog();
                     if (result == DialogResult.OK)
@@ -841,7 +841,7 @@ namespace vfs.clients.desktop
 
                 using (var form = new InputNameForm())
                 {
-                    form.SetTitleAndDescription("Rename", "Enter the name of the new directory.");
+                    form.SetTitleAndDescription("Rename", "Enter the name.");
                     var result = form.ShowDialog();
                     if (result == DialogResult.OK)
                     {
