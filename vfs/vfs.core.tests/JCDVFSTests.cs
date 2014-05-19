@@ -887,7 +887,7 @@ namespace vfs.core.tests
             var vfs = InternalHelpers.CreateJCDFAT(testName);
             
             // Test
-            Assert.AreEqual(0, vfs.GetId());
+            Assert.AreEqual(-1, vfs.GetId());
         }
 
         [TestMethod]
