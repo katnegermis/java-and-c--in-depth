@@ -8,13 +8,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using vfs.clients.desktop.exceptions;
 
 namespace vfs.clients.desktop
 {
     public partial class CreateForm : Form
     {
-        public string file;
-        public ulong size;
+        private string file;
+        private ulong size;
+
+        public Tuple<string, ulong> GetFileDetails
+        {
+            get
+            {
+                return new Tuple<string, ulong>(file, size);
+            }
+        }
 
         public CreateForm()
         {
@@ -95,7 +104,7 @@ namespace vfs.clients.desktop
                 size = Convert.ToUInt64(sizeTextBox.Text);
                 var info = new FileInfo(file);
                 if (!info.Directory.Exists)
-                    throw new Exception("Invalid Path");
+                    throw new InvalidPathException("Invalid Path");
             }
             catch (Exception ex)
             {

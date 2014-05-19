@@ -56,6 +56,7 @@
     <Compile Include="CreateForm.Designer.cs">
       <DependentUpon>CreateForm.cs</DependentUpon>
     </Compile>
+	<Compile Include="exceptions\DesktopExceptions.cs" />
     <Compile Include="ListViewColumnSorter.cs" />
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>

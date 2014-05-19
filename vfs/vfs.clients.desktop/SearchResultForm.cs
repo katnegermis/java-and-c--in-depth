@@ -13,20 +13,28 @@ namespace vfs.clients.desktop
     public partial class SearchResultForm : Form
     {
 
-        public DirectoryEntry[] SearchResults { private get; set; }
-        public string SearchString { private get; set; }
+        private DirectoryEntry[] results = new DirectoryEntry[0];
 
-        public DirectoryEntry SelectedEntry { get; private set; }
+        private DirectoryEntry selectedEntry;
 
         public SearchResultForm()
         {
             InitializeComponent();
         }
 
+        public void SetSearchDetailsBeforeShow(DirectoryEntry[] searchResults, string searchText)
+        {
+            this.results = searchResults;
+            searchStringLabel.Text = String.Format("Search results for: \"{0}\"", searchText);
+        }
+
+        public DirectoryEntry getSelectedEntry()
+        {
+            return selectedEntry;
+        }
 
         private void SearchResultForm_Shown(object sender, EventArgs e)
         {
-            searchStringLabel.Text = String.Format("Search results for: \"{0}\"", SearchString);
             populateListView();
         }
 
@@ -36,7 +44,7 @@ namespace vfs.clients.desktop
             ListViewItem item = null;
             ListViewItem.ListViewSubItem[] subItems;
 
-            foreach (var dirEntry in SearchResults)
+            foreach (var dirEntry in results)
             {
                 //item = new ListViewItem(path, 1);
                 //searchListView.Items.Add(item);
@@ -99,7 +107,7 @@ namespace vfs.clients.desktop
                 close();
             else
             {
-                SelectedEntry = (DirectoryEntry)searchListView.SelectedItems[0].Tag;
+                selectedEntry = (DirectoryEntry)searchListView.SelectedItems[0].Tag;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }

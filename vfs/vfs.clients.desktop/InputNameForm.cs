@@ -5,19 +5,28 @@ namespace vfs.clients.desktop
 {
     public partial class InputNameForm : Form
     {
-        public string Title { private get; set; }
-        public string Description { private get; set; }
 
-        public string Result { get; private set; }
+        private string result;
+        public string GetResult
+        {
+            get
+            {
+                return result;
+            }
+        }
 
         public InputNameForm()
         {
             InitializeComponent();
-            if (Title != null)
-                this.Text = Title;
+        }
 
-            if (Description != null)
-                this.textLabel.Text = Description;
+        public void SetTitleAndDescription(string title, string description)
+        {
+            if (title != null)
+                this.Text = title;
+
+            if (description != null)
+                this.textLabel.Text = description;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -54,7 +63,7 @@ namespace vfs.clients.desktop
 
         private void ok()
         {
-            this.Result = inputTextBox.Text;
+            this.result = inputTextBox.Text;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }

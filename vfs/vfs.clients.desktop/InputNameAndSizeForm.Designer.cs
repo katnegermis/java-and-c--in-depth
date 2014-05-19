@@ -51,7 +51,7 @@
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(174, 123);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(204, 123);
             this.flowLayoutPanel1.TabIndex = 0;
             this.flowLayoutPanel1.WrapContents = false;
             // 
@@ -69,7 +69,7 @@
             // 
             this.nameTextBox.Location = new System.Drawing.Point(3, 21);
             this.nameTextBox.Name = "nameTextBox";
-            this.nameTextBox.Size = new System.Drawing.Size(166, 20);
+            this.nameTextBox.Size = new System.Drawing.Size(196, 20);
             this.nameTextBox.TabIndex = 0;
             this.nameTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.nameTextBox_KeyDown);
             // 
@@ -87,7 +87,7 @@
             // 
             this.sizeTextBox.Location = new System.Drawing.Point(3, 65);
             this.sizeTextBox.Name = "sizeTextBox";
-            this.sizeTextBox.Size = new System.Drawing.Size(166, 20);
+            this.sizeTextBox.Size = new System.Drawing.Size(196, 20);
             this.sizeTextBox.TabIndex = 1;
             this.sizeTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.sizeTextBox_KeyDown);
             // 
@@ -98,12 +98,12 @@
             this.panel1.Controls.Add(this.okButton);
             this.panel1.Location = new System.Drawing.Point(3, 91);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(166, 29);
+            this.panel1.Size = new System.Drawing.Size(179, 29);
             this.panel1.TabIndex = 2;
             // 
             // cancelButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(88, 3);
+            this.cancelButton.Location = new System.Drawing.Point(101, 3);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 3;
@@ -114,7 +114,7 @@
             // 
             // okButton
             // 
-            this.okButton.Location = new System.Drawing.Point(6, 3);
+            this.okButton.Location = new System.Drawing.Point(20, 3);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 2;
@@ -127,7 +127,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(174, 123);
+            this.ClientSize = new System.Drawing.Size(204, 123);
             this.Controls.Add(this.flowLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;

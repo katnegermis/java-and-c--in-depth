@@ -8,6 +8,12 @@ namespace console.client
 {
     class Parser
     {
+
+        private Parser()
+        {
+
+        }
+
         public static ICommand Parse(string commandString) { 
          // Parse your string and create Command object
          var commandParts = commandString.Split(' ').ToList();
