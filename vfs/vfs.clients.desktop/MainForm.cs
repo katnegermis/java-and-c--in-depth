@@ -440,7 +440,9 @@ namespace vfs.clients.desktop
         {
             closeButton.Enabled = true;
             loginButton.Enabled = true;
+            loginButton.Text = "Login";
             searchTextBox.Enabled = true;
+            searchTextBox.Text = "";
             searchOptionButton.Enabled = true;
             vfsLabel.Enabled = true;
 
@@ -465,9 +467,12 @@ namespace vfs.clients.desktop
 
             closeButton.Enabled = false;
             loginButton.Enabled = false;
+            loginButton.Text = "Login";
             syncButton.Enabled = false;
+            syncButton.Text = "Synchronize";
 
             searchTextBox.Enabled = false;
+            searchTextBox.Text = "";
             searchOptionButton.Enabled = false;
             directoryListView.Enabled = false;
             pathTextBox.Enabled = false;
