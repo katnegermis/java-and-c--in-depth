@@ -17,6 +17,10 @@ namespace vfs.clients.web {
                     Master.errorText = ex.ToString();
                 }
             }
+            else {
+                Master.checkSession();
+                Response.Redirect("~/");
+            }
         }
     }
 }
