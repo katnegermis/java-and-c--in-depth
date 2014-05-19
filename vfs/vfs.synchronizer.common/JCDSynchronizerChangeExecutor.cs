@@ -82,9 +82,10 @@ namespace vfs.synchronizer.common
         {
             using (var vfs = JCDFAT.Open(hfsPath))
             {
-                FileAttributes attr = File.GetAttributes(hfsPath);
+                //FileAttributes attr = File.GetAttributes(hfsPath);
+                var attr = vfs.GetFileDetails(vfsPath);
 
-                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                if (attr.IsFolder)
                     vfs.DeleteFile(vfsPath, true);
                 else
                     vfs.DeleteFile(vfsPath, false);

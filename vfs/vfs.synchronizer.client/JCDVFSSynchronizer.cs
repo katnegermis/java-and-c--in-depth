@@ -199,7 +199,7 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileDeleted(string path) {
-            if(!IsSynchronized()) {
+            if(!IsSynchronized() || !PropagateToServer) {
                 return;
             }
 
@@ -215,7 +215,7 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileMoved(string oldPath, string newPath) {
-            if(!IsSynchronized()) {
+            if(!IsSynchronized() || !PropagateToServer) {
                 return;
             }
 
@@ -231,7 +231,7 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileModified(string path, long offset, byte[] data) {
-            if(!IsSynchronized()) {
+            if(!IsSynchronized() || !PropagateToServer) {
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileResized(string path, long newSize) {
-            if(!IsSynchronized()) {
+            if(!IsSynchronized() || !PropagateToServer) {
                 return;
             }
 
