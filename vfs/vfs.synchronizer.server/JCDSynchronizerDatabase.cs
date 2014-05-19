@@ -311,9 +311,9 @@ namespace vfs.synchronizer.server
                         if (vfs == null)
                             throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Added, changeData);
+                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Added, changeData);
 
-                        return Int64.Parse(versionId);
+                        return versionId;
                     }
                 }
             }
@@ -349,9 +349,9 @@ namespace vfs.synchronizer.server
                         if (vfs == null)
                             throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
+                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
 
-                        return Int64.Parse(versionId);
+                        return versionId;
                     }
                 }
             }
@@ -388,9 +388,9 @@ namespace vfs.synchronizer.server
                         if (vfs == null)
                             throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Moved, changeData);
+                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Moved, changeData);
 
-                        return Int64.Parse(versionId);
+                        return versionId;
                     }
                 }
             }
@@ -428,9 +428,9 @@ namespace vfs.synchronizer.server
                         if (vfs == null)
                             throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Modified, changeData);
+                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Modified, changeData);
 
-                        return Int64.Parse(versionId);
+                        return versionId;
                     }
                 }
             }
@@ -467,9 +467,9 @@ namespace vfs.synchronizer.server
                         if (vfs == null)
                             throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Resized, changeData);
+                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Resized, changeData);
 
-                        return Int64.Parse(versionId);
+                        return versionId;
                     }
                 }
             }
@@ -514,7 +514,7 @@ namespace vfs.synchronizer.server
         /// <param name="fileId">The id of the file that has been changed.</param>
         /// <param name="data">The change data.</param>
         /// <returns>The newly created version id if successfully created, null otherwise.</returns>
-        private string addChange(int eventType, long fileId, byte[] data)
+        private long addChange(int eventType, long fileId, byte[] data)
         {
             using (var command = new SQLiteCommand(connection))
             {
@@ -535,7 +535,7 @@ namespace vfs.synchronizer.server
                 command.CommandText = "SELECT last_insert_rowid();";
                 long versionId = (long)command.ExecuteScalar();
 
-                return versionId.ToString();
+                return versionId;
             }
         }
 
