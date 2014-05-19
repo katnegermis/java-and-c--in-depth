@@ -4,6 +4,7 @@ using System.IO;
 using vfs.core;
 using vfs.synchronizer.client;
 using vfs.common;
+using vfs.clients.desktop.exceptions;
 
 namespace vfs.clients.desktop
 {
@@ -406,7 +407,7 @@ namespace vfs.clients.desktop
                 case SearchLocation.Folder:
                     return getDirEntryDetails(vfsSynchronizer.Search(CurrentDir, searchText, SearchCaseSensitive, false));
                 default:
-                    throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
+                    throw new SessionException("Invalid \"SearchLocation\" enum value in your Session.");
             }
         }
 

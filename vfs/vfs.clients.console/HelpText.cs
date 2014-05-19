@@ -9,6 +9,11 @@ namespace console.client
     class HelpText
     {
 
+        private HelpText()
+        {
+
+        }
+
         public static void Show()
         {
             Console.WriteLine("");

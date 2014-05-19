@@ -12,24 +12,24 @@ namespace vfs.clients.desktop
 {
     public partial class InputNameAndSizeForm : Form
     {
-        public string Title { private get; set; }
-        public string TextName { private get; set; }
-        public string TextSize { private get; set; }
-
         public string NameResult { get; private set; }
         public ulong SizeResult { get; private set; }
 
         public InputNameAndSizeForm()
         {
             InitializeComponent();
-            if (Title != null)
-                this.Text = Title;
+        }
 
-            if (TextName != null)
-                this.nameLabel.Text = TextName;
+        public void SetSpecialText(string title, string nameText, string sizeText)
+        {
+            if (title != null)
+                this.Text = title;
 
-            if (TextSize != null)
-                this.sizeLabel.Text = TextSize;
+            if (nameText != null)
+                this.nameLabel.Text = nameText;
+
+            if (sizeText != null)
+                this.sizeLabel.Text = sizeText;
         }
 
         private void okButton_Click(object sender, EventArgs e)

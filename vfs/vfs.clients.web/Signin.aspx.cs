@@ -49,16 +49,16 @@ namespace vfs.clients.web {
                 return;
             }
 
-            try {
+            //try {
                 VFSSession.CreateAccount(username.Text, password.Text);
                 if(Global.vfsSession != null) {
                     Global.vfsSession.LogIn(username.Text, password.Text);
                 }
                 proceed();
-            }
-            catch(Exception ex) {
-                Master.errorText = "Could not connect to synchonization server";
-            }
+            //}
+            //catch(Exception ex) {
+            //    Master.errorText = "Could not connect to synchonization server";
+            //}
         }
 
 
