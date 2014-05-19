@@ -141,11 +141,23 @@ namespace vfs.synchronizer.client
                 throw new VFSSynchronizationServerException(res.Message);
             }
 
-            var jarr = (JArray) res.Data[0];
+            var jarr = (JObject) res.Data[0];
+            // No changes since last log in.
+            if (jarr == null) {
+                return;
+            }
             var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
             if(changes != null && changes.Item2.Count > 0) {
                 vfs.Close();
-                JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                try {
+                    JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                }
+                catch (FileAlreadyExistsException e) {
+                    throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                }
+                catch (vfs.exceptions.FileNotFoundException e) {
+                    throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                }
                 vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
                 SubscribeToEvents(vfs);
                 vfs.SetCurrentVersionId(changes.Item1);
