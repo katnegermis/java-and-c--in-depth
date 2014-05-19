@@ -518,7 +518,7 @@ namespace vfs.clients.web
         private void checkIfUpdateNeeded(string vfsPath) {
             if(!updateScheduled) {
                 //if vfsPath is directly in mountedVFSpath, pushUpdate()
-                string current = Helpers.TrimLastSlash(mountedVFSpath);
+                string current = Helpers.TrimLastSlash(CurrentDir);
                 if(vfsPath.StartsWith(current)) {
                     string subPath = vfsPath.Substring(current.Length).TrimStart(new char[] { '/' });
                     if(subPath.IndexOf('/') < 0) {
