@@ -141,7 +141,10 @@ namespace vfs.synchronizer.client
                 throw new VFSSynchronizationServerException(res.Message);
             }
 
-            var jarr = (JArray) res.Data[0];
+            var jarr = (JObject) res.Data[0];
+            if(jarr == null) {
+                return;
+            }
             var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
             if(changes != null && changes.Item2.Count > 0) {
                 vfs.Close();
