@@ -180,6 +180,10 @@ namespace vfs.core.tests {
             stream.Read(data, length - 1, 1);
             // Assumes that initial file is zero.
             Assert.AreEqual(data[0], (byte)'\0');
+
+            var newLength = 1L;
+            stream.SetLength(newLength);
+            Assert.AreEqual(newLength, stream.Length);
             CleanUp(stream, testName);
         }
 
