@@ -296,6 +296,7 @@ namespace vfs.synchronizer.client
         // - No VFS mounted
         public void Close() {
             lock (this.vfs) {
+                LogOut();
                 vfs.Close();
             }
         }
