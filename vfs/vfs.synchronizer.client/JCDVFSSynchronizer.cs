@@ -141,8 +141,9 @@ namespace vfs.synchronizer.client
                 throw new VFSSynchronizationServerException(res.Message);
             }
 
-            var changes = (Tuple<long, List<Tuple<int, byte[]>>>) res.Data[0];
-            if(changes.Item2.Count > 0) {
+            var jarr = (JArray) res.Data[0];
+            var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
+            if(changes != null && changes.Item2.Count > 0) {
                 vfs.Close();
                 JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
                 vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
