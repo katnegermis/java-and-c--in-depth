@@ -33,10 +33,10 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.serverVFSListView = new System.Windows.Forms.ListView();
+            this.NameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.okButton = new System.Windows.Forms.Button();
-            this.NameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
@@ -77,9 +77,14 @@
             this.serverVFSListView.SmallImageList = this.imageList;
             this.serverVFSListView.TabIndex = 1;
             this.serverVFSListView.UseCompatibleStateImageBehavior = false;
-            this.serverVFSListView.View = System.Windows.Forms.View.SmallIcon;
+            this.serverVFSListView.View = System.Windows.Forms.View.Details;
             this.serverVFSListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.serverVFSListView_KeyDown);
             this.serverVFSListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.serverVFSListView_MouseDoubleClick);
+            // 
+            // NameHeader
+            // 
+            this.NameHeader.Text = "Name";
+            this.NameHeader.Width = 132;
             // 
             // imageList
             // 
@@ -107,11 +112,6 @@
             this.okButton.Text = "OK";
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
-            // 
-            // NameHeader
-            // 
-            this.NameHeader.Text = "Name";
-            this.NameHeader.Width = 132;
             // 
             // VFSListForm
             // 
