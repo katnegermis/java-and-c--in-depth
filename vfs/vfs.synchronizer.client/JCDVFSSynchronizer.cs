@@ -166,7 +166,7 @@ namespace vfs.synchronizer.client
                 throw new VFSSynchronizationServerException(res.Message);
             }
             var lst = (JArray)res.Data[0];
-            return (List<Tuple<long, string>>)lst.ToObject(typeof(List<Tuple<long, string>>));
+            return lst.ToObject<List<Tuple<long, string>>>();
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace vfs.synchronizer.client
                 throw new VFSSynchronizationServerException(res.Message);
             }
             var data = (JObject)res.Data[0];
-            return (Tuple<long, byte[]>)data.ToObject(typeof(Tuple<long, byte[]>));
+            return data.ToObject<Tuple<long, byte[]>>();
         }
 
         public bool LoggedIn() {

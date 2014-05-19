@@ -103,9 +103,9 @@ namespace vfs.clients.desktop
                         makeLogin(userName, password);
                 }
             }
-            catch
+            catch (vfs.exceptions.VFSSynchronizationServerException e)
             {
-                MessageBox.Show(this, "Could not login successfully.", "Login", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(this, "Could not login successfully.\n" + e.Message, "Login", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             return false;
         }

@@ -134,13 +134,16 @@ namespace vfs.synchronizer.server
         public JCDSynchronizerReply RetrieveChanges(long vfsId, long lastVersionId)
         {
             Console.WriteLine("Client called RetrieveVFS");
+            Tuple<long, List<Tuple<int, byte[]>>> changes = null;
 
-            var changes = db.RetrieveChanges(vfsId, lastVersionId);
+            try {
+                changes = db.RetrieveChanges(vfsId, lastVersionId);
+            }
+            catch (Exception e) {
+                return new JCDSynchronizerReply(e.Message, JCDSynchronizerStatusCode.FAILED);
+            }
 
-            if (changes != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, changes);
-            else
-                return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, changes);
         }
 
         [Authorize]

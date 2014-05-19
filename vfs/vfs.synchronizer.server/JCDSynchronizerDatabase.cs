@@ -157,7 +157,7 @@ namespace vfs.synchronizer.server
                         {
                             long id = Convert.ToInt64(reader["id"]);
                             string path = Convert.ToString(reader["initPath"]);
-                            string name = Path.GetFileName(path.Remove(path.Length - 5));
+                            string name = Path.GetFileName(path.Remove(path.Length - id.ToString().Length + 5));
                             list.Add(new Tuple<long, string>(id, name));
                         }
                     }
@@ -189,7 +189,7 @@ namespace vfs.synchronizer.server
                     long vfsId = Convert.ToInt64((vfsName + DateTime.Now.Ticks).GetHashCode());
                     string hfsDir = GetVFSStoragePath(vfsId);
                     
-                    var storageNames = GetVFSStorageNames(vfsName);
+                    var storageNames = GetVFSStorageNames(vfsId, vfsName);
                     string initPath = storageNames.Item1;
                     string currentPath = storageNames.Item2;
 
@@ -696,8 +696,8 @@ namespace vfs.synchronizer.server
             return path;
         }
 
-        private Tuple<string, string> GetVFSStorageNames(string vfsName) {
-            var vfsPath = Path.Combine(vfsStorageDir, vfsName);
+        private Tuple<string, string> GetVFSStorageNames(long vfsId, string vfsName) {
+            var vfsPath = Path.Combine(vfsStorageDir, vfsName + vfsId.ToString());
             return Tuple.Create(vfsPath + ".init", vfsPath + ".curr");
         }
 
