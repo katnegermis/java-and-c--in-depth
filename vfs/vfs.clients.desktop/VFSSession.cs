@@ -532,7 +532,7 @@ namespace vfs.clients.desktop
                 string current = Helpers.TrimLastSlash(CurrentDir);
                 if (vfsPath.StartsWith(current))
                 {
-                    string subPath = vfsPath.Substring(current.Length).TrimStart(new char[] { '/' });
+                    string subPath = vfsPath.Substring(current.Length).Trim(new char[] { '/' });
                     if (subPath.IndexOf('/') < 0)
                     {
                         //The affected file is the current directory or lies directly inside of it
