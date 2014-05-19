@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using vfs.core;
 using vfs.synchronizer.common;
 
 namespace vfs.synchronizer.server
@@ -13,11 +14,15 @@ namespace vfs.synchronizer.server
     {
 
         private const string dbName = "jcdSynchronizer.db";
+        private const string vfsStorageDir = "vfsStorage";
 
         private SQLiteConnection connection;
 
         public JCDSynchronizerDatabase()
         {
+            if (!(Directory.Exists(vfsStorageDir))) {
+                Directory.CreateDirectory(vfsStorageDir);
+            }
             openDbConnection();
         }
 
@@ -190,6 +195,8 @@ namespace vfs.synchronizer.server
 
                     writeToFile(currentPath, data);
                     writeToFile(initPath, data);
+
+                    VFSesSetId(vfsId, currentPath, initPath);
 
                     command.CommandText = "INSERT INTO VFS (id, user_id, initPath, currentPath) VALUES(@id, @userId, @initPath, @currentPath);";
                     command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
@@ -662,8 +669,8 @@ namespace vfs.synchronizer.server
                 throw new Exception(String.Format("File '{0}' already exists!", path));
 
             using (var fileStream = new FileStream(path, FileMode.CreateNew))
-            using (var writer = new BinaryWriter(fileStream))
-                writer.Write(data);
+                using (var writer = new BinaryWriter(fileStream))
+                    writer.Write(data);
         }
 
         /// <summary>
@@ -682,7 +689,7 @@ namespace vfs.synchronizer.server
         }
 
         private string GetVFSStoragePath(long vfsId) {
-            var path = vfsId.ToString();
+            var path = Path.Combine(vfsStorageDir, vfsId.ToString());
             if (!(Directory.Exists(path))) {
                 Directory.CreateDirectory(path);
             }
@@ -691,6 +698,14 @@ namespace vfs.synchronizer.server
 
         private Tuple<string, string> GetVFSStorageNames(string vfsName) {
             return Tuple.Create(vfsName + ".init", vfsName + ".curr");
+        }
+
+        private void VFSesSetId(long vfsId, params string[] pathToVFSes) {
+            foreach (string pathToVFS in pathToVFSes) {
+                using (var vfs = JCDFAT.Open(pathToVFS)) {
+                    vfs.SetId(vfsId);
+                }
+            }
         }
     }
 }

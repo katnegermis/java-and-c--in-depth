@@ -96,8 +96,8 @@ namespace vfs.clients.desktop
                         throw new Exception("File already exising!");
 
                     var reply = JCDVFSSynchronizer.RetrieveVFS(loggedInUsername, loggedInPw, vfsId);
-                    //long versionId = (long)reply.Data[0];
-                    var data = (byte[])reply.Data[1];
+                    long versionId = reply.Item1;
+                    byte[] data = reply.Item2;
 
                     using (var fileStream = new FileStream(file, FileMode.CreateNew))
                     using (var writer = new BinaryWriter(fileStream))
