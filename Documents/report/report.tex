@@ -197,11 +197,6 @@ In the following we assume that there is always enough free space, and that the 
         \item{Rewrite the name in the file's directory entry.}
     \end{itemize}
 
-\subsection{Unit Tests}
-After having defined the API and prior to implementing its functionalities we have created a set of unit tests. For each method in the interface we have identified the "normal", and also the possible "wrong" use cases and the expected reaction of the system to them. Each such use case resulted in an own test, which can be run independently of the others. The test framework that we have used is MSTest.\newline
-Since we are running the tests on the same files that are created and then deleted for each test run, our tests cannot be run or analysed for code coverage in parallel.
-
-
 
 % PART II: VFS Browser
 % --------------------------------------
@@ -292,31 +287,39 @@ Even though the third obstacle wasn't the most difficult one to overcome, it pro
 % PART III: Synchronization Server
 % --------------------------------------
 
-%\section{Synchronization Server}
-%
-%% TODO: Remove this line
-%\textbf{[This section has to be completed by May 13th.]}
-%
-%%TODO: Remove this text and replace it with actual content
-%\emph{Give a short (1-2 paragraphs) description of what Synchronization Server is.}
-%
-%
-%\subsection{Requirements}
-%
-%% TODO: Remove this text and replace it with actual content
-%\emph{Describe which requirements (and possibly bonus requirements) you have implemented in this part. Give a quick description (1-2 sentences) of each requirement. List the software elements (classes and or functions) that are mainly involved in implementing each requirement.}
-%
-%
-%\subsection{Design}
-%
-%% TODO: Remove this text and replace it with actual content
-%\emph{Give an overview of the design of this part and describe in general terms how the implementation works. You can mention design patterns used, class diagrams, definition of custom file formats, network protocols, or anything else that helps understand the implementation.}
-%
-%
-%\subsection{Integration}
-%
-%% TODO: Remove this text and replace it with actual content
-%\emph{If you had to change the design or API of the previous part, describe the changes and the reasons for each change here.}
+\section{Synchronization Server}
+In the last step of this project we are expanding the system from the previous steps so that users can easily distribute VFS files and work with a single disk on multiple machines. To do that a Synchronization Server has to be created and the existing clients have to be modified and extended accordingly.\newline
+The server is supposed to keep track of users and their VFS files, as well as of changes to synchronized files. These changes are sent to clients that have the same file open instantly and are additionally stored for future retrieval.
+
+
+\subsection{Requirements}
+In this part we indicate and describe what requirements we have implemented. We also list the main software elements involved in the respective implementation.
+
+\subsubsection{Browser}
+\begin{enumerate}
+	\item Both browsers allow the user to create new accounts or to log in to an existing account. The methods that are used for this are \texttt{LogIn(string username, string password)} and \texttt{Register(string username, string password)} in class \texttt{JCDVFSSynchronizer}.
+	\item The browsers have an offline mode when a synchronized VFS file is opened but the user is not logged in. Logging in again will send the changes mode while offline, as well as retrieve missing changes from the server.	This happens in the \texttt{LogIn(string username, string password)} of class \texttt{JCDVFSSynchronizer}.
+	\item Unsynched (open) VFS files can be added to logged in user accounts and also removed from them. This happens through the methods \texttt{AddVFS()} and \texttt{RemoveVFS()} of class \texttt{JCDVFSSynchronizer}.
+	\end{enumerate}
+
+\subsubsection{Server}
+\begin{enumerate}
+	\item The server maintains a table with the registered unique user names and their according password. The methods to do so are \texttt{Register(string name, string password)} and \texttt{Login(string name, string password)} of ther server's database class \texttt{JCDSynchronizerDatabase}.
+	\item Changes coming from the clients to the server are executed locally in the respective method of \texttt{JCDSynchronizerDatabase} and then stored in the database in method \texttt{addChange(int eventType, long fileId, byte[] data)} of the same class. If there is another browser that has the changed VFS open, the change is sent to this client through methods \texttt{SendGroupMessage(HubCallerContext context,...)} of the hub class \texttt{JCDSynchronizerHub}.
+	\end{enumerate}
+	
+	\subsubsection{Bonus Points}
+	\begin{enumerate}
+	\item A set of unit tests for the synchronization has been created. They can be found in classes \texttt{JCDVFSSynchronizerTests} and \newline
+	\texttt{JCDSynchronizerSerializationTests} under \texttt{vfs.synchronizer.tests}.
+	\item Concurrent changes coming from different client on one account and also possibly on the same VFS file are supported by the server. Additionally, such changes on the same VFS are propagated to these other clients automatically and instantly. The browsers are then checking whether the change affects the displayed content and, if this is the case, the forms are updated. 
+	\item The synchronization of files happens on a minimal delta changes level, which means that only the blocks affected by a change are sent to the server and back.
+	\item We are storing the original file and incremental changes to it in the database, which together gives a full history for files and would allow to restore to any previous version. We, however, do not have been able to create an interface for this yet. 
+	\end{enumerate}
+
+\subsection{Design}
+
+\subsection{Integration}
 
 
 
