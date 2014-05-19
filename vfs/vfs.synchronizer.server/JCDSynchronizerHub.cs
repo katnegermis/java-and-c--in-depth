@@ -75,7 +75,7 @@ namespace vfs.synchronizer.server
             long dummy;
             userIds.TryRemove(Context.User.Identity.Name, out dummy);
 
-            return new JCDSynchronizerReply("NOT YET IMPLEMENTED", JCDSynchronizerStatusCode.FAILED);
+            return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK);
         }
 
         public JCDSynchronizerReply ListVFSes(string username, string password)
@@ -146,7 +146,7 @@ namespace vfs.synchronizer.server
         [Authorize]
         public JCDSynchronizerReply FileAdded(long vfsId, string path, long size, bool isFolder)
         {
-            Console.WriteLine("Client called FileAdded");
+            Console.WriteLine("Client called FileAdded ({0}, {1}, {2}, {3}", vfsId, path, size, isFolder);
 
             var id = db.AddFile(vfsId, path, size, isFolder);
             
@@ -209,7 +209,7 @@ namespace vfs.synchronizer.server
         [Authorize]
         public JCDSynchronizerReply FileResized(long vfsId, string path, long newSize)
         {
-            Console.WriteLine("Client called FileResized");
+            Console.WriteLine("Client called FileResized({0}, {1}, {2}", vfsId, path, newSize);
 
             var id = db.ResizeFile(vfsId, path, newSize);
 
