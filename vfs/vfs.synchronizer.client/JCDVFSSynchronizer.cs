@@ -78,6 +78,7 @@ namespace vfs.synchronizer.client
             }
             if (PropagateToServer) {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", vfs.GetId(), path, size, isFolder);
+                SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
@@ -88,6 +89,7 @@ namespace vfs.synchronizer.client
             }
             if (PropagateToServer) {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", vfs.GetId(), path);
+                SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
@@ -98,6 +100,7 @@ namespace vfs.synchronizer.client
             }
             if (PropagateToServer) {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", vfs.GetId(), oldPath, newPath);
+                SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
@@ -108,6 +111,7 @@ namespace vfs.synchronizer.client
             }
             if (PropagateToServer) {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileModified", vfs.GetId(), path, offset, data);
+                SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
@@ -118,6 +122,7 @@ namespace vfs.synchronizer.client
             }
             if (PropagateToServer) {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileResized", vfs.GetId(), path, newSize);
+                SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
@@ -561,13 +566,15 @@ namespace vfs.synchronizer.client
         }
 
         private void SetHubEvents(IHubProxy hub) {
-            // TODO: It is going to be a problem that these events will be propagated to the
-            // server again. We must do something to stop this from happening.
-
             // The point of these functions is that they should implement 
             // vfs.synchronizer.common.ISynchronizerClient.
-            hub.On<string, long, bool>("FileAdded", (path, size, isFolder) => {
+            hub.On<long, string, long, bool>("FileAdded", (versionId, path, size, isFolder) => {
                 Console.WriteLine("Server called FileAdded");
+                // Current conflict resolution tactic: throw away changes previous
+                // to current newest change.
+                if (versionId <= GetCurrentVersionId()) {
+                    return;
+                }
                 PropagateToServer = false;
                 if (isFolder) {
                     vfs.CreateDirectory(path, false);
@@ -578,8 +585,13 @@ namespace vfs.synchronizer.client
                 PropagateToServer = true;
             });
 
-            hub.On<string, long, byte[]>("FileModified", (path, offset, data) => {
+            hub.On<long, string, long, byte[]>("FileModified", (versionId, path, offset, data) => {
                 Console.WriteLine("Server called FileModified");
+                // Current conflict resolution tactic: throw away changes previous
+                // to current newest change.
+                if (versionId <= GetCurrentVersionId()) {
+                    return;
+                }
                 PropagateToServer = false;
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.Seek(offset, System.IO.SeekOrigin.Begin);
@@ -588,8 +600,13 @@ namespace vfs.synchronizer.client
                 PropagateToServer = true;
             });
 
-            hub.On<string, long>("FileResized", (path, size) => {
+            hub.On<long, string, long>("FileResized", (versionId, path, size) => {
                 Console.WriteLine("Server called FileResized");
+                // Current conflict resolution tactic: throw away changes previous
+                // to current newest change.
+                if (versionId <= GetCurrentVersionId()) {
+                    return;
+                }
                 PropagateToServer = false;
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.SetLength(size);
@@ -597,16 +614,26 @@ namespace vfs.synchronizer.client
                 PropagateToServer = true;
             });
 
-            hub.On<string>("FileDeleted", path => {
+            hub.On<long, string>("FileDeleted", (versionId, path) => {
                 Console.WriteLine("Server called FileDeleted");
+                // Current conflict resolution tactic: throw away changes previous
+                // to current newest change.
+                if (versionId <= GetCurrentVersionId()) {
+                    return;
+                }
                 PropagateToServer = false;
                 var details = vfs.GetFileDetails(path);
                 vfs.DeleteFile(path, details.IsFolder);
                 PropagateToServer = true;
             });
 
-            hub.On<string, string>("FileMoved", (oldPath, newPath) => {
+            hub.On<long, string, string>("FileMoved", (versionId, oldPath, newPath) => {
                 Console.WriteLine("Server called FileMoved");
+                // Current conflict resolution tactic: throw away changes previous
+                // to current newest change.
+                if (versionId <= GetCurrentVersionId()) {
+                    return;
+                }
                 PropagateToServer = false;
                 vfs.MoveFile(oldPath, newPath);
                 PropagateToServer = true;
@@ -641,6 +668,14 @@ namespace vfs.synchronizer.client
             catch (AggregateException e) {
                 throw new VFSSynchronizationServerException(e.ToString());
             }
+        }
+
+        public void SetCurrentVersionId(long versionId) {
+            vfs.SetCurrentVersionId(versionId);
+        }
+
+        public long GetCurrentVersionId() {
+            return vfs.GetCurrentVersionId();
         }
     }
 }

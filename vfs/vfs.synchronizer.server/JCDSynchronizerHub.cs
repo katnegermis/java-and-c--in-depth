@@ -153,8 +153,8 @@ namespace vfs.synchronizer.server
             // Inform other clients.
             SendGroupMessage(Context, JCDSynchronizationEventType.Added, path, size, isFolder);
 
-            if (id != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
+            if (id != -1)
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, id);
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
@@ -169,8 +169,8 @@ namespace vfs.synchronizer.server
             // Inform other clients.
             SendGroupMessage(Context, JCDSynchronizationEventType.Deleted, path);
 
-            if (id != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
+            if (id != -1)
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, id);
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
@@ -184,8 +184,8 @@ namespace vfs.synchronizer.server
             // Inform other clients.
             SendGroupMessage(Context, JCDSynchronizationEventType.Moved, oldPath, newPath);
 
-            if (id != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
+            if (id != -1)
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, id);
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
@@ -200,8 +200,8 @@ namespace vfs.synchronizer.server
             // Inform other clients.
             SendGroupMessage(Context, JCDSynchronizationEventType.Modified, path, offset, data);
 
-            if (id != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
+            if (id != -1)
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, id);
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }
@@ -216,8 +216,8 @@ namespace vfs.synchronizer.server
             // Inform other clients.
             SendGroupMessage(Context, JCDSynchronizationEventType.Resized, path, newSize);
 
-            if (id != null)
-                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, Convert.ToUInt64(id));
+            if (id != -1)
+                return new JCDSynchronizerReply("OK", JCDSynchronizerStatusCode.OK, id);
             else
                 return new JCDSynchronizerReply("FAIL", JCDSynchronizerStatusCode.FAILED);
         }

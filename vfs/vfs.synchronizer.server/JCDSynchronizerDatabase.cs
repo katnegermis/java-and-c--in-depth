@@ -290,7 +290,7 @@ namespace vfs.synchronizer.server
         /// <param name="vfsPath">The path of the file in the VFS.</param>
         /// <param name="isFolder">Whether the file is a folder or not.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string AddFile(long vfsId, string vfsPath, long size, bool isFolder)
+        internal long AddFile(long vfsId, string vfsPath, long size, bool isFolder)
         {
             try
             {
@@ -313,7 +313,7 @@ namespace vfs.synchronizer.server
 
                         JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Added, changeData);
 
-                        return versionId;
+                        return Int64.Parse(versionId);
                     }
                 }
             }
@@ -321,7 +321,7 @@ namespace vfs.synchronizer.server
             {
                 Console.WriteLine(ex.ToString());
             }
-            return null;
+            return -1;
         }
 
         /// <summary>
@@ -330,7 +330,7 @@ namespace vfs.synchronizer.server
         /// <param name="vfsId">The ID of the VFS the file has been deleted from.</param>
         /// <param name="vfsPath">The path of the file in the VFS.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string DeleteFile(long vfsId, string vfsPath)
+        internal long DeleteFile(long vfsId, string vfsPath)
         {
             try
             {
@@ -351,7 +351,7 @@ namespace vfs.synchronizer.server
 
                         JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
 
-                        return versionId;
+                        return Int64.Parse(versionId);
                     }
                 }
             }
@@ -359,7 +359,7 @@ namespace vfs.synchronizer.server
             {
                 Console.WriteLine(ex.ToString());
             }
-            return null;
+            return -1;
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace vfs.synchronizer.server
         /// <param name="oldPath">The path of the file that has been moved.</param>
         /// <param name="newPath">The new path of the file.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string MoveFile(long vfsId, string oldPath, string newPath)
+        internal long MoveFile(long vfsId, string oldPath, string newPath)
         {
             try
             {
@@ -390,7 +390,7 @@ namespace vfs.synchronizer.server
 
                         JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Moved, changeData);
 
-                        return versionId;
+                        return Int64.Parse(versionId);
                     }
                 }
             }
@@ -398,7 +398,7 @@ namespace vfs.synchronizer.server
             {
                 Console.WriteLine(ex.ToString());
             }
-            return null;
+            return -1;
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace vfs.synchronizer.server
         /// <param name="offset">The offset of the change.</param>
         /// <param name="data">The new data at the given offset.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string ModifyFile(long vfsId, string vfsPath, long offset, byte[] data)
+        internal long ModifyFile(long vfsId, string vfsPath, long offset, byte[] data)
         {
             try
             {
@@ -430,7 +430,7 @@ namespace vfs.synchronizer.server
 
                         JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Modified, changeData);
 
-                        return versionId;
+                        return Int64.Parse(versionId);
                     }
                 }
             }
@@ -438,7 +438,7 @@ namespace vfs.synchronizer.server
             {
                 Console.WriteLine(ex.ToString());
             }
-            return null;
+            return -1;
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace vfs.synchronizer.server
         /// <param name="vfsPath">The path of the file that has been resized.</param>
         /// <param name="newSize">The new size of the file.</param>
         /// <returns>The new version id if the change was successfully added, null otherwise.</returns>
-        internal string ResizeFile(long vfsId, string vfsPath, long newSize)
+        internal long ResizeFile(long vfsId, string vfsPath, long newSize)
         {
             try
             {
@@ -469,7 +469,7 @@ namespace vfs.synchronizer.server
 
                         JCDSynchronizerChangeExecutor.Execute(vfs, (int)JCDSynchronizationEventType.Resized, changeData);
 
-                        return versionId;
+                        return Int64.Parse(versionId);
                     }
                 }
             }
@@ -477,7 +477,7 @@ namespace vfs.synchronizer.server
             {
                 Console.WriteLine(ex.ToString());
             }
-            return null;
+            return -1;
         }
 
         /// <summary>
