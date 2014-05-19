@@ -110,7 +110,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JCDSynchronizerChangeExecutor.cs" />
     <Compile Include="JCDSynchronizerDatabase.cs" />
     <Compile Include="JCDSynchronizerHub.cs" />
     <Compile Include="Program.cs" />

@@ -130,6 +130,20 @@ namespace vfs.synchronizer.client
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
+
+            res = HubInvoke<JCDSynchronizerReply>("RetrieveChanges", vfs.GetId(), vfs.GetCurrentVersionId());
+            if(res.StatusCode != JCDSynchronizerStatusCode.OK) {
+                throw new VFSSynchronizationServerException(res.Message);
+            }
+
+            var changes = (Tuple<long, List<Tuple<int, byte[]>>>) res.Data[0];
+            if(changes.Item2.Count > 0) {
+                vfs.Close();
+                JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+                SubscribeToEvents(vfs);
+                vfs.SetCurrentVersionId(changes.Item1);
+            }
         }
 
         public static void Register(string username, string password) {
