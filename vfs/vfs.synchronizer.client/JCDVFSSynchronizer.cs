@@ -97,6 +97,7 @@ namespace vfs.synchronizer.client
                     long offset;
                     long newSize;
                     long size;
+                    byte[] storedEvent;
                     byte[] data;
                     bool isFolder;
 
@@ -106,25 +107,26 @@ namespace vfs.synchronizer.client
                         eventIds.Add(Convert.ToInt64(reader["id"]));
 
                         type = Convert.ToInt32(reader["eventType"]);
+                        storedEvent = (byte[]) reader["event"];
                         switch(type) {
                             case (int) JCDSynchronizationEventType.Added:
-                                JCDSynchronizerSerialization.Deserialize<string, long, bool>(JCDSynchronizationEventType.Added, (byte[]) reader["event"], out vfsPath, out size, out isFolder);
+                                JCDSynchronizerSerialization.Deserialize<string, long, bool>(JCDSynchronizationEventType.Added, storedEvent, out vfsPath, out size, out isFolder);
                                 InformServerFileAdded(vfsPath, size, isFolder);
                                 break;
                             case (int) JCDSynchronizationEventType.Deleted:
-                                JCDSynchronizerSerialization.Deserialize<string>(JCDSynchronizationEventType.Deleted, (byte[]) reader["event"], out vfsPath);
+                                JCDSynchronizerSerialization.Deserialize<string>(JCDSynchronizationEventType.Deleted, storedEvent, out vfsPath);
                                 InformServerFileDeleted(vfsPath);
                                 break;
                             case (int) JCDSynchronizationEventType.Moved:
-                                JCDSynchronizerSerialization.Deserialize<string, string>(JCDSynchronizationEventType.Moved, (byte[]) reader["event"], out vfsPath, out newPath);
+                                JCDSynchronizerSerialization.Deserialize<string, string>(JCDSynchronizationEventType.Moved, storedEvent, out vfsPath, out newPath);
                                 InformServerFileMoved(vfsPath, newPath);
                                 break;
                             case (int) JCDSynchronizationEventType.Modified:
-                                JCDSynchronizerSerialization.Deserialize<string, long, byte[]>(JCDSynchronizationEventType.Modified, (byte[]) reader["event"], out vfsPath, out offset, out data);
+                                JCDSynchronizerSerialization.Deserialize<string, long, byte[]>(JCDSynchronizationEventType.Modified, storedEvent, out vfsPath, out offset, out data);
                                 InformServerFileModified(vfsPath, offset, data);
                                 break;
                             case (int) JCDSynchronizationEventType.Resized:
-                                JCDSynchronizerSerialization.Deserialize<string, long>(JCDSynchronizationEventType.Resized, (byte[]) reader["event"], out vfsPath, out newSize);
+                                JCDSynchronizerSerialization.Deserialize<string, long>(JCDSynchronizationEventType.Resized, storedEvent, out vfsPath, out newSize);
                                 InformServerFileResized(vfsPath, newSize);
                                 break;
                             default:

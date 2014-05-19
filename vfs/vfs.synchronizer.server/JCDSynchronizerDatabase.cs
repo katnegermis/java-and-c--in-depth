@@ -88,17 +88,18 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "INSERT INTO Users (name, password) VALUES(@name, @password);";
-                    command.Parameters.Add("@name", System.Data.DbType.String, name.Length).Value = name;
-                    command.Parameters.Add("@password", System.Data.DbType.String, password.Length).Value = password;
+                lock(connection) {
+                    using (var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "INSERT INTO Users (name, password) VALUES(@name, @password);";
+                        command.Parameters.Add("@name", System.Data.DbType.String, name.Length).Value = name;
+                        command.Parameters.Add("@password", System.Data.DbType.String, password.Length).Value = password;
 
-                    if (command.ExecuteNonQuery() > 0)
-                    {
-                        command.CommandText = "SELECT last_insert_rowid();";
-                        var result = command.ExecuteScalar();
-                        return result != null ? (long)result : -1;
+                        if (command.ExecuteNonQuery() > 0)
+                        {
+                            command.CommandText = "SELECT last_insert_rowid();";
+                            var result = command.ExecuteScalar();
+                            return result != null ? (long)result : -1;
+                        }
                     }
                 }
             }
@@ -119,14 +120,15 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "SELECT id FROM Users WHERE name = @name AND password = @password;";
-                    command.Parameters.Add("@name", System.Data.DbType.String, name.Length).Value = name;
-                    command.Parameters.Add("@password", System.Data.DbType.String, password.Length).Value = password;
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "SELECT id FROM Users WHERE name = @name AND password = @password;";
+                        command.Parameters.Add("@name", System.Data.DbType.String, name.Length).Value = name;
+                        command.Parameters.Add("@password", System.Data.DbType.String, password.Length).Value = password;
 
-                    var result = command.ExecuteScalar();
-                    return result != null ? (long)result : -1;
+                        var result = command.ExecuteScalar();
+                        return result != null ? (long) result : -1;
+                    }
                 }
             }
             catch (Exception ex)
@@ -145,23 +147,22 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "SELECT id, initPath FROM VFS WHERE user_id = @userId;";
-                    command.Parameters.Add("@userId", System.Data.DbType.Int64).Value = userId;
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "SELECT id, initPath FROM VFS WHERE user_id = @userId;";
+                        command.Parameters.Add("@userId", System.Data.DbType.Int64).Value = userId;
 
-                    var list = new List<Tuple<long, string>>();
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            long id = Convert.ToInt64(reader["id"]);
-                            string path = Convert.ToString(reader["initPath"]);
-                            string name = Path.GetFileName(path.Remove(path.Length - id.ToString().Length + 5));
-                            list.Add(new Tuple<long, string>(id, name));
+                        var list = new List<Tuple<long, string>>();
+                        using(var reader = command.ExecuteReader()) {
+                            while(reader.Read()) {
+                                long id = Convert.ToInt64(reader["id"]);
+                                string path = Convert.ToString(reader["initPath"]);
+                                string name = Path.GetFileName(path.Remove(path.Length - id.ToString().Length + 5));
+                                list.Add(new Tuple<long, string>(id, name));
+                            }
                         }
+                        return list;
                     }
-                    return list;
                 }
             }
             catch (Exception ex)
@@ -184,29 +185,30 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    long vfsId = Convert.ToInt64((vfsName + DateTime.Now.Ticks).GetHashCode());
-                    string hfsDir = GetVFSStoragePath(vfsId);
-                    
-                    var storageNames = GetVFSStorageNames(vfsId, vfsName);
-                    string initPath = storageNames.Item1;
-                    string currentPath = storageNames.Item2;
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        long vfsId = Convert.ToInt64((vfsName + DateTime.Now.Ticks).GetHashCode());
+                        string hfsDir = GetVFSStoragePath(vfsId);
 
-                    writeToFile(currentPath, data);
-                    writeToFile(initPath, data);
+                        var storageNames = GetVFSStorageNames(vfsId, vfsName);
+                        string initPath = storageNames.Item1;
+                        string currentPath = storageNames.Item2;
 
-                    VFSesSetId(vfsId, currentPath, initPath);
+                        writeToFile(currentPath, data);
+                        writeToFile(initPath, data);
 
-                    command.CommandText = "INSERT INTO VFS (id, user_id, initPath, currentPath) VALUES(@id, @userId, @initPath, @currentPath);";
-                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
-                    command.Parameters.Add("@userId", System.Data.DbType.Int64).Value = userId;
-                    command.Parameters.Add("@initPath", System.Data.DbType.String, initPath.Length).Value = initPath;
-                    command.Parameters.Add("@currentPath", System.Data.DbType.String, currentPath.Length).Value = currentPath;
+                        VFSesSetId(vfsId, currentPath, initPath);
 
-                    command.ExecuteNonQuery();
+                        command.CommandText = "INSERT INTO VFS (id, user_id, initPath, currentPath) VALUES(@id, @userId, @initPath, @currentPath);";
+                        command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+                        command.Parameters.Add("@userId", System.Data.DbType.Int64).Value = userId;
+                        command.Parameters.Add("@initPath", System.Data.DbType.String, initPath.Length).Value = initPath;
+                        command.Parameters.Add("@currentPath", System.Data.DbType.String, currentPath.Length).Value = currentPath;
 
-                    return vfsId.ToString();
+                        command.ExecuteNonQuery();
+
+                        return vfsId.ToString();
+                    }
                 }
             }
             catch (Exception ex)
@@ -226,14 +228,15 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "DELETE FROM VFS WHERE id = @id;";
-                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "DELETE FROM VFS WHERE id = @id;";
+                        command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
 
-                    command.ExecuteNonQuery();
+                        command.ExecuteNonQuery();
 
-                    return true;
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -252,28 +255,28 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "SELECT currentPath FROM VFS WHERE id = @id;";
-                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
-
-                    var path = command.ExecuteScalar().ToString();
-
-                    command.CommandText = "SELECT COUNT(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
-                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
-
-                    long versionId = 0;
-                    if ((long)command.ExecuteScalar() > 0)
-                    {
-
-                        command.CommandText = "SELECT MAX(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "SELECT currentPath FROM VFS WHERE id = @id;";
                         command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
 
-                        versionId = (long)command.ExecuteScalar();
-                    }
-                    var data = readFromFile(path);
+                        var path = command.ExecuteScalar().ToString();
 
-                    return new Tuple<long, byte[]>(versionId, data);
+                        command.CommandText = "SELECT COUNT(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                        command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                        long versionId = 0;
+                        if((long) command.ExecuteScalar() > 0) {
+
+                            command.CommandText = "SELECT MAX(C.id) FROM Files AS F JOIN Changes AS C WHERE F.vfs_id = @id;";
+                            command.Parameters.Add("@id", System.Data.DbType.Int64).Value = vfsId;
+
+                            versionId = (long) command.ExecuteScalar();
+                        }
+                        var data = readFromFile(path);
+
+                        return new Tuple<long, byte[]>(versionId, data);
+                    }
                 }
             }
             catch (Exception ex)
@@ -294,26 +297,25 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    long fileId = addFileRow(vfsId, vfsPath);
-                    if (fileId == -1)
-                    {
-                        fileId = getFileId(vfsId, vfsPath);
-                    }
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        long fileId = addFileRow(vfsId, vfsPath);
+                        if(fileId == -1) {
+                            fileId = getFileId(vfsId, vfsPath);
+                        }
 
-                    if (fileId > 0)
-                    {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, vfsPath, size, isFolder);
-                        var versionId = addChange((int)JCDSynchronizationEventType.Added, fileId, changeData);
+                        if(fileId > 0) {
+                            var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added, vfsPath, size, isFolder);
+                            var versionId = addChange((int) JCDSynchronizationEventType.Added, fileId, changeData);
 
-                        var vfs = getCurrentVFSPath(vfsId);
-                        if (vfs == null)
-                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+                            var vfs = getCurrentVFSPath(vfsId);
+                            if(vfs == null)
+                                throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Added, changeData);
+                            JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int) JCDSynchronizationEventType.Added, changeData);
 
-                        return versionId;
+                            return versionId;
+                        }
                     }
                 }
             }
@@ -334,24 +336,24 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    var fileId = getFileId(vfsId, vfsPath);
-                    if (fileId < 0)
-                        fileId = addFileRow(vfsId, vfsPath);
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        var fileId = getFileId(vfsId, vfsPath);
+                        if(fileId < 0)
+                            fileId = addFileRow(vfsId, vfsPath);
 
-                    if (fileId > 0)
-                    {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, vfsPath);
-                        var versionId = addChange((int)JCDSynchronizationEventType.Deleted, fileId, changeData);
+                        if(fileId > 0) {
+                            var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted, vfsPath);
+                            var versionId = addChange((int) JCDSynchronizationEventType.Deleted, fileId, changeData);
 
-                        var vfs = getCurrentVFSPath(vfsId);
-                        if (vfs == null)
-                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+                            var vfs = getCurrentVFSPath(vfsId);
+                            if(vfs == null)
+                                throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Deleted, changeData);
+                            JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int) JCDSynchronizationEventType.Deleted, changeData);
 
-                        return versionId;
+                            return versionId;
+                        }
                     }
                 }
             }
@@ -373,24 +375,24 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    var fileId = getFileId(vfsId, oldPath);
-                    if (fileId < 0)
-                        fileId = addFileRow(vfsId, oldPath);
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        var fileId = getFileId(vfsId, oldPath);
+                        if(fileId < 0)
+                            fileId = addFileRow(vfsId, oldPath);
 
-                    if (fileId > 0)
-                    {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, oldPath, newPath);
-                        var versionId = addChange((int)JCDSynchronizationEventType.Moved, fileId, changeData);
+                        if(fileId > 0) {
+                            var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved, oldPath, newPath);
+                            var versionId = addChange((int) JCDSynchronizationEventType.Moved, fileId, changeData);
 
-                        var vfs = getCurrentVFSPath(vfsId);
-                        if (vfs == null)
-                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+                            var vfs = getCurrentVFSPath(vfsId);
+                            if(vfs == null)
+                                throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Moved, changeData);
+                            JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int) JCDSynchronizationEventType.Moved, changeData);
 
-                        return versionId;
+                            return versionId;
+                        }
                     }
                 }
             }
@@ -413,24 +415,24 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    var fileId = getFileId(vfsId, vfsPath);
-                    if (fileId < 0)
-                        fileId = addFileRow(vfsId, vfsPath);
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        var fileId = getFileId(vfsId, vfsPath);
+                        if(fileId < 0)
+                            fileId = addFileRow(vfsId, vfsPath);
 
-                    if (fileId > 0)
-                    {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, vfsPath, offset, data);
-                        var versionId = addChange((int)JCDSynchronizationEventType.Modified, fileId, changeData);
+                        if(fileId > 0) {
+                            var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified, vfsPath, offset, data);
+                            var versionId = addChange((int) JCDSynchronizationEventType.Modified, fileId, changeData);
 
-                        var vfs = getCurrentVFSPath(vfsId);
-                        if (vfs == null)
-                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+                            var vfs = getCurrentVFSPath(vfsId);
+                            if(vfs == null)
+                                throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Modified, changeData);
+                            JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int) JCDSynchronizationEventType.Modified, changeData);
 
-                        return versionId;
+                            return versionId;
+                        }
                     }
                 }
             }
@@ -452,24 +454,24 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    var fileId = getFileId(vfsId, vfsPath);
-                    if (fileId < 0)
-                        fileId = addFileRow(vfsId, vfsPath);
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        var fileId = getFileId(vfsId, vfsPath);
+                        if(fileId < 0)
+                            fileId = addFileRow(vfsId, vfsPath);
 
-                    if (fileId > 0)
-                    {
-                        var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, vfsPath, newSize);
-                        var versionId = addChange((int)JCDSynchronizationEventType.Resized, fileId, changeData);
+                        if(fileId > 0) {
+                            var changeData = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized, vfsPath, newSize);
+                            var versionId = addChange((int) JCDSynchronizationEventType.Resized, fileId, changeData);
 
-                        var vfs = getCurrentVFSPath(vfsId);
-                        if (vfs == null)
-                            throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
+                            var vfs = getCurrentVFSPath(vfsId);
+                            if(vfs == null)
+                                throw new Exception(String.Format("Could not find the current VFS file path of {0}", vfsId));
 
-                        JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int)JCDSynchronizationEventType.Resized, changeData);
+                            JCDSynchronizerChangeExecutor.Execute(versionId, vfs, (int) JCDSynchronizationEventType.Resized, changeData);
 
-                        return versionId;
+                            return versionId;
+                        }
                     }
                 }
             }
@@ -612,30 +614,29 @@ namespace vfs.synchronizer.server
         {
             try
             {
-                using (var command = new SQLiteCommand(connection))
-                {
-                    command.CommandText = "SELECT F.vfsPath, C.id, C.event_type, C.dataPath " +
-                           " FROM Files AS F JOIN Changes AS C" +
-                           " WHERE F.vfs_id = @vfsId AND F.id = C.file_id AND C.id > @versionId" +
-                           " ORDER BY(C.id);";
-                    command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
-                    command.Parameters.Add("@versionId", System.Data.DbType.Int64).Value = lastVersionId;
+                lock(connection) {
+                    using(var command = new SQLiteCommand(connection)) {
+                        command.CommandText = "SELECT F.vfsPath, C.id, C.event_type, C.dataPath " +
+                               " FROM Files AS F JOIN Changes AS C" +
+                               " WHERE F.vfs_id = @vfsId AND F.id = C.file_id AND C.id > @versionId" +
+                               " ORDER BY(C.id);";
+                        command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfsId;
+                        command.Parameters.Add("@versionId", System.Data.DbType.Int64).Value = lastVersionId;
 
-                    using (var reader = command.ExecuteReader())
-                    {
-                        var list = new List<Tuple<int, byte[]>>();
-                        long id = -1;
-                        while (reader.Read())
-                        {
-                            id = Convert.ToInt64(reader["id"]);
-                            int eventType = Convert.ToInt32(reader["event_type"]);
-                            string dataPath = Convert.ToString(reader["dataPath"]);
-                            var data = readFromFile(dataPath);
+                        using(var reader = command.ExecuteReader()) {
+                            var list = new List<Tuple<int, byte[]>>();
+                            long id = -1;
+                            while(reader.Read()) {
+                                id = Convert.ToInt64(reader["id"]);
+                                int eventType = Convert.ToInt32(reader["event_type"]);
+                                string dataPath = Convert.ToString(reader["dataPath"]);
+                                var data = readFromFile(dataPath);
 
-                            list.Add(new Tuple<int, byte[]>(eventType, data));
+                                list.Add(new Tuple<int, byte[]>(eventType, data));
+                            }
+                            if(id > 0)
+                                return new Tuple<long, List<Tuple<int, byte[]>>>(id, list);
                         }
-                        if (id > 0)
-                            return new Tuple<long, List<Tuple<int, byte[]>>>(id, list);
                     }
                 }
             }
