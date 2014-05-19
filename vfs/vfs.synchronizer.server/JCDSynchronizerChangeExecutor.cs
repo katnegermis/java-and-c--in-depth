@@ -66,9 +66,7 @@ namespace vfs.synchronizer.server
                 }
                 else
                 {
-                    using (var stream = vfs.CreateFile(vfsPath, (ulong)size, false)) {
-                        stream.SetLength(size);
-                    }
+                    vfs.CreateFile(vfsPath, (ulong)size, false);
                 }
             }
         }
