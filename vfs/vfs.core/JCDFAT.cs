@@ -989,19 +989,14 @@ namespace vfs.core
             uint bufPos = readBufferSize * blockSize;
             int bufSize = (int)bufPos;
             byte[] buffer = new byte[bufSize];
+            int bytesRead = 0;
+            int totalBytesRead = 0;
 
-            WalkFATChain(firstBlock, new FileImporterVisitor((ulong)file.Length, buffer, () => {
-                bufPos += blockSize;
-                if (bufPos >= bufSize)
-                {
-                    file.Read(buffer, 0, bufSize);
-                    bufPos = 0;
-                    return bufPos;
+            for (; totalBytesRead < file.Length; totalBytesRead += bytesRead) {
+                using (var vfsStream = GetFileStream(path)) {
+                    bytesRead = file.Read(buffer, 0, bufSize);
+                    vfsStream.Write(buffer, 0, bytesRead);
                 }
-                return bufPos;
-            }));
-            if(fileName != null) {
-                Console.WriteLine("Imported {0} to {1}", fileName, path);
             }
         }
 
