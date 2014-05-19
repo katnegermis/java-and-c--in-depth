@@ -108,11 +108,12 @@ namespace vfs.core {
         }
 
         public override void SetLength(long value) {
-            if ((ulong)value < file.Size) {
-                file.ShrinkBytes(value);
+            ulong val = (ulong)value;
+            if (val < file.Size) {
+                file.ShrinkBytes((uint)(file.Size - val));
             }
-            else {
-                file.ExpandBytes(value);
+            else if (val > file.Size) {
+                file.ExpandBytes((uint)(val - file.Size));
             }
         }
 
