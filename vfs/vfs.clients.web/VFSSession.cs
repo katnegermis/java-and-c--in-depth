@@ -23,6 +23,7 @@ namespace vfs.clients.web
         public string Path { get; private set; }
         public ulong Size { get; private set; }
 
+        //Yes, static analyzer, they should be string. They're output directly to html.
         public string TypeURL {
             get {
                 return IsFolder ? "folder.png" : "file.png";
@@ -64,7 +65,7 @@ namespace vfs.clients.web
         /// <summary>
         /// The location of the currently open VFS.
         /// </summary>
-        public string mountedVFSpath;
+        private string mountedVFSpath;
 
         /// <summary>
         /// Whether the client has an outstanding update request.
@@ -215,8 +216,8 @@ namespace vfs.clients.web
         /// Delete the currently open VFS
         /// </summary>
         public void DeleteVFS() {
-            if(mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if(mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             string VFSpath = mountedVFSpath;
             Close();
@@ -245,8 +246,8 @@ namespace vfs.clients.web
         /// </summary>
         public void Close()
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             mountedVFS.Close();
             mountedVFS = null;
@@ -263,8 +264,8 @@ namespace vfs.clients.web
         /// <param name="dirName">Name of the new directory</param>
         public void CreateDir(string dirName)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             mountedVFS.CreateDirectory(Helpers.PathCombine(CurrentDir, dirName), false);
         }
@@ -276,8 +277,8 @@ namespace vfs.clients.web
         /// <param name="newName">New name to set</param>
         public void Rename(string oldName, string newName)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             if(oldName == newName)
                 return;
@@ -298,8 +299,8 @@ namespace vfs.clients.web
         /// <param name="names">Names of the files/dirs</param>
         public void Copy(string[] names)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             cutNotCopy = false;
             putIntoClipboard(names);
@@ -312,8 +313,8 @@ namespace vfs.clients.web
         /// <param name="names">Names of the files/dirs</param>
         public void Cut(string[] names)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             cutNotCopy = true;
             putIntoClipboard(names);
@@ -325,8 +326,8 @@ namespace vfs.clients.web
         /// <returns>An integer with the number of top level files/dirs that have been pasted.</returns>
         public int Paste()
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             int count = 0;
             foreach (string path in clipboardPaths)
@@ -356,8 +357,8 @@ namespace vfs.clients.web
         /// <returns>An integer with the number of top level files/dirs that have been deleted</returns>
         public int Delete(string[] names)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             int count = 0;
             foreach (string name in names)
@@ -421,8 +422,8 @@ namespace vfs.clients.web
         /// <returns>DirectoryEntry Array with the found files.</returns>
         public DirectoryEntry[] Search(string searchString)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             switch (SearchLocation)
             {
@@ -435,8 +436,8 @@ namespace vfs.clients.web
                 case SearchLocation.Folder:
                     currentSearchResults = getDirEntryDetails(mountedVFS.Search(CurrentDir, searchString, SearchCaseSensitive, false));
                     break;
-                default:
-                    throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
+                //default:
+                //    throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
 
             return currentSearchResults;
@@ -452,8 +453,8 @@ namespace vfs.clients.web
         /// <returns>True if moved, false otherwise</returns>
         public bool MoveBack()
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             var path = ParentDirOf(CurrentDir);
             if (path == CurrentDir)
@@ -471,8 +472,8 @@ namespace vfs.clients.web
         /// <returns>True if moved, false otherwise</returns>
         public bool MoveInto(string directory, bool completePath)
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             if (completePath)
                 moveIntoDirectory(directory);
@@ -489,8 +490,8 @@ namespace vfs.clients.web
         /// <returns>The entries in the current directory</returns>
         public DirectoryEntry[] ListCurrentDirectory()
         {
-            if (mountedVFS == null)
-                throw new Exception("No VFS mounted!");
+            //if (mountedVFS == null)
+            //    throw new Exception("No VFS mounted!");
 
             var dirList = mountedVFS.ListDirectory(CurrentDir);
             var entries = new DirectoryEntry[dirList.Length];
@@ -561,9 +562,9 @@ namespace vfs.clients.web
             try {
                 mountedVFS.LogIn(userName, password);
             }
-            catch(vfs.exceptions.VFSSynchronizationServerException e) {
+            catch(vfs.exceptions.VFSSynchronizationServerException) {
                 //TODO check the statuscode or so
-                throw e;
+                throw;
             }
             this.UserName = userName;
             return true;
@@ -582,11 +583,11 @@ namespace vfs.clients.web
             try {
                 mountedVFS.AddVFS();
             }
-            catch(vfs.exceptions.VFSSynchronizationServerException e) {
-                throw e;
+            catch(vfs.exceptions.VFSSynchronizationServerException) {
+                throw;
             }
-            catch(vfs.exceptions.AlreadySynchronizedVFSException e) {
-                throw e;
+            catch(vfs.exceptions.AlreadySynchronizedVFSException) {
+                throw;
             }
             return true;
         }
@@ -595,8 +596,8 @@ namespace vfs.clients.web
             try {
                 mountedVFS.RemoveVFS();
             }
-            catch(vfs.exceptions.VFSSynchronizationServerException e) {
-                throw e;
+            catch(vfs.exceptions.VFSSynchronizationServerException) {
+                throw;
             }
             return true;
         }
@@ -627,7 +628,7 @@ namespace vfs.clients.web
         /// </summary>
         /// <param name="path">To calculate the parent directory from</param>
         /// <returns></returns>
-        public string ParentDirOf(string path)
+        public static string ParentDirOf(string path)
         {
             string result;
 

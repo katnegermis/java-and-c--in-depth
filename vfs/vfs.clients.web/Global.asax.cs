@@ -39,6 +39,7 @@ namespace vfs.clients.web {
             }
         }
 
+        //This obviously DOES have an upstream caller. Bad static analyzer.
         void Application_Start(object sender, EventArgs e) {
             // Code that runs on application startup
             RouteConfig.RegisterRoutes(RouteTable.Routes);

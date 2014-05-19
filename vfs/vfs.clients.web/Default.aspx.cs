@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.ComponentModel;
 
 using vfs.core;
 using vfs.core.indexing;
@@ -66,7 +67,7 @@ namespace vfs.clients.web {
                         Global.vfsSession.LogIn((string) HttpContext.Current.Session["username"],
                             (string) HttpContext.Current.Session["password"]);
                     }
-                    catch(Exception ex) {
+                    catch(Exception) {
                         Master.errorText = "Could not connect to synchronization server";
                     }
                 }
@@ -225,7 +226,7 @@ namespace vfs.clients.web {
 
         }
 
-        protected void RowCancelingEditing(object sender, GridViewCancelEditEventArgs e) {
+        protected void RowCancelingEditing(object sender, CancelEventArgs e) {
             Master.checkSession();
 
             e.Cancel = true;
@@ -261,7 +262,7 @@ namespace vfs.clients.web {
         protected void makeSearch(object sender, EventArgs e) {
             Master.checkSession();
 
-            if(search.Text.Trim() == "") {
+            if(String.IsNullOrWhiteSpace(search.Text)) {
                 hideSearch();
             }
             else {

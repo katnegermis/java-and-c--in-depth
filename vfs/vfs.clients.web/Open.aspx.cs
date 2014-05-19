@@ -12,7 +12,7 @@ namespace vfs.clients.web {
         }
 
         public void openVFS(object sender, EventArgs e) {
-            if(vfsPath.Text == "") {
+            if(String.IsNullOrWhiteSpace(vfsPath.Text)) {
                 Master.errorText = "Please enter a path";
                 return;
             }

@@ -21,7 +21,7 @@ namespace vfs.clients.web {
         }
 
         public void SignIn(object sender, EventArgs e) {
-            if(username.Text.Trim() == "" || password.Text == "") {
+            if(String.IsNullOrWhiteSpace(username.Text.Trim()) || String.IsNullOrEmpty(password.Text)) {
                 Master.errorText = "Please enter a username and a password";
                 return;
             }
@@ -31,7 +31,7 @@ namespace vfs.clients.web {
                     Global.vfsSession.LogIn(username.Text, password.Text);
                     proceed();
                 }
-                catch(Exception ex) {
+                catch(Exception) {
                     //TODO: it could be a connection error
                     Master.errorText = "Wrong username or password";
                 }
@@ -44,7 +44,7 @@ namespace vfs.clients.web {
         }
 
         public void CreateAccount(object sender, EventArgs e) {
-            if(username.Text.Trim() == "" || password.Text == "") {
+            if(String.IsNullOrWhiteSpace(username.Text) || String.IsNullOrEmpty(password.Text)) {
                 Master.errorText = "Please enter a username and a password";
                 return;
             }

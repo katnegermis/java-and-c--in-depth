@@ -25,6 +25,7 @@ namespace vfs.clients.web {
             }
         }
 
+        //Nope, static analyzer, I like this the way it is.
         public string errorText {
             set {
                 errorLabel.Text = value;

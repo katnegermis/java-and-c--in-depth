@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace vfs.clients.web {
     public class Updates : Hub {
+        //The static analyzer should learn a thing or two about the lives of SignalR users. They don't have it easy.
         public static Dictionary<string, string> sessionToConnection = new Dictionary<string, string>();
         //public static Dictionary<string, string> connectionToSession = new Dictionary<string, string>();
 

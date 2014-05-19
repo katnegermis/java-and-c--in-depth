@@ -16,14 +16,15 @@ namespace vfs.clients.web {
         }
 
         public void createVFS(object sender, EventArgs e) {
+            UInt64 mSize;
             try {
-                UInt64 mSize = UInt64.Parse(maxSize.Text);
+                mSize = UInt64.Parse(maxSize.Text);
             }
-            catch(Exception ex) {
+            catch(FormatException ex) {
                 Master.errorText = ex.ToString();
                 return;
             }
-            if(vfsPath.Text == "") {
+            if(String.IsNullOrWhiteSpace(vfsPath.Text)) {
                 Master.errorText = "Please enter a path";
                 return;
             }
@@ -37,7 +38,7 @@ namespace vfs.clients.web {
             }
 
             try {
-                Global.vfsSession = VFSSession.CreateVFS(Session.SessionID, vfsPath.Text, UInt64.Parse(maxSize.Text));
+                Global.vfsSession = VFSSession.CreateVFS(Session.SessionID, vfsPath.Text, mSize);
                 if(Global.vfsSession != null) {
                     //success
                     Response.Redirect("~/");

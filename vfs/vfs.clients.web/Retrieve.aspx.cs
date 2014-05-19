@@ -25,7 +25,7 @@ namespace vfs.clients.web {
                     HttpContext.Current.Session["tmpUsername"] = null;
                     HttpContext.Current.Session["tmpPassword"] = null;
                 }
-                catch(Exception ex) {
+                catch(Exception) {
                     Response.Redirect("~/Signin?fail=true");
                 }
             }
@@ -35,7 +35,7 @@ namespace vfs.clients.web {
                     VFSes = VFSSession.ListVFSes((string) HttpContext.Current.Session["username"],
                         (string) HttpContext.Current.Session["password"]);
                 }
-                catch(Exception ex) {
+                catch(Exception) {
                     retrieveView.Visible = false;
                     Master.errorText = "Could not connect to synchonization server";
                     return;
@@ -61,7 +61,7 @@ namespace vfs.clients.web {
             try {
                 id = long.Parse(Request.Form["VFSid"]);
             }
-            catch(Exception ex) {
+            catch(Exception) {
                 //nothing selected
                 return null;
             }
@@ -100,7 +100,7 @@ namespace vfs.clients.web {
         }
 
         public void saveOnServer(object sender, EventArgs e) {
-            if(serverPath.Text.Trim() == "") {
+            if(String.IsNullOrWhiteSpace(serverPath.Text)) {
                 Master.errorText = "Please enter a path to save the VFS in.";
                 return;
             }
@@ -126,7 +126,7 @@ namespace vfs.clients.web {
                     File.WriteAllBytes(serverPath.Text, vfs.Item2);
                     statusText.Text = "Successfully saved the VFS on the server";
                 }
-                catch(Exception ex) {
+                catch(Exception) {
                     Master.errorText = e.ToString();
                 }
             }
