@@ -691,6 +691,7 @@ namespace vfs.core
                 if (file.IsFolder) {
                     UpdateChildrenPathsRecursive((JCDFolder)file);
                 }
+                fileIndex.Rename(oldPath, newPath);
             };
         }
 
