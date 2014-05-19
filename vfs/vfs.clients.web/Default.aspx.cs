@@ -60,13 +60,14 @@ namespace vfs.clients.web {
 
             if(!Page.IsPostBack) {
                 if(HttpContext.Current.Session["username"] != null
-                    && HttpContext.Current.Session["password"] != null) {
+                    && HttpContext.Current.Session["password"] != null
+                    && !Global.vfsSession.LoggedIn()) {
                     try {
                         Global.vfsSession.LogIn((string) HttpContext.Current.Session["username"],
                             (string) HttpContext.Current.Session["password"]);
                     }
                     catch(Exception ex) {
-                        Master.errorText = "Could not connect to synchonization server";
+                        Master.errorText = "Could not connect to synchronization server";
                     }
                 }
 

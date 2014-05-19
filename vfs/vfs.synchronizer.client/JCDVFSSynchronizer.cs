@@ -147,11 +147,13 @@ namespace vfs.synchronizer.client
             }
             var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
             if(changes != null && changes.Item2.Count > 0) {
-                vfs.Close();
-                JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
-                vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
-                SubscribeToEvents(vfs);
-                vfs.SetCurrentVersionId(changes.Item1);
+                lock(this.vfs) {
+                    vfs.Close();
+                    JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                    vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+                    vfs.SetCurrentVersionId(changes.Item1);
+                    SubscribeToEvents(vfs);
+                }
             }
         }
 
