@@ -402,14 +402,14 @@ To facilitate debugging we have created a console client. The available commands
 
 \begin{enumerate}
     \item Start vfs.synchronization.server console application without arguments.
-    \item Start vfs.clients.desktop GUI application.
+    \item Start vfs.clients.desktop GUI application. The app looks like shown in Figure~\ref{fig:basicApp}.
     \item Create a VFS by clicking "Create VFS" in the GUI application.
     \item Open the newly created VFS by clicking "Open VFS" in the GUI application.
     \item Register a new user by clicking "Login", input username and password, and click Register.
     \item You are now logged in.
     \item Click "Synchronize" in order to start synchronizing the VFS with the server.
     \item Find a directory you want to import and drag it on to the GUI application.
-    \item Wait for the files to be imported.
+    \item Wait for the files to be imported. The app now looks like shown in Figure~\ref{fig:fullApp}.
     \item Click "Close VFS" in order to stop the connection to the server.
     \item Click "Delete VFS" and select the previously created VFS to dispose of it.
     \item Click "Server VFS" and input the previously determined username and password.
@@ -421,7 +421,7 @@ To facilitate debugging we have created a console client. The available commands
     \item Enjoy your exported files!
 \end{enumerate}
 
-\subsection{Use Case 2}
+\subsection{Use Case 2; Automatic FileAdd push}
 
 \begin{enumerate}
     \item Start vfs.synchronization.server console application without arguments.
@@ -441,6 +441,20 @@ To facilitate debugging we have created a console client. The available commands
     \item Export the files from the second GUI application.
     \item Enjoy your exported files!
 \end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.00\textwidth]{basicApp.png}
+\caption{Desktop Client after Startup}
+\label{fig:basicApp}
+\end{figure}
+	
+	\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.00\textwidth]{afterImportApp.png}
+	\caption{Desktop Client after Directory Import}
+	\label{fig:fullApp}
+	\end{figure}
 
 
 \end{document}
