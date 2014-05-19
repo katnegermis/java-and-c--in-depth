@@ -128,7 +128,7 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public static List<Tuple<long, string>>  ListVFSes(string username, string password) {
+        public static List<Tuple<long, string>> ListVFSes(string username, string password) {
             var conns = ConnectToHubStatic(username, password);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "ListVFSes", username, password);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {

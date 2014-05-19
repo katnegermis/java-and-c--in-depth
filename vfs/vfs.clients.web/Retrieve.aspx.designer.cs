@@ -13,6 +13,15 @@ namespace vfs.clients.web {
     public partial class Retrieve {
         
         /// <summary>
+        /// retrieveView control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView retrieveView;
+        
+        /// <summary>
         /// Master property.
         /// </summary>
         /// <remarks>

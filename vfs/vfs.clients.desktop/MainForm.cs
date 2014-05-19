@@ -400,7 +400,7 @@ namespace vfs.clients.desktop
             if (e.KeyCode == Keys.Enter)
             {
                 var searchString = searchTextBox.Text.Trim();
-                if (searchString != "")
+                if (searchString.Length == 0)
                     makeSearch(searchString);
             }
         }
@@ -598,7 +598,7 @@ namespace vfs.clients.desktop
         /// Shows the CreateForm as Dialog to let the user enter the necessary values.
         /// Then calls the method to make the actual VFS creation.
         /// </summary>
-        private void makeVFSCreate()
+        private static void makeVFSCreate()
         {
             using (var form = new CreateForm())
             {
@@ -657,7 +657,7 @@ namespace vfs.clients.desktop
         /// Shows a OpenFileDialog to let the user choose the VFS file to delete.
         /// Then makes the call to the delete method.
         /// </summary>
-        private void makeVFSDelete()
+        private static void makeVFSDelete()
         {
             var openFileDialog = new OpenFileDialog();
 
@@ -1099,7 +1099,7 @@ namespace vfs.clients.desktop
                             if (selected.IsFolder)
                                 makeMoveInto(selected.Path, true);
                             else
-                                makeMoveInto(session.ParentDirOf(selected.Path), true);
+                                makeMoveInto(VFSSession.ParentDirOf(selected.Path), true);
                         }
                     }
                 }
@@ -1126,9 +1126,7 @@ namespace vfs.clients.desktop
                 else
                 {
                     var listForm = new VFSListForm();
-                    listForm.vfsList = list;
-                    listForm.loggedInUsername = login.userName;
-                    listForm.loggedInPw = login.password;
+                    listForm.prepareToBeShown(login.userName, login.password, list);
                     listForm.ShowDialog(this);
                 }
             }

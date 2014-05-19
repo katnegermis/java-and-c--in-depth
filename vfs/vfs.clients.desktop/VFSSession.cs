@@ -393,18 +393,18 @@ namespace vfs.clients.desktop
         /// <summary>
         /// Searches for the given string and returns the found files.
         /// </summary>
-        /// <param name="searchString">String to search for.</param>
+        /// <param name="searchText">String to search for.</param>
         /// <returns>DirectoryEntry Array with the found files.</returns>
-        public DirectoryEntry[] Search(string searchString)
+        public DirectoryEntry[] Search(string searchText)
         {
             switch (SearchLocation)
             {
                 case SearchLocation.Everywhere:
-                    return getDirEntryDetails(vfsSynchronizer.Search(searchString, SearchCaseSensitive));
+                    return getDirEntryDetails(vfsSynchronizer.Search(searchText, SearchCaseSensitive));
                 case SearchLocation.SubFolder:
-                    return getDirEntryDetails(vfsSynchronizer.Search(CurrentDir, searchString, SearchCaseSensitive, true));
+                    return getDirEntryDetails(vfsSynchronizer.Search(CurrentDir, searchText, SearchCaseSensitive, true));
                 case SearchLocation.Folder:
-                    return getDirEntryDetails(vfsSynchronizer.Search(CurrentDir, searchString, SearchCaseSensitive, false));
+                    return getDirEntryDetails(vfsSynchronizer.Search(CurrentDir, searchText, SearchCaseSensitive, false));
                 default:
                     throw new Exception("Invalid \"SearchLocation\" enum value in your Session.");
             }
@@ -474,10 +474,10 @@ namespace vfs.clients.desktop
             {
                 vfsSynchronizer.LogIn(userName, password);
             }
-            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            catch //(vfs.exceptions.VFSSynchronizationServerException e)
             {
                 //TODO check the statuscode or so
-                throw e;
+                throw;
             }
             this.UserName = userName;
             return true;
@@ -496,13 +496,13 @@ namespace vfs.clients.desktop
                 var versionId = vfsSynchronizer.AddVFS();
                 vfsSynchronizer.SetId(versionId);
             }
-            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            catch (vfs.exceptions.VFSSynchronizationServerException)
             {
-                throw e;
+                throw;
             }
-            catch (vfs.exceptions.AlreadySynchronizedVFSException e)
+            catch (vfs.exceptions.AlreadySynchronizedVFSException)
             {
-                throw e;
+                throw;
             }
             return true;
         }
@@ -513,9 +513,9 @@ namespace vfs.clients.desktop
             {
                 vfsSynchronizer.RemoveVFS();
             }
-            catch (vfs.exceptions.VFSSynchronizationServerException e)
+            catch (vfs.exceptions.VFSSynchronizationServerException)
             {
-                throw e;
+                throw;
             }
             return true;
         }
@@ -569,16 +569,12 @@ namespace vfs.clients.desktop
         /// </summary>
         /// <param name="path">To calculate the parent directory from</param>
         /// <returns></returns>
-        public string ParentDirOf(string path)
+        public static string ParentDirOf(string path)
         {
-            string result;
-
-            if (Helpers.TrimLastSlash(path) == "")
+            if (String.IsNullOrEmpty(Helpers.TrimLastSlash(path)))
                 return path;
 
-            result = Helpers.PathGetDirectoryName(Helpers.TrimLastSlash(path));
-
-            return result;
+            return Helpers.PathGetDirectoryName(Helpers.TrimLastSlash(path));
         }
 
         /// <summary>
