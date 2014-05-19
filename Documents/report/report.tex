@@ -214,7 +214,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
-		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in\newline 
+		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in\newline
 		Default.aspx.cs.
 		\end{enumerate}
 	\item
@@ -307,14 +307,14 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item The server maintains a table with the registered unique user names and their according password. The methods to do so are \texttt{Register(string name, string password)} and \texttt{Login(string name, string password)} of ther server's database class \texttt{JCDSynchronizerDatabase}.
 	\item Changes coming from the clients to the server are executed locally in the respective method of \texttt{JCDSynchronizerDatabase} and then stored in the database in method \texttt{addChange(int eventType, long fileId, byte[] data)} of the same class. If there is another browser that has the changed VFS open, the change is sent to this client through methods \texttt{SendGroupMessage(HubCallerContext context,...)} of the hub class \texttt{JCDSynchronizerHub}.
 	\end{enumerate}
-	
+
 	\subsubsection{Bonus Points}
 	\begin{enumerate}
 	\item A set of unit tests for the synchronization has been created. They can be found in classes \texttt{JCDVFSSynchronizerTests} and \newline
 	\texttt{JCDSynchronizerSerializationTests} under \texttt{vfs.synchronizer.tests}.
-	\item Concurrent changes coming from different client on one account and also possibly on the same VFS file are supported by the server. Additionally, such changes on the same VFS are propagated to these other clients automatically and instantly. The browsers are then checking whether the change affects the displayed content and, if this is the case, the forms are updated. 
+	\item Concurrent changes coming from different client on one account and also possibly on the same VFS file are supported by the server. Additionally, such changes on the same VFS are propagated to these other clients automatically and instantly. The browsers are then checking whether the change affects the displayed content and, if this is the case, the forms are updated.
 	\item The synchronization of files happens on a minimal delta changes level, which means that only the blocks affected by a change are sent to the server and back.
-	\item We are storing the original file and incremental changes to it in the database, which together gives a full history for files and would allow to restore to any previous version. We, however, do not have been able to create an interface for this yet. 
+	\item We are storing the original file and incremental changes to it in the database, which together gives a full history for files and would allow to restore to any previous version. We, however, do not have been able to create an interface for this yet.
 	\end{enumerate}
 
 \subsection{Design}
@@ -377,6 +377,25 @@ To facilitate debugging we have created a console client. The available commands
 %\item Stop synchronization server.
 %\end{enumerate}
 %}
+
+\begin{enumerate}
+    \item 1. Start vfs.synchronization.server project console application.
+    \item 2. Start vfs.clients.desktop GUI application
+    \item 3. Create a VFS by clicking "Create VFS" in the GUI application.
+    \item 4. Open the newly created VFS by clicking "Open VFS" in the GUI application.
+    \item 5. Register a new user by clicking "Login", input username and password, and click Register.
+    \item 6. You are now logged in.
+    \item 7. Click "Synchronize" in order to start synchronizing the VFS with the server.
+    \item 8. Find a directory you want to import and drag it on to the GUI application.
+    \item 9. Wait for the files to be imported.
+    \item 10. Click "Close VFS" in order to stop the connection to the server.
+    \item 11. Click "Server VFS" and input the previously determined username and password.
+    \item 12. Double click the previously synchronized VFS and choose a place to store it.
+    \item 13. Click "Open VFS" in order to open the second VFS.
+    \item 14. Right click the previously imported folder and click "Export".
+    \item 15. Now choose a place to export the folder to.
+    \item 16. Enjoy your exported files!
+\end{enumerate}
 
 
 \end{document}
