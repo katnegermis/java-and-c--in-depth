@@ -14,12 +14,27 @@ namespace vfs.clients.desktop
     public partial class LoginForm : Form
     {
 
-        public string userName { get; private set; }
-        public string password { get; private set; }
+        private string userName;
+        private string password;
+        private List<Tuple<long, string>> listVFS;
+
+        public Tuple<string, string> GetLoginCredentials
+        {
+            get
+            {
+                return new Tuple<string, string>(userName, password);
+            }
+        }
+
+        public List<Tuple<long, string>> GetVFSList
+        {
+            get
+            {
+                return listVFS;
+            }
+        }
 
         public bool forListVFS { private get; set; }
-
-        public List<Tuple<long, string>> listVFS { get; private set; }
 
         public VFSSession session { private get; set; }
 

@@ -11,7 +11,7 @@ namespace vfs.core.visitor
     /// </summary>
     class BlockCounterVisitor : IVisitor
     {
-        public uint Blocks = 0;
+        internal uint Blocks = 0;
         private bool debug = false;
 
         public BlockCounterVisitor(bool debug)

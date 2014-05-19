@@ -18,7 +18,7 @@ namespace vfs.clients.desktop
         private string username;
         private string pw;
 
-        private List<Tuple<long, string>> list;
+        private List<Tuple<long, string>> list = new List<Tuple<long, string>>();
 
         public VFSListForm()
         {
