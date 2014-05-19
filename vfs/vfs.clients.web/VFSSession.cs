@@ -601,6 +601,10 @@ namespace vfs.clients.web
             return true;
         }
 
+        public static List<Tuple<long, string>> ListVFSes(string username, string password) {
+            return JCDVFSSynchronizer.ListVFSes(username, password);
+        }
+
         #endregion
 
         #region Internal methods

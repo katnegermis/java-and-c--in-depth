@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.core", "vfs.core\vfs.core.csproj", "{F283EE69-4609-4C8F-A26C-48B9E72EBFAB}"
 EndProject
@@ -29,6 +29,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.server", "vfs.synchronizer.server\vfs.synchronizer.server.csproj", "{6279061C-D60F-4FBE-8EAD-9435C702F577}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.common", "vfs.synchronizer.common\vfs.synchronizer.common.csproj", "{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupRadioButton", "vfs.clients.web\GroupRadioButton\GroupRadioButton.csproj", "{A25C53BE-642D-42CE-B104-595C43707C91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +86,10 @@ Global
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A25C53BE-642D-42CE-B104-595C43707C91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A25C53BE-642D-42CE-B104-595C43707C91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A25C53BE-642D-42CE-B104-595C43707C91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A25C53BE-642D-42CE-B104-595C43707C91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
