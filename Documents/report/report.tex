@@ -328,9 +328,16 @@ When thinking about how to design the database schema, it was clear that there h
 \\
 We furthermore realized that changes that are sent from clients to the server have to be stored, so that they can be sent or reused later. In order to have the database ready for file history functionality, we added a table "Files" that specifies what VFS it is from through the foreign key "vfs\_id" and where it is in the actual VFS through "vfsPath". The actual changes are then stored in an own table "Changes", where they are linked to a file entry through the foreign key "file\_id". What we store of the change in the database itself is of what type the change was ("event\_type") and in what file of the host system the according serialized data is stored.\\
 \\
-This gave the schema of our database that can be seen in pic 123.\\%TODO include pic  \\
-\\
-One thing to point out is that the server does execute all the changes locally on a current version of the according VFS file. This makes it possible to send the data directly, without having to execute any updates, to a client that would like to retrieve a VFS. 
+This gave the schema of our database that can be seen in Figure~\ref{fig:dbSchema}\\
+	
+\begin{figure}%[H]
+	\centering
+		\includegraphics[width=1.00\textwidth]{dbSchema.png}
+		\caption{Database Schema}
+	\label{fig:dbSchema}
+\end{figure}
+
+\noindent One thing to point out is that the server does execute all the changes locally on a current version of the according VFS file. This makes it possible to send the data directly, without having to execute any updates, to a client that would like to retrieve a VFS. 
 
 \subsection{Integration}
 
@@ -443,18 +450,18 @@ To facilitate debugging we have created a console client. The available commands
 \end{enumerate}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=1.00\textwidth]{basicApp.png}
-\caption{Desktop Client after Startup}
-\label{fig:basicApp}
+	\centering
+		\includegraphics[width=1.00\textwidth]{basicApp.png}
+		\caption{Desktop Client after Startup}
+	\label{fig:basicApp}
 \end{figure}
 	
-	\begin{figure}[H]
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=1.00\textwidth]{afterImportApp.png}
-	\caption{Desktop Client after Directory Import}
+		\includegraphics[width=1.00\textwidth]{afterImportApp.png}
+		\caption{Desktop Client after Directory Import}
 	\label{fig:fullApp}
-	\end{figure}
+\end{figure}
 
 
 \end{document}
