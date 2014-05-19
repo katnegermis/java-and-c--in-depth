@@ -148,19 +148,21 @@ namespace vfs.synchronizer.client
             }
             var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
             if(changes != null && changes.Item2.Count > 0) {
-                vfs.Close();
-                try {
-                    JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                lock(this.vfs) {
+                    vfs.Close();
+                    try {
+                        JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                    }
+                    catch (FileAlreadyExistsException e) {
+                        throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                    }
+                    catch (vfs.exceptions.FileNotFoundException e) {
+                        throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                    }
+                    vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+                    SubscribeToEvents(vfs);
+                    vfs.SetCurrentVersionId(changes.Item1);
                 }
-                catch (FileAlreadyExistsException e) {
-                    throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
-                }
-                catch (vfs.exceptions.FileNotFoundException e) {
-                    throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
-                }
-                vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
-                SubscribeToEvents(vfs);
-                vfs.SetCurrentVersionId(changes.Item1);
             }
         }
 
