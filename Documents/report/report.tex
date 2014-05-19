@@ -379,22 +379,40 @@ To facilitate debugging we have created a console client. The available commands
 %}
 
 \begin{enumerate}
-    \item 1. Start vfs.synchronization.server project console application.
-    \item 2. Start vfs.clients.desktop GUI application
-    \item 3. Create a VFS by clicking "Create VFS" in the GUI application.
-    \item 4. Open the newly created VFS by clicking "Open VFS" in the GUI application.
-    \item 5. Register a new user by clicking "Login", input username and password, and click Register.
-    \item 6. You are now logged in.
-    \item 7. Click "Synchronize" in order to start synchronizing the VFS with the server.
-    \item 8. Find a directory you want to import and drag it on to the GUI application.
-    \item 9. Wait for the files to be imported.
-    \item 10. Click "Close VFS" in order to stop the connection to the server.
-    \item 11. Click "Server VFS" and input the previously determined username and password.
-    \item 12. Double click the previously synchronized VFS and choose a place to store it.
-    \item 13. Click "Open VFS" in order to open the second VFS.
-    \item 14. Right click the previously imported folder and click "Export".
-    \item 15. Now choose a place to export the folder to.
-    \item 16. Enjoy your exported files!
+    \item Start vfs.synchronization.server console application.
+    \item Start vfs.clients.desktop GUI application.
+    \item Create a VFS by clicking "Create VFS" in the GUI application.
+    \item Open the newly created VFS by clicking "Open VFS" in the GUI application.
+    \item Register a new user by clicking "Login", input username and password, and click Register.
+    \item You are now logged in.
+    \item Click "Synchronize" in order to start synchronizing the VFS with the server.
+    \item Find a directory you want to import and drag it on to the GUI application.
+    \item Wait for the files to be imported.
+    \item Click "Close VFS" in order to stop the connection to the server.
+    \item Click "Server VFS" and input the previously determined username and password.
+    \item Double click the previously synchronized VFS and choose a place to store it.
+    \item Click "Open VFS" in order to open the second VFS.
+    \item Right click the previously imported folder and click "Export".
+    \item Now choose a place to export the folder to.
+    \item Enjoy your exported files!
+\end{enumerate}
+
+\begin{enumerate}
+    \item Start vfs.synchronization.server console application.
+    \item Start vfs.clients.desktop GUI application.
+    \item Create a VFS by clicking "Create VFS" in the GUI application.
+    \item Open the newly created VFS by clicking "Open VFS" in the GUI application.
+    \item Register a new user by clicking "Login", input username and password, and click Register.
+    \item You are now logged in.
+    \item Click "Synchronize" in order to start synchronizing the VFS with the server.
+    \item Start a second instance of vfs.clients.desktop GUI application.
+    \item In the second instance of the GUI application, click "Server VFS" and download the previously synchronized VFS.
+    \item In the second instance of the GUI application, click "Open VFS" and open the newly downloaded VFS.
+    \item In the second instance of the GUI application, click "Login" and input the chosen username and password.
+    \item Create or import a file and/or folder on the first instance of the GUI application.
+    \item The files should now be pushed to the second GUI application.
+    \item Export the files from the second GUI application.
+    \item Enjoy your exported files!
 \end{enumerate}
 
 
