@@ -200,5 +200,8 @@ namespace vfs.core
 
         long GetId();
         void SetId(long id);
+
+        void SetCurrentVersionId(long versionId);
+        long GetCurrentVersionId();
     }
 }

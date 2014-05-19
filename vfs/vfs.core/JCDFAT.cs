@@ -64,6 +64,7 @@ namespace vfs.core
         private uint freeBlocks;
         private uint firstFreeBlock;
         private long vfsId = -1;
+        private long vfsVersionId = -1;
         private uint[] fat;
 
         private JCDFolder rootFolder;
@@ -571,6 +572,7 @@ namespace vfs.core
             hfsBinaryWriter.Write(searchFileTreeBlock); // Currently statically set to 1.
             hfsBinaryWriter.Write(searchFileDataBlock); // Currently statically set to 2.
             hfsBinaryWriter.Write(vfsId);
+            hfsBinaryWriter.Write(vfsVersionId);
         }
 
         /// <summary>
@@ -580,17 +582,7 @@ namespace vfs.core
         /// case that function is changed in the future, we don't want to use that one.
         /// </summary>
         private void UpdateMetaData() {
-            // Go to start of JCDVFS-file and write meta data continuously.
-            Seek(0L);
-            hfsBinaryWriter.Write(magicNumber);
-            hfsBinaryWriter.Write(blockSize); // Currently set to 4KB fixed size.
-            hfsBinaryWriter.Write(fatBlocks); // Number of blocks that the FAT spans.
-            hfsBinaryWriter.Write(freeBlocks); // Number of free blocks.
-            hfsBinaryWriter.Write(firstFreeBlock); // First free block. Currently statically set to 2.
-            hfsBinaryWriter.Write(rootDirBlock); // Currently statically set to 0.
-            hfsBinaryWriter.Write(searchFileTreeBlock); // Currently statically set to 1.
-            hfsBinaryWriter.Write(searchFileDataBlock); // Currently statically set to 2.
-            hfsBinaryWriter.Write(vfsId);
+            NewFSWriteMetaData();
         }
 
         private void ParseMetaData()
@@ -628,6 +620,7 @@ namespace vfs.core
             }
 
             vfsId = hfsBinaryReader.ReadInt64();
+            vfsVersionId = hfsBinaryReader.ReadInt64();
         }
 
         private void NewFSCreateRootFolder()
@@ -1350,6 +1343,15 @@ namespace vfs.core
 
         private bool FileIsInternal(string path) {
             return path == searchFileDataPath || path == searchFileTreePath;
+        }
+
+        public void SetCurrentVersionId(long versionId) {
+            this.vfsVersionId = versionId;
+            UpdateMetaData();
+        }
+
+        public long GetCurrentVersionId() {
+            return vfsVersionId;
         }
     }
 }
