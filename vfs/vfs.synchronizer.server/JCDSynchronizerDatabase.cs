@@ -697,7 +697,8 @@ namespace vfs.synchronizer.server
         }
 
         private Tuple<string, string> GetVFSStorageNames(string vfsName) {
-            return Tuple.Create(vfsName + ".init", vfsName + ".curr");
+            var vfsPath = Path.Combine(vfsStorageDir, vfsName);
+            return Tuple.Create(vfsPath + ".init", vfsPath + ".curr");
         }
 
         private void VFSesSetId(long vfsId, params string[] pathToVFSes) {
