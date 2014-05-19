@@ -15,10 +15,10 @@ namespace vfs.clients.desktop
     public partial class VFSListForm : Form
     {
 
-        public string loggedInUsername { private get; set; }
-        public string loggedInPw { private get; set; }
+        private string username;
+        private string pw;
 
-        public List<Tuple<long, string>> vfsList { private get; set; }
+        private List<Tuple<long, string>> list;
 
         public VFSListForm()
         {
@@ -28,6 +28,13 @@ namespace vfs.clients.desktop
         private void VFSListForm_Load(object sender, EventArgs e)
         {
             populateListView();
+        }
+
+        public void prepareToBeShown(string loggedInUsername, string loggedInPw, List<Tuple<long, string>> vfsList)
+        {
+            this.username = loggedInUsername;
+            this.pw = loggedInPw;
+            this.list = vfsList;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -61,7 +68,7 @@ namespace vfs.clients.desktop
                 serverVFSListView.Items.Clear();
                 ListViewItem item = null;
 
-                foreach (var vfsEntry in vfsList)
+                foreach (var vfsEntry in list)
                 {
                     item = new ListViewItem(vfsEntry.Item2, 0);
                     item.Tag = vfsEntry.Item1;
@@ -95,7 +102,7 @@ namespace vfs.clients.desktop
                     if (File.Exists(file))
                         throw new Exception("File already exising!");
 
-                    var reply = JCDVFSSynchronizer.RetrieveVFS(loggedInUsername, loggedInPw, vfsId);
+                    var reply = JCDVFSSynchronizer.RetrieveVFS(username, pw, vfsId);
                     //long versionId = (long)reply.Data[0];
                     var data = (byte[])reply.Data[1];
 

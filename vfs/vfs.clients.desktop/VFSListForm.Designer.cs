@@ -36,6 +36,7 @@
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.okButton = new System.Windows.Forms.Button();
+            this.NameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
@@ -65,7 +66,9 @@
             // 
             // serverVFSListView
             // 
-            this.serverVFSListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
+            this.serverVFSListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.NameHeader});
+            this.serverVFSListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.serverVFSListView.Location = new System.Drawing.Point(6, 25);
             this.serverVFSListView.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
             this.serverVFSListView.MultiSelect = false;
@@ -105,6 +108,11 @@
             this.okButton.UseVisualStyleBackColor = true;
             this.okButton.Click += new System.EventHandler(this.okButton_Click);
             // 
+            // NameHeader
+            // 
+            this.NameHeader.Text = "Name";
+            this.NameHeader.Width = 132;
+            // 
             // VFSListForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -130,5 +138,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.ImageList imageList;
+        private System.Windows.Forms.ColumnHeader NameHeader;
     }
 }
