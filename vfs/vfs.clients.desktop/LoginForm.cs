@@ -57,6 +57,11 @@ namespace vfs.clients.desktop
         {
             userName = nameTextBox.Text;
             password = textBox1.Text;
+            if (String.IsNullOrWhiteSpace(userName) || String.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show(this, "Please enter your credentials.", "Empty field", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             if (forListVFS)
             {
@@ -84,11 +89,16 @@ namespace vfs.clients.desktop
 
         private void registerButton_Click(object sender, EventArgs e)
         {
+            userName = nameTextBox.Text;
+            password = textBox1.Text;
+            if (String.IsNullOrWhiteSpace(userName) || String.IsNullOrWhiteSpace(password))
+            {
+                MessageBox.Show(this, "Please enter your credentials.", "Empty field", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             try
             {
-                string userName = nameTextBox.Text;
-                string password = textBox1.Text;
-
                 JCDVFSSynchronizer.Register(userName, password);
 
                 if (makeLogin(userName, password))

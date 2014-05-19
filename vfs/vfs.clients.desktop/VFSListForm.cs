@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using vfs.clients.desktop.exceptions;
 using vfs.synchronizer.client;
 
 namespace vfs.clients.desktop
@@ -100,7 +101,7 @@ namespace vfs.clients.desktop
                 {
                     var file = saveFileDialog.FileName;
                     if (File.Exists(file))
-                        throw new Exception("File already exising!");
+                        throw new FileAlreadyExistsException("File already exising!");
 
                     var reply = JCDVFSSynchronizer.RetrieveVFS(username, pw, vfsId);
                     long versionId = reply.Item1;
