@@ -31,8 +31,8 @@ namespace vfs.clients.web {
             else if(HttpContext.Current.Session["username"] != null
                 && HttpContext.Current.Session["password"] != null) {
                 try {
-                    VFSes = VFSSession.ListVFSes((string) HttpContext.Current.Session["tmpUsername"],
-                        (string) HttpContext.Current.Session["tmpPassword"]);
+                    VFSes = VFSSession.ListVFSes((string) HttpContext.Current.Session["username"],
+                        (string) HttpContext.Current.Session["password"]);
                 }
                 catch(Exception ex) {
                     retrieveView.Visible = false;
