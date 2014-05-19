@@ -146,7 +146,7 @@ namespace vfs.synchronizer.server
         [Authorize]
         public JCDSynchronizerReply FileAdded(long vfsId, string path, long size, bool isFolder)
         {
-            Console.WriteLine("Client called FileAdded ({0}, {1}, {2}, {3}", vfsId, path, size, isFolder);
+            Console.WriteLine("Client called FileAdded ({0}, {1}, {2}, {3})", vfsId, path, size, isFolder);
 
             var id = db.AddFile(vfsId, path, size, isFolder);
             
