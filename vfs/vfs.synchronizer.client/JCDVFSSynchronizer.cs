@@ -70,7 +70,7 @@ namespace vfs.synchronizer.client
         }
         
         internal void InformServerFileAdded(string path, long size, bool isFolder) {
-            if (!(LoggedIn())) {
+            if (!(LoggedIn() && IsSynchronized())) {
                 // Log to disk
                 return;
             }
@@ -78,35 +78,35 @@ namespace vfs.synchronizer.client
         }
 
         internal void InformServerFileDeleted(string path) {
-            if (!(LoggedIn())) {
+            if (!(LoggedIn() && IsSynchronized())) {
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", path);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", vfs.GetId(), path);
         }
 
         internal void InformServerFileMoved(string oldPath, string newPath) {
-            if (!(LoggedIn())) {
+            if (!(LoggedIn() && IsSynchronized())) {
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", oldPath, newPath);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", vfs.GetId(), oldPath, newPath);
         }
 
         internal void InformServerFileModified(string path, long offset, byte[] data) {
-            if (!(LoggedIn())) {
+            if (!(LoggedIn() && IsSynchronized())) {
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileModified", path, offset, data);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileModified", vfs.GetId(), path, offset, data);
         }
 
         internal void InformServerFileResized(string path, long newSize) {
-            if (!(LoggedIn())) {
+            if (!(LoggedIn() && IsSynchronized())) {
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileResized", path, newSize);
+            var reply = HubInvoke<JCDSynchronizerReply>("FileResized", vfs.GetId(), path, newSize);
         }
 
         public void LogIn(string username, string password) {
@@ -143,7 +143,7 @@ namespace vfs.synchronizer.client
         /// </summary>
         /// <returns></returns>
         public long AddVFS() {
-            if (vfs.GetId() != NotSynchronizedId) {
+            if ( IsSynchronized()) {
                 throw new AlreadySynchronizedVFSException("This VFS is already being synchronized!");
             }
 
@@ -176,13 +176,14 @@ namespace vfs.synchronizer.client
             }
         }
 
-        public static JCDSynchronizerReply RetrieveVFS(string username, string password, long vfsId) {
+        public static Tuple<long, byte[]> RetrieveVFS(string username, string password, long vfsId) {
             var conns = ConnectToHubStatic(username, password);
             var res = HubInvoke<JCDSynchronizerReply>(conns.Item2, "RetrieveVFS", vfsId);
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
-            return res;
+            var data = (JObject)res.Data[0];
+            return (Tuple<long, byte[]>)data.ToObject(typeof(Tuple<long, byte[]>));
         }
 
         public bool LoggedIn() {
@@ -190,6 +191,9 @@ namespace vfs.synchronizer.client
         }
 
         public void LogOut() {
+            if (!LoggedIn()) {
+                return;
+            }
             var result = HubInvoke<JCDSynchronizerReply>("LogOut");
             this.hubConn.Stop();
             this.hubConn = null;
