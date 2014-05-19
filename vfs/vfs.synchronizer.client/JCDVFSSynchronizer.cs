@@ -159,7 +159,9 @@ namespace vfs.synchronizer.client
             if (res.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new VFSSynchronizationServerException(res.Message);
             }
-            return (long)res.Data[0];
+            var vfsId = (long)res.Data[0];
+            vfs.SetId(vfsId);
+            return vfsId;
         }
 
 
