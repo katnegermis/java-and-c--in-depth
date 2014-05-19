@@ -494,7 +494,6 @@ namespace vfs.clients.desktop
             try
             {
                 var versionId = vfsSynchronizer.AddVFS();
-                vfsSynchronizer.SetId(versionId);
             }
             catch (vfs.exceptions.VFSSynchronizationServerException)
             {
