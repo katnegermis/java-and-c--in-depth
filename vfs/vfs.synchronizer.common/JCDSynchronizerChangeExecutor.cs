@@ -18,6 +18,13 @@ namespace vfs.synchronizer.common
                 Execute(vfs, tuple.Item1, tuple.Item2);
         }
 
+        public static void Execute(long versionId, string vfsPath, int eventType, byte[] changeData) {
+            Execute(vfsPath, eventType, changeData);
+            using (var vfs = JCDFAT.Open(vfsPath)) {
+                vfs.SetCurrentVersionId(versionId);
+            }
+        }
+
         public static void Execute(string vfs, int eventType, byte[] changeData)
         {
             string vfsPath;

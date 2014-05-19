@@ -133,7 +133,7 @@ namespace vfs.synchronizer.server
         [Authorize]
         public JCDSynchronizerReply RetrieveChanges(long vfsId, long lastVersionId)
         {
-            Console.WriteLine("Client called RetrieveChanges");
+            Console.WriteLine("Client called RetrieveChanges({0}, {1})", vfsId, lastVersionId);
             Tuple<long, List<Tuple<int, byte[]>>> changes = null;
 
             try {

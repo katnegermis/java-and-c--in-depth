@@ -159,9 +159,11 @@ namespace vfs.synchronizer.client
                     catch (vfs.exceptions.FileNotFoundException e) {
                         throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
                     }
-                    vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
-                    SubscribeToEvents(vfs);
-                    vfs.SetCurrentVersionId(changes.Item1);
+                    finally {
+                        vfs = (IJCDBasicVFS)IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+                        SubscribeToEvents(vfs);
+                        vfs.SetCurrentVersionId(changes.Item1);
+                    }
                 }
             }
         }
