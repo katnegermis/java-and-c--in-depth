@@ -63,8 +63,8 @@ In this part we indicate and describe what requirements we have implemented. We 
 \end{enumerate}
 
 \subsubsection{Bonus points}
-We've implemented two of the bonus features of this milestone. The first one is "Elastic disk". Our virtual disk initially takes up only the space required by the meta data (and FAT), and hereafter expands itself as needed when importing files. We currently have an untested implementation of automatic shrinking of the virtual disk.\\
-The second bonus feature we've implemented is "Large data". This feature is implemented by using buffers of a predefined, constant size, when reading/writing files to/from the file system, instead of having the whole VFS in memory. The current implementation uses quite big buffers (20 MB), trying to mitigate the problem of constantly reading and writing from different parts of the harddisk.
+We've implemented two of the bonus features of this milestone. The first one is "Elastic disk". Our virtual disk initially takes up only the space required by the meta data (and FAT), and thereafter expands itself as needed when importing files. We currently have an untested implementation of automatic shrinking of the virtual disk.\\
+The second bonus feature we've implemented is "Large data". This feature is implemented by using buffers of a predefined, constant size, when reading/writing files to/from the file system, instead of having the whole VFS in memory. The current implementation uses quite big buffers (100 MB), trying to mitigate the problem of constantly reading and writing from different parts of the hard disk.
 
 
 \subsection{Design}
@@ -214,7 +214,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item All operations from VFS core are supported, some through buttons, especially operations on VFSs, but most through the list view, which is the main component of the browser, and its menu. The event handling is done mostly in MainForm.cs and the other Form classes.
-		\item All operations from VFS core are (not yet) supported, mostly through buttons. The event handling is done mostly in\newline
+		\item All operations from VFS core are supported, mostly through buttons. The event handling is done mostly in\newline
 		Default.aspx.cs.
 		\end{enumerate}
 	\item
@@ -225,7 +225,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\item
 		\begin{enumerate} [label={(\alph*)}]
 		\item Keyboard navigation in the application is done mostly through the TAB key. In the list view going to child folders is done through pressing ENTER when a folder is selected. Going back can be done trough the Back-Button or the BACKSPACE key. Common Windows key functionalities (e.g. Delete)as well as combinations (e.g. Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A) are all supported.
-		\item Keyboard navigation is not yet implemented.
+		\item All header links in the web ui have keyboard shortcuts that are accessed with Alt + the underlined character (in Chrome, the modifier may be different in other browsers). All buttons in the file browser similarly have a keyboard shortcut that is written in brackets. The UP button is accessed with Alt + U. All other buttons are accessed with the TAB key.
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
@@ -234,8 +234,8 @@ In this part we indicate and describe what requirements we have implemented. We 
 		\end{enumerate}
 	\item
 		\begin{enumerate} [label={(\alph*)}]
-		\item Search can be done by entering the key word into the text box at the top right corner and then pressing ENTER. Selection of the search options can be done in the menu that appears when a click on the v-Button besides the text box happens.
-		\item Search is not yet implemented.
+		\item Search can be done by entering the file name into the text box at the top right corner and then pressing ENTER. Selection of the search options can be done in the menu that appears when a click on the v-Button besides the text box happens.
+		\item The search box is above the file browser. There are checkboxes to restrict the search to the current folder and to do case sensitive search. To search in the whole VFS, go to the root folder.
 		\end{enumerate}
 \end{enumerate}
 
@@ -243,7 +243,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 As a general bonus feature we have implemented browsers for two different platforms. The platform specific implemented bonus features are:
 		\begin{enumerate} [label={(\alph*)}]
 		\item In the desktop client we have implemented especially nice-to-have features like drag-and-drop. Inside of the list view, dragging with the left mouse button results in a move and with the right mouse button in a copy operation. Dragging from the Windows Explorer and dropping into the list view results in an Import. Dragging an item of the list view and dropping it outside of this view results in an Export.
-		\item Nothing to see here, move on.
+		\item The existence of the web client.
 		\end{enumerate}
 
 \subsection{Design}
@@ -263,7 +263,7 @@ The most notable design decision was to make a clean separation between the View
 
 \subsubsection{Web client}
 
-The web client largely reuses the VFSSession class from the desktop client, though some changes are currently separate because of differences in error handling and data binding.
+The web client largely reuses the VFSSession class from the desktop client, though some changes were necessary because of differences in error handling and data binding. One important difference from the desktop client is that logging in and out is unified: after logging in, you can open, close or retrieve VFSes, all while staying logged in.
 
 \subsection{Integration}
 \label{sec:integration}
@@ -298,8 +298,8 @@ In this part we indicate and describe what requirements we have implemented. We 
 \subsubsection{Browser}
 \begin{enumerate}
 	\item Both browsers allow the user to create new accounts or to log in to an existing account. The methods that are used for this are \texttt{LogIn(string username, string password)} and \texttt{Register(string username, string password)} in class \texttt{JCDVFSSynchronizer}.
-	\item The browsers have an offline mode when a synchronized VFS file is opened but the user is not logged in. Logging in again will send the changes mode while offline, as well as retrieve missing changes from the server.	This happens in the \texttt{LogIn(string username, string password)} of class \texttt{JCDVFSSynchronizer}.
-	\item Unsynched (open) VFS files can be added to logged in user accounts and also removed from them. This happens through the methods \texttt{AddVFS()} and \texttt{RemoveVFS()} of class \texttt{JCDVFSSynchronizer}.
+	\item The browsers have an offline mode when a synchronized VFS file is opened but the user is not logged in. Logging in again will send the changes made while offline, as well as retrieve missing changes from the server. This happens in the \texttt{LogIn(string username, string password)} of class \texttt{JCDVFSSynchronizer}.
+	\item Unsynced (open) VFS files can be added to logged in user accounts and also removed from them. This happens through the methods \texttt{AddVFS()} and \texttt{RemoveVFS()} of class \texttt{JCDVFSSynchronizer}.
 	\end{enumerate}
 
 \subsubsection{Server}
@@ -314,7 +314,7 @@ In this part we indicate and describe what requirements we have implemented. We 
 	\texttt{JCDSynchronizerSerializationTests} under \texttt{vfs.synchronizer.tests}.
 	\item Concurrent changes coming from different client on one account and also possibly on the same VFS file are supported by the server. Additionally, such changes on the same VFS are propagated to these other clients automatically and instantly. The browsers are then checking whether the change affects the displayed content and, if this is the case, the forms are updated.
 	\item The synchronization of files happens on a minimal delta changes level, which means that only the blocks affected by a change are sent to the server and back.
-	\item We are storing the original file and incremental changes to it in the database, which together gives a full history for files and would allow to restore to any previous version. We, however, do not have been able to create an interface for this yet.
+	\item We are storing the original file and incremental changes to it in the database, which together gives a full history for files and would allow to restore to any previous version. However, we have not been able to create an interface for this yet.
 	\end{enumerate}
 
 \subsection{Design}
@@ -337,9 +337,10 @@ One thing to point out is that the server does execute all the changes locally o
 \subsubsection{VFS Core}
 
 \subsubsection{Desktop Client}
-The obvious thing that had to be changed in the desktop client was the user interface. The controls in the MainForm had to be rearranged a bit since new buttons had to be added and some forms had to be created. The main change in the code basis was to add a layer for the synchronizatin between the session and the FAT. This means that all method calls from the forms to the session that are going to the FAT object are now going through the synchronizer, which also contains the network connection. 
+The obvious thing that had to be changed in the desktop client was the user interface. The controls in the MainForm had to be rearranged a bit since new buttons had to be added and some forms had to be created. The main change in the code basis was to add a layer for the synchronization between the session and the FAT. This means that all method calls from the forms to the session that are going to the FAT object are now going through the synchronizer, which also contains the network connection. 
 
 \subsubsection{Web Client}
+Also in the web client new UI elements had to be added, as well as the synchronization layer.
 
 
 
