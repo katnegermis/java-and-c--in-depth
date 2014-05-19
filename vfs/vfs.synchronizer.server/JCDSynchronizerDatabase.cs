@@ -139,10 +139,11 @@ namespace vfs.synchronizer.server
         }
 
         /// <summary>
-        /// 
+        /// Tries to retrieve the list of VFS files that is linked to the given user.
+        /// The list contains tuples with the current version Id of the VFS and the VFS Id.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
+        /// <param name="userId">Id of the user to retrieve the list for.</param>
+        /// <returns>The list of tuples with the current versionId and the VFSId</returns>
         internal List<Tuple<long, string>> ListVFSes(long userId)
         {
             try
@@ -540,29 +541,6 @@ namespace vfs.synchronizer.server
                 return versionId;
             }
         }
-
-        /// <summary>
-        /// Tries to add a new change to a vfs file without storing data.
-        /// </summary>
-        /// <param name="eventType">The type of the change.</param>
-        /// <param name="vfsPath">The id of the file that has been changed.</param>
-        /// <returns>The newly created version id if successfully created, null otherwise.</returns>
-        /* private string addChangeWithoutData(int eventType, long fileId)
-         {
-             using (var command = new SQLiteCommand(connection))
-             {
-                 command.CommandText = "INSERT INTO Changes (event_type, file_id) VALUES(@event_type, @fileId);";
-                 command.Parameters.Add("@event_type", System.Data.DbType.Int32).Value = eventType;
-                 command.Parameters.Add("@fileId", System.Data.DbType.Int64).Value = fileId;
-
-                 command.ExecuteNonQuery();
-
-                 command.CommandText = "SELECT last_insert_rowid();";
-                 long versionId = (long)command.ExecuteScalar();
-
-                 return versionId.ToString();
-             }
-         }*/
 
         /// <summary>
         /// Tries to retrieve the file ID of the file with the given vfsPath in the VFS with the given ID.
