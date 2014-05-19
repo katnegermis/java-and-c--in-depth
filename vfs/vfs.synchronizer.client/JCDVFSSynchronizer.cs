@@ -12,12 +12,14 @@ using System.IO;
 using System.Net;
 using System.Web.Security;
 using Newtonsoft.Json.Linq;
+using System.Data.SQLite;
 
 namespace vfs.synchronizer.client
 {
     public class JCDVFSSynchronizer : IJCDBasicVFS, IJCDSynchronizedVFS
     {
         private const long NotSynchronizedId = -1;
+        private string dbName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jcdOffline.db");
 
         // Path to the underlying VFS.
         private string hfsPath;
@@ -34,6 +36,109 @@ namespace vfs.synchronizer.client
         public event ResizeFileEventHandler FileResized;
 
         private bool PropagateToServer = true;
+
+        private SQLiteConnection offlineStorage = null;
+
+        internal void createTableIfNotExisting() {
+            try {
+                using(var command = new SQLiteCommand(offlineStorage)) {
+                    // Users
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Changes ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, vfsId INTEGER NOT NULL, eventType INTEGER NOT NULL, event BLOB NOT NULL );";
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch(Exception ex) {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        private void connectOfflineStorage() {
+            if(offlineStorage == null) {
+                offlineStorage = new SQLiteConnection();
+                offlineStorage.ConnectionString = "Data Source=" + dbName;
+                offlineStorage.Open();
+
+                createTableIfNotExisting();
+            }
+        }
+
+        private void disconnectOfflineStorage() {
+            if(offlineStorage != null) {
+                offlineStorage.Close();
+                offlineStorage.Dispose();
+                offlineStorage = null;
+            }
+        }
+
+        private void storeEventOffline(JCDSynchronizationEventType type, byte[] serializedEvent) {
+            using(var command = new SQLiteCommand(offlineStorage)) {
+                command.CommandText = "INSERT INTO Changes (vfsId, eventType, event) VALUES(@vfsId, @eventType, @event);";
+                command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfs.GetId();
+                command.Parameters.Add("@eventType", System.Data.DbType.Int32).Value = (int) type;
+                command.Parameters.Add("@event", System.Data.DbType.Binary).Value = serializedEvent;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private void commitOfflinesEvents() {
+            List<long> eventIds = new List<long>();
+
+            using(var command = new SQLiteCommand(offlineStorage)) {
+                command.CommandText = "SELECT id, eventType, event FROM Changes WHERE vfsId = @vfsId;";
+                command.Parameters.Add("@vfsId", System.Data.DbType.Int64).Value = vfs.GetId();
+
+                using(var reader = command.ExecuteReader()) {
+                    string vfsPath;
+                    string newPath;
+                    long offset;
+                    long newSize;
+                    long size;
+                    byte[] data;
+                    bool isFolder;
+
+                    int type;
+
+                    while(reader.Read()) {
+                        eventIds.Add(Convert.ToInt64(reader["id"]));
+
+                        type = Convert.ToInt32(reader["eventType"]);
+                        switch(type) {
+                            case (int) JCDSynchronizationEventType.Added:
+                                JCDSynchronizerSerialization.Deserialize<string, long, bool>(JCDSynchronizationEventType.Added, (byte[]) reader["event"], out vfsPath, out size, out isFolder);
+                                InformServerFileAdded(vfsPath, size, isFolder);
+                                break;
+                            case (int) JCDSynchronizationEventType.Deleted:
+                                JCDSynchronizerSerialization.Deserialize<string>(JCDSynchronizationEventType.Deleted, (byte[]) reader["event"], out vfsPath);
+                                InformServerFileDeleted(vfsPath);
+                                break;
+                            case (int) JCDSynchronizationEventType.Moved:
+                                JCDSynchronizerSerialization.Deserialize<string, string>(JCDSynchronizationEventType.Moved, (byte[]) reader["event"], out vfsPath, out newPath);
+                                InformServerFileMoved(vfsPath, newPath);
+                                break;
+                            case (int) JCDSynchronizationEventType.Modified:
+                                JCDSynchronizerSerialization.Deserialize<string, long, byte[]>(JCDSynchronizationEventType.Modified, (byte[]) reader["event"], out vfsPath, out offset, out data);
+                                InformServerFileModified(vfsPath, offset, data);
+                                break;
+                            case (int) JCDSynchronizationEventType.Resized:
+                                JCDSynchronizerSerialization.Deserialize<string, long>(JCDSynchronizationEventType.Resized, (byte[]) reader["event"], out vfsPath, out newSize);
+                                InformServerFileResized(vfsPath, newSize);
+                                break;
+                            default:
+                                Console.WriteLine(String.Format("Execution of a change of type {0} failed", type));
+                                break;
+                        }
+                    }
+                }
+            }
+
+            foreach(long id in eventIds) {
+                using(var command = new SQLiteCommand(offlineStorage)) {
+                    command.CommandText = "DELETE FROM Changes WHERE id = @id;";
+                    command.Parameters.Add("@id", System.Data.DbType.Int64).Value = id;
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
 
         internal void OnFileAdded(string path, long size, bool isFolder) {
             var handler = FileAdded;
@@ -72,55 +177,80 @@ namespace vfs.synchronizer.client
         }
         
         internal void InformServerFileAdded(string path, long size, bool isFolder) {
-            if (!(LoggedIn() && IsSynchronized())) {
-                // Log to disk
+            if(!IsSynchronized() || !PropagateToServer) {
                 return;
             }
-            if (PropagateToServer) {
+
+            if (!LoggedIn()) {
+                byte[] logEvent = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Added,
+                    path, size, isFolder);
+                storeEventOffline(JCDSynchronizationEventType.Added, logEvent);
+            }
+            else {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", vfs.GetId(), path, size, isFolder);
                 SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
         internal void InformServerFileDeleted(string path) {
-            if (!(LoggedIn() && IsSynchronized())) {
-                // Log to disk
+            if(!IsSynchronized()) {
                 return;
             }
-            if (PropagateToServer) {
+
+            if(!LoggedIn()) {
+                byte[] logEvent = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Deleted,
+                    path);
+                storeEventOffline(JCDSynchronizationEventType.Deleted, logEvent);
+            }
+            else {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", vfs.GetId(), path);
                 SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
         internal void InformServerFileMoved(string oldPath, string newPath) {
-            if (!(LoggedIn() && IsSynchronized())) {
-                // Log to disk
+            if(!IsSynchronized()) {
                 return;
             }
-            if (PropagateToServer) {
+
+            if(!LoggedIn()) {
+                byte[] logEvent = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Moved,
+                    oldPath, newPath);
+                storeEventOffline(JCDSynchronizationEventType.Moved, logEvent);
+            }
+            else {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", vfs.GetId(), oldPath, newPath);
                 SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
         internal void InformServerFileModified(string path, long offset, byte[] data) {
-            if (!(LoggedIn() && IsSynchronized())) {
-                // Log to disk
+            if(!IsSynchronized()) {
                 return;
             }
-            if (PropagateToServer) {
+
+            if(!LoggedIn()) {
+                byte[] logEvent = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Modified,
+                    path, offset, data);
+                storeEventOffline(JCDSynchronizationEventType.Modified, logEvent);
+            }
+            else {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileModified", vfs.GetId(), path, offset, data);
                 SetCurrentVersionId((long)reply.Data[0]);
             }
         }
 
         internal void InformServerFileResized(string path, long newSize) {
-            if (!(LoggedIn() && IsSynchronized())) {
-                // Log to disk
+            if(!IsSynchronized()) {
                 return;
             }
-            if (PropagateToServer) {
+
+            if(!LoggedIn()) {
+                byte[] logEvent = JCDSynchronizerSerialization.Serialize(JCDSynchronizationEventType.Resized,
+                    path, newSize);
+                storeEventOffline(JCDSynchronizationEventType.Resized, logEvent);
+            }
+            else {
                 var reply = HubInvoke<JCDSynchronizerReply>("FileResized", vfs.GetId(), path, newSize);
                 SetCurrentVersionId((long)reply.Data[0]);
             }
@@ -143,27 +273,30 @@ namespace vfs.synchronizer.client
 
             var jarr = (JObject) res.Data[0];
             // No changes since last log in.
-            if (jarr == null) {
-                return;
-            }
-            var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
-            if(changes != null && changes.Item2.Count > 0) {
-                lock(this.vfs) {
-                    vfs.Close();
-                    try {
-                        JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+            if(jarr != null) {
+                var changes = jarr.ToObject<Tuple<long, List<Tuple<int, byte[]>>>>();
+                if(changes != null && changes.Item2.Count > 0) {
+                    lock(this.vfs) {
+                        vfs.Close();
+                        try {
+                            JCDSynchronizerChangeExecutor.Execute(hfsPath, changes.Item2);
+                        }
+                        catch(FileAlreadyExistsException e) {
+                            throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                        }
+                        catch(vfs.exceptions.FileNotFoundException e) {
+                            throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
+                        }
+                        vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
+                        SubscribeToEvents(vfs);
+                        vfs.SetCurrentVersionId(changes.Item1);
                     }
-                    catch (FileAlreadyExistsException e) {
-                        throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
-                    }
-                    catch (vfs.exceptions.FileNotFoundException e) {
-                        throw new VFSSynchronizationServerException("Failed to fetch files: " + e.Message, e);
-                    }
-                    vfs = (IJCDBasicVFS) IJCDBasicTypeCallStaticMethod(vfsType, "Open", new object[] { hfsPath });
-                    SubscribeToEvents(vfs);
-                    vfs.SetCurrentVersionId(changes.Item1);
                 }
             }
+
+            commitOfflinesEvents();
+
+            disconnectOfflineStorage();
         }
 
         public static void Register(string username, string password) {
@@ -248,6 +381,8 @@ namespace vfs.synchronizer.client
             if (result.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new Exception("Error logging out: " + result.Message);
             }
+
+            connectOfflineStorage();
         }
 
         private JCDVFSSynchronizer(IJCDBasicVFS vfs, Type vfsType, string path) {
@@ -255,6 +390,7 @@ namespace vfs.synchronizer.client
             this.vfsType = vfsType;
             this.hfsPath = path;
 
+            connectOfflineStorage();
             SubscribeToEvents(vfs);
         }
 
@@ -290,6 +426,10 @@ namespace vfs.synchronizer.client
 
         }
 
+        public void Dispose() {
+            Close();
+        }
+
         /// <summary>
         /// Unmount a mounted VFS.
         /// </summary>
@@ -297,6 +437,7 @@ namespace vfs.synchronizer.client
         public void Close() {
             lock (this.vfs) {
                 LogOut();
+                disconnectOfflineStorage();
                 vfs.Close();
             }
         }

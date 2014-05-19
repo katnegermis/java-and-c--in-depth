@@ -88,31 +88,31 @@ namespace vfs.synchronizer.common
                 case JCDSynchronizationEventType.Added:
                     if (args != NumArgs(typeof(AddFileEventHandler)))
                     {
-                        throw new SerializationException("Incorret number of args for this type!");
+                        throw new SerializationException("Incorrect number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Deleted:
                     if (args != NumArgs(typeof(DeleteFileEventHandler)))
                     {
-                        throw new SerializationException("Incorret number of args for this type!");
+                        throw new SerializationException("Incorrect number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Modified:
                     if (args != NumArgs(typeof(ModifyFileEventHandler)))
                     {
-                        throw new SerializationException("Incorret number of args for this type!");
+                        throw new SerializationException("Incorrect number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Moved:
                     if (args != NumArgs(typeof(MoveFileEventHandler)))
                     {
-                        throw new SerializationException("Incorret number of args for this type!");
+                        throw new SerializationException("Incorrect number of args for this type!");
                     }
                     break;
                 case JCDSynchronizationEventType.Resized:
                     if (args != NumArgs(typeof(ResizeFileEventHandler)))
                     {
-                        throw new SerializationException("Incorret number of args for this type!");
+                        throw new SerializationException("Incorrect number of args for this type!");
                     }
                     break;
             }
