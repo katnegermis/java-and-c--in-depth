@@ -64,9 +64,13 @@ namespace vfs.synchronizer.client
 
         private void disconnectOfflineStorage() {
             if(offlineStorage != null) {
-                offlineStorage.Close();
-                offlineStorage.Dispose();
-                offlineStorage = null;
+                try {
+                    offlineStorage.Close();
+                    offlineStorage.Dispose();
+                }
+                finally {
+                    offlineStorage = null;
+                }
             }
         }
 
@@ -294,11 +298,9 @@ namespace vfs.synchronizer.client
                         }
                     }
                 }
-
-                commitOfflinesEvents();
-
-                disconnectOfflineStorage();
             }
+
+            commitOfflinesEvents();
         }
 
         public static void Register(string username, string password) {
@@ -383,8 +385,6 @@ namespace vfs.synchronizer.client
             if (result.StatusCode != JCDSynchronizerStatusCode.OK) {
                 throw new Exception("Error logging out: " + result.Message);
             }
-
-            connectOfflineStorage();
         }
 
         private JCDVFSSynchronizer(IJCDBasicVFS vfs, Type vfsType, string path) {
