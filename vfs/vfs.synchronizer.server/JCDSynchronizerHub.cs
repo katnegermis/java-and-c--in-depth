@@ -265,31 +265,31 @@ namespace vfs.synchronizer.server
             var path = (string)args[0];
             var size = (long)args[1];
             var isFolder = (bool)args[2];
-            Clients.Group(group, context.ConnectionId).FileAdded(path, size, isFolder);
+            Clients.OthersInGroup(group).FileAdded(path, size, isFolder);
         }
 
         private void ClientFileModified(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
             long offset = (long)args[1];
             byte[] data = (byte[])args[2];
-            Clients.Group(group, context.ConnectionId).FileModified(path, offset, data);
+            Clients.OthersInGroup(group).FileModified(path, offset, data);
         }
 
         private void ClientFileResized(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
             long newSize = (long)args[1];
-            Clients.Group(group, context.ConnectionId).FileResized(path, newSize);
+            Clients.OthersInGroup(group).FileResized(path, newSize);
         }
 
         private void ClientFileMoved(HubCallerContext context, string group, object[] args) {
             string oldPath = (string)args[0];
             string newPath = (string)args[1];
-            Clients.Group(group, context.ConnectionId).FileMoved(oldPath, newPath);
+            Clients.OthersInGroup(group).FileMoved(oldPath, newPath);
         }
 
         private void ClientFileDeleted(HubCallerContext context, string group, object[] args) {
             string path = (string)args[0];
-            Clients.Group(group, context.ConnectionId).FileDeleted(path);
+            Clients.OthersInGroup(group).FileDeleted(path);
         }
     }
 }

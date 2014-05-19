@@ -231,16 +231,14 @@ namespace vfs.core.tests {
             // Test
             // Make sure that the old files can't be found.
             for (int i = 0; i < numFiles; i += 1) {
-                var noFiles = vfs.Search(files[i], true);
-                Assert.AreEqual(0, noFiles.Length);
-            }
+                var tmpFileName = Helpers.PathGetFileName(files[i]);
+                var foundFilesPaths = vfs.Search(tmpFileName, true);
 
-            // Make sure that the new files are found.
-            for (int i = 0; i < numFiles; i += 1) {
-                var newFileName = Helpers.PathGetFileName(newFiles[i]);
-                var oneFile = vfs.Search(newFileName, true);
-                Assert.AreEqual(1, oneFile.Length);
-                Assert.AreEqual(newFiles[i], oneFile[0]);
+                // Make sure that only one file is found.
+                Assert.AreEqual(1, foundFilesPaths.Length);
+
+                // Make sure that file has the new path.
+                Assert.AreNotEqual(files[i], foundFilesPaths[0]);
             }
             CloseJCDFAT(vfs, testName);
         }
@@ -301,17 +299,15 @@ namespace vfs.core.tests {
             }
 
             // Test
-            // Make sure that the old files can't be found.
             for (int i = 0; i < numFiles; i += 1) {
-                var noFiles = vfs.Search(files[i], true);
-                Assert.AreEqual(0, noFiles.Length);
-            }
+                var tmpFileName = Helpers.PathGetFileName(files[i]);
+                var foundFilesPaths = vfs.Search(tmpFileName, true);
 
-            // Make sure that the new files are found.
-            for (int i = 0; i < numFiles; i += 1) {
-                var oneFile = vfs.Search(fileName + i, true);
-                Assert.AreEqual(1, oneFile.Length);
-                Assert.AreEqual(newFiles[i], oneFile[0]);
+                // Make sure that only one file is found.
+                Assert.AreEqual(1, foundFilesPaths.Length);
+
+                // Make sure that file has the new path.
+                Assert.AreNotEqual(files[i], foundFilesPaths[0]);
             }
             CloseJCDFAT(vfs, testName);
         }

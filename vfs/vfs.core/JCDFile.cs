@@ -93,9 +93,6 @@ namespace vfs.core {
                 
                 // Update file index
                 container.OnFileMoved(oldPath, Path);
-                if (IsFolder) {
-                    ((JCDFolder)this).UpdateChildrenPaths();
-                }
             }
         }
 

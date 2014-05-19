@@ -687,8 +687,18 @@ namespace vfs.core
             };
 
             FileMoved += (oldPath, newPath) => {
-                fileIndex.Rename(oldPath, newPath);
+                var file = GetFile(newPath);
+                if (file.IsFolder) {
+                    UpdateChildrenPathsRecursive((JCDFolder)file);
+                }
             };
+        }
+
+        private void UpdateChildrenPathsRecursive(JCDFolder folder) {
+            foreach (var file in folder.GetFileEntries()) {
+                var oldPath = file.Path;
+                fileIndex.Rename(oldPath, Helpers.PathCombine(folder.Path, file.Name));
+            }
         }
 
         /// <summary>
@@ -1227,10 +1237,6 @@ namespace vfs.core
 
             // Trigger FileMoved event.
             OnFileMoved(fromFile.Path, toFile.Path);
-            // Update the path of sub-files, if moved file is a folder.
-            if (toFile.IsFolder) {
-                ((JCDFolder)toFile).UpdateChildrenPaths();
-            }
 
             // Delete original file.
             fromFile.DeleteEntry();

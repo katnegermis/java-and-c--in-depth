@@ -33,6 +33,8 @@ namespace vfs.synchronizer.client
         public event ModifyFileEventHandler FileModified;
         public event ResizeFileEventHandler FileResized;
 
+        private bool PropagateToServer = true;
+
         internal void OnFileAdded(string path, long size, bool isFolder) {
             var handler = FileAdded;
             if (handler != null) {
@@ -74,7 +76,9 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", vfs.GetId(), path, size, isFolder);
+            if (PropagateToServer) {
+                var reply = HubInvoke<JCDSynchronizerReply>("FileAdded", vfs.GetId(), path, size, isFolder);
+            }
         }
 
         internal void InformServerFileDeleted(string path) {
@@ -82,7 +86,9 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", vfs.GetId(), path);
+            if (PropagateToServer) {
+                var reply = HubInvoke<JCDSynchronizerReply>("FileDeleted", vfs.GetId(), path);
+            }
         }
 
         internal void InformServerFileMoved(string oldPath, string newPath) {
@@ -90,7 +96,9 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", vfs.GetId(), oldPath, newPath);
+            if (PropagateToServer) {
+                var reply = HubInvoke<JCDSynchronizerReply>("FileMoved", vfs.GetId(), oldPath, newPath);
+            }
         }
 
         internal void InformServerFileModified(string path, long offset, byte[] data) {
@@ -98,7 +106,9 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileModified", vfs.GetId(), path, offset, data);
+            if (PropagateToServer) {
+                var reply = HubInvoke<JCDSynchronizerReply>("FileModified", vfs.GetId(), path, offset, data);
+            }
         }
 
         internal void InformServerFileResized(string path, long newSize) {
@@ -106,7 +116,9 @@ namespace vfs.synchronizer.client
                 // Log to disk
                 return;
             }
-            var reply = HubInvoke<JCDSynchronizerReply>("FileResized", vfs.GetId(), path, newSize);
+            if (PropagateToServer) {
+                var reply = HubInvoke<JCDSynchronizerReply>("FileResized", vfs.GetId(), path, newSize);
+            }
         }
 
         public void LogIn(string username, string password) {
@@ -540,40 +552,50 @@ namespace vfs.synchronizer.client
 
             // The point of these functions is that they should implement 
             // vfs.synchronizer.common.ISynchronizerClient.
-            hub.On<string, bool>("FileAdded", (path, isFolder) => {
+            hub.On<string, long, bool>("FileAdded", (path, size, isFolder) => {
                 Console.WriteLine("Server called FileAdded");
+                PropagateToServer = false;
                 if (isFolder) {
                     vfs.CreateDirectory(path, false);
                 }
                 else {
-                    vfs.CreateFile(path, 0, false);
+                    vfs.CreateFile(path, (ulong)size, false);
                 }
+                PropagateToServer = true;
             });
 
             hub.On<string, long, byte[]>("FileModified", (path, offset, data) => {
                 Console.WriteLine("Server called FileModified");
+                PropagateToServer = false;
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.Seek(offset, System.IO.SeekOrigin.Begin);
-                    stream.Write(data, 0, 0);
+                    stream.Write(data, 0, data.Length);
                 }
+                PropagateToServer = true;
             });
 
             hub.On<string, long>("FileResized", (path, size) => {
                 Console.WriteLine("Server called FileResized");
+                PropagateToServer = false;
                 using(var stream = vfs.GetFileStream(path)) {
                     stream.SetLength(size);
                 }
+                PropagateToServer = true;
             });
 
             hub.On<string>("FileDeleted", path => {
                 Console.WriteLine("Server called FileDeleted");
+                PropagateToServer = false;
                 var details = vfs.GetFileDetails(path);
                 vfs.DeleteFile(path, details.IsFolder);
+                PropagateToServer = true;
             });
 
             hub.On<string, string>("FileMoved", (oldPath, newPath) => {
                 Console.WriteLine("Server called FileMoved");
+                PropagateToServer = false;
                 vfs.MoveFile(oldPath, newPath);
+                PropagateToServer = true;
             });
         }
 

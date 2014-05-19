@@ -201,25 +201,6 @@ namespace vfs.core {
         }
 
         /// <summary>
-        /// Update the path of all children. Used when a folder is moved.
-        /// </summary>
-        /// <param name="fileIndex"></param>
-        internal void UpdateChildrenPaths() {
-            UpdateChildrenPathsRecursive(this);   
-        }
-
-        private void UpdateChildrenPathsRecursive(JCDFolder folder) {
-            foreach (var file in folder.GetFileEntries()) {
-                var oldPath = file.Path;
-                file.SetDirectoryPath(folder.Path);
-                container.OnFileMoved(oldPath, file.Path);
-                if (file.IsFolder) {
-                    UpdateChildrenPathsRecursive((JCDFolder)file);
-                }
-            }
-        }
-
-        /// <summary>
         /// Delete dir entry from folder structure.
         /// </summary>
         /// <param name="index"></param>
