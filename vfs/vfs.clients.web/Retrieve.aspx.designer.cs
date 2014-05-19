@@ -22,6 +22,42 @@ namespace vfs.clients.web {
         protected global::System.Web.UI.WebControls.GridView retrieveView;
         
         /// <summary>
+        /// downloadButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button downloadButton;
+        
+        /// <summary>
+        /// serverPath control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox serverPath;
+        
+        /// <summary>
+        /// serverSaveButton control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button serverSaveButton;
+        
+        /// <summary>
+        /// statusText control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label statusText;
+        
+        /// <summary>
         /// Master property.
         /// </summary>
         /// <remarks>
