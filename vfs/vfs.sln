@@ -30,8 +30,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.server", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vfs.synchronizer.common", "vfs.synchronizer.common\vfs.synchronizer.common.csproj", "{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupRadioButton", "vfs.clients.web\GroupRadioButton\GroupRadioButton.csproj", "{A25C53BE-642D-42CE-B104-595C43707C91}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,10 +84,6 @@ Global
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47A95FB7-FB8A-40DD-9F89-CC51C9F52A4E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A25C53BE-642D-42CE-B104-595C43707C91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A25C53BE-642D-42CE-B104-595C43707C91}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A25C53BE-642D-42CE-B104-595C43707C91}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A25C53BE-642D-42CE-B104-595C43707C91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

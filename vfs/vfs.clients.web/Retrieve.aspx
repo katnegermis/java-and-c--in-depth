@@ -1,15 +1,12 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Retrieve.aspx.cs" Inherits="vfs.clients.web.Retrieve" %>
 <%@ MasterType virtualpath="~/Site.Master" %>
 
-<%@ Register TagPrefix="vs" Namespace="Vladsm.Web.UI.WebControls" Assembly="GroupRadioButton" %>
-
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
 
     <asp:GridView ID="retrieveView" AutoGenerateColumns="False" Font-Size="Larger" runat="server">
         <Columns>
             <asp:TemplateField>
                 <ItemTemplate>
-                    <%--<vs:GroupRadioButton ID="selectButton" GroupName="selectButton" runat="server" TabIndex="1" OnClick="selectMe"></vs:GroupRadioButton>--%>
                     <input type="radio" name='VFSid' value='<%# Eval("Item1") %>' />
                     <asp:HiddenField ID="VFSidComp" Value='<%# Eval("Item1") %>' runat="server" />
                 </ItemTemplate>

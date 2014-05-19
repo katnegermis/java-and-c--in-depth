@@ -67,7 +67,7 @@ namespace Vladsm.Web.UI.WebControls
 			{
 				if(onClick != null)
 					onClick = String.Empty;
-                onClick += Page.ClientScript.GetPostBackEventReference(this, String.Empty);
+				onClick += Page.GetPostBackClientEvent(this, String.Empty);
 				htw.AddAttribute(HtmlTextWriterAttribute.Onclick, onClick);
 				htw.AddAttribute("language", "javascript");
 			}
