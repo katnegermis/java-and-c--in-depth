@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using vfs.common;
-using vfs.core;
 
 namespace vfs.core.indexing {
     [Serializable()]
     public class IndexedFile {
-        // Name isn't _really_ necessary since we use it as key.
         public string Name;
         public string Path;
 

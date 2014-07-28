@@ -5,6 +5,10 @@ using System.Linq;
 using vfs.common;
 
 namespace vfs.core.indexing {
+    /// <summary>
+    /// A file system index implemented using a bplus tree.
+    /// This class internally uses bplusdotnet's implementation of bplus trees (http://bplusdotnet.sourceforge.net/).
+    /// </summary>
     public class FileIndex : IDisposable {
         const int KEY_LENGTH = 256;
         private SerializedTree stree;
@@ -71,7 +75,6 @@ namespace vfs.core.indexing {
         }
 
         public void Put(string path) {
-            var fileName = Helpers.PathGetFileName(path);
             Put(new IndexedFile(path));
         }
 
@@ -92,16 +95,17 @@ namespace vfs.core.indexing {
             }
 
             // Value didn't already exist, add it.
+            // This loop can (read: will) be the cause of bad performance as it's
+            // O(n) when many files have the same name. To decrease the amount of
+            // memory copies _greatly_ when many files by the same name are added,
+            // we could use the array doubling algorithm (geometric expansion).
             var newArr = new IndexedFile[arr.Length + 1];
-            for (int i = 0; i < arr.Length; i += 1) {
-                newArr[i] = arr[i];
-            }
+            arr.CopyTo(newArr, 0);
             newArr[arr.Length] = f;
             stree.Set(f.Name, newArr);
         }
 
         public void Rename(string oldPath, string newPath) {
-            var oldName = Helpers.PathGetFileName(oldPath);
             Rename(new IndexedFile(oldPath), newPath);
         }
 
@@ -111,7 +115,6 @@ namespace vfs.core.indexing {
         }
 
         public void Remove(string path) {
-            var fileName = Helpers.PathGetFileName(path);
             Remove(new IndexedFile(path));
         }
 
@@ -143,6 +146,8 @@ namespace vfs.core.indexing {
         /// </summary>
         public void Close() {
             this.stree.Commit();
+
+            // Closes internally used files.
             this.stree.Shutdown();
         }
     }

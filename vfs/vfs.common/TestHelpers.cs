@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,12 @@ namespace vfs.common {
                 }
                 catch (System.IO.FileNotFoundException) { }
             }
+        }
+
+        public static string GetOwnFunctionName() {
+            StackFrame frame = new StackFrame(1);
+            var method = frame.GetMethod();
+            return method.Name;
         }
 
         public static byte[] GenerateRandomData(int size) {

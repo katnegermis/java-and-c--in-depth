@@ -1,12 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Text;
-using vfs.core.indexing;
 using vfs.common;
-using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 
 namespace vfs.core.indexing.tests {
@@ -18,7 +13,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestSingleFileInsertion() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var path = "/path/file";
             var fileName = Helpers.PathGetFileName(path);
@@ -33,7 +28,7 @@ namespace vfs.core.indexing.tests {
         [ExpectedException(typeof(FileAlreadyIndexedException), "A file can't be added twice.")]
         public void TestDuplicateFileInsertion() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var file = new IndexedFile("/path/file");
             fileIndex.Put(file);
@@ -46,7 +41,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMultipleFileInsertionOneFileName() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             string fileName = "file";
             var files = GenerateFilesArray(5, fileName, true);
@@ -63,7 +58,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMultipleFileInsertionMultipleFileNames() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var files = GenerateFilesArray(5, "file", false);
             foreach (var file in files) {
@@ -86,7 +81,7 @@ namespace vfs.core.indexing.tests {
 
         [TestMethod]
         public void TestSingleFileRetrieval() {
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             fileIndex.Put(new IndexedFile("/var/file"));
             var vals = fileIndex.Get("file", true);
@@ -97,7 +92,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestNonExistentFile() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
 
             /// Test
@@ -109,7 +104,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMultipleFileRetrieval() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             var files = GenerateFilesArray(5, fileName, true);
@@ -118,7 +113,7 @@ namespace vfs.core.indexing.tests {
             }
 
             /// Test
-            var vals = fileIndex.Get("file", true);
+            var vals = fileIndex.Get(fileName, true);
             Assert.IsTrue(FilesAreAllThere(files, vals));
             CleanUp(fileIndex, testName);
         }
@@ -126,7 +121,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestRemoveNonExistentFile() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var file = new IndexedFile("/path/file");
             var file2 = new IndexedFile("/path/file2");
@@ -142,7 +137,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestSingleFileSingleRemoval() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var file = new IndexedFile("/path/file");
             fileIndex.Put(file);
@@ -157,7 +152,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMultipleFilesSingleRemoval() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             var files = GenerateFilesArray(5, fileName, true);
@@ -187,7 +182,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMultipleFilesMultipleRemoval() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             var files = GenerateFilesArray(5, fileName, true);
@@ -197,8 +192,6 @@ namespace vfs.core.indexing.tests {
             }
 
             // Remove files from `index` and `files`.
-            // The files removed will be those with paths `/var/file{1,3,5}`
-            // because indexes in `files` are "refreshed" in each run.
             var indexes = new int[] { 0, 1, 2 };
             foreach (var index in indexes) {
                 var file = files[index];
@@ -223,7 +216,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestMassiveMultipleFilesMultipleRemoval() {
             /// Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             int numFiles = 10000;
@@ -258,7 +251,7 @@ namespace vfs.core.indexing.tests {
 
         [TestMethod]
         public void TestCreateAndReopenFile() {
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             fileIndex.Close();
             fileIndex = ReopenIndex(testName);
@@ -268,7 +261,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestCreateAndReopenFileAndReadIndex() {
             // Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var f1 = new IndexedFile("/var/file");
             fileIndex.Put(f1);
@@ -285,7 +278,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestCreateAndReopenFileAndReadManyIndexes() {
             // Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             var files = GenerateFilesArray(50, fileName, false);
@@ -307,7 +300,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestCreateAndReopenFileAndReadManyIndexesSameName() {
             // Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var fileName = "file";
             var files = GenerateFilesArray(50, fileName, true);
@@ -329,7 +322,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestCaseInsensitive() {
             // Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var file = new IndexedFile("/path/CaSeInSenSiTiVe");
             fileIndex.Put(file);
@@ -347,7 +340,7 @@ namespace vfs.core.indexing.tests {
         [TestMethod]
         public void TestCaseSensitive() {
             // Set up
-            var testName = MethodBase.GetCurrentMethod().Name;
+            var testName = TestHelpers.GetOwnFunctionName();
             var fileIndex = GetIndex(testName);
             var file = new IndexedFile("/path/CaSeSenSiTiVe");
             fileIndex.Put(file);
